@@ -14,6 +14,7 @@ vývoj nástrojů v projektu motw-tools.
 | [05-bojovy-system.md](05-bojovy-system.md) | Boj, zbraně, dosah, 24 štítků, magie |
 | [06-vedeni-hry.md](06-vedeni-hry.md) | Agenda, principy, tahy Strážce, oblouky, spojenci |
 | [07-rozsireni.md](07-rozsireni.md) | Tome of Mysteries, bonusové playbooky, předpřipravené záhady |
+| [08-selhani-a-reakce.md](08-selhani-a-reakce.md) | Selhání (6-) u každého tahu, měkké/tvrdé tahy, chyby Strážců |
 
 ## Stav pokrytí
 
@@ -26,6 +27,7 @@ vývoj nástrojů v projektu motw-tools.
 | Bojový systém a zbraně | ✅ Kompletní |
 | Magie (standardní + vysoká) | ✅ Kompletní |
 | Vedení hry (agenda, principy) | ✅ Kompletní |
+| Selhání a reakce Strážce | ✅ Kompletní (detailní rozbor každého tahu) |
 | Příběhové oblouky | ✅ Základní |
 | Bonusové playbooky (11) | ⏳ Pouze seznam |
 | Tome of Mysteries | ⏳ Pouze zmínka |
