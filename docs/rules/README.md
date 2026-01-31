@@ -33,7 +33,7 @@ vývoj nástrojů v projektu motw-tools.
 | Hraniční případy a scénáře | ✅ Kompletní (zbroj, hold, překvapení, honičky) |
 | Pokročilé vedení hry | ✅ Kompletní (NPC, atmosféra, finální střet, pozornost) |
 | Příběhové oblouky | ✅ Základní |
-| Bonusové playbooky (11) | ⏳ Pouze seznam |
+| Bonusové playbooky (11) | ✅ Koncepty, mechanismy, pravidla zařazení |
 | Tome of Mysteries | ⏳ Pouze zmínka |
 | Záhady z komunity | ⏳ Prázdné |
 

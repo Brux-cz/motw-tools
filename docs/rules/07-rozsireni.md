@@ -15,21 +15,64 @@ Hlavní rozšíření. Přidává:
 
 ## Bonusové playbooky (11)
 
-Dostupné na webu vydavatele (Evil Hat Productions / Generic Games):
+Dostupné na webu vydavatele (Evil Hat Productions / Generic Games). Oproti základním 12 jsou **specifičtější**, často odkazují na konkrétní popkulturní vzory a mohou mít komplexnější subsystémy.
 
-1. Bojovnice
-2. Čmuchal
-3. Nimrod
-4. Podržtaška
-5. Stvořenec
-6. Šílený vědec
-7. Tvrďák
-8. Vědec dobrodruh
-9. Všetečné dítě
-10. Vyhnankyně
-11. Zplozenec pekel
+**Pravidla pro zařazení:**
+- Platí stejné pravidlo unikátnosti — v týmu jen jeden od každého typu
+- Atributy při tvorbě odpovídají standardu (součet +3), pokud playbook nemá specifický tah
+- Strážce má právo omezit výběr příruček (zejména u prvního sezení)
+- **Začátečníci:** Doporučeno omezit na základních 12, aby se nováčci nezahltili
+- **Zkušení:** Bonusové playbooky osvěží hru po prozkoumání základních archetypů
 
-> TODO: Doplnit detaily jednotlivých bonusových playbooků
+### 1. Bojovnice (The Luchador)
+- **Koncept:** Wrestlerka v hrdinské masce
+- **Zaměření:** Ochrana nevinných fyzickou silou a wrestlingovými technikami
+
+### 2. Čmuchal (The Snoop)
+- **Koncept:** Investigativní novinář
+- **Zaměření:** Získávání informací a hledání skryté pravdy
+- **Poznámka:** Záměrně popsán jako „mizerný bojovník"
+
+### 3. Nimrod (The Searcher)
+- **Koncept:** Adrenalinový lovec
+- **Zaměření:** Honba za adrenalinem a expertní znalost lovu (ne primárně ochrana)
+
+### 4. Podržtaška (The Sidekick)
+- **Koncept:** Pomocník a učeň jiného lovce
+- **Zaměření:** Vázán na jiného člena týmu, kterého uctívá a pomáhá mu
+- **Unikátní mechanismus:** Tahy pro učení se od ostatních lovců, získávání zkušeností skrze jejich úspěchy
+
+### 5. Stvořenec (The Constructed)
+- **Koncept:** Uměle vytvořená bytost (inspirace Frankensteinovo monstrum)
+- **Zaměření:** Osvobozená z područí stvořitele
+- **Unikátní mechanismus:** Mechanismus „vylepšování"
+
+### 6. Šílený vědec (The Mad Scientist)
+- **Koncept:** Vědec napravující své dřívější chyby
+- **Zaměření:** Vědecká genialita, která se dříve vymkla kontrole, nyní slouží dobru
+- **Unikátní mechanismus:** Tahy pro vytváření prapodivných udělátek (nahrazení magie vědou)
+
+### 7. Tvrďák (The Hard Case)
+- **Koncept:** Nezdolný rváč a bitkař
+
+### 8. Vědec dobrodruh (The Action Scientist)
+- **Koncept:** Vědecký expert v akci (inspirace komiks *Atomic Robo*)
+- **Zaměření:** Kombinace intelektu s akčním přístupem
+- **Unikátní mechanismus:** Technologické gadgety a udělátka
+
+### 9. Všetečné dítě (The Meddling Kid)
+- **Koncept:** Mladý řešitel záhad (archetyp *Scooby-Doo*)
+- **Zaměření:** Dětská/mladistvá zvídavost
+
+### 10. Vyhnankyně (The Exile)
+- **Koncept:** Lovec přenesený z minulosti do přítomnosti
+- **Zaměření:** Anachronismus — staré lovecké techniky v moderním světě
+- **Unikátní mechanismus:** Znalosti zapomenutých příšer a archaických metod lovu
+
+### 11. Zplozenec pekel (The Summoned)
+- **Koncept:** Bytost určená k apokalypse, která se vzepřela osudu (inspirace *Hellboy*)
+- **Zaměření:** Obrovská nadpřirozená moc, houževnatost, nebezpečí ztráty kontroly
+- **Unikátní mechanismus:** Extrémní odolnost a apokalyptické schopnosti
 
 ## Předpřipravené záhady z pravidel
 
