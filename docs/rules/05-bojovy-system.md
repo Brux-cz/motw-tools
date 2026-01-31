@@ -1,7 +1,7 @@
 # Bojový systém a zbraně
 
 > Zdroj: oficiální pravidla + NotebookLM analýza.
-> Poslední aktualizace: 2026-01-31
+> Poslední aktualizace: 2026-01-31 (v2 — příklad boje, magie v praxi)
 
 ---
 
@@ -49,6 +49,25 @@
 | Vyvážená | Balanced | Snadno se s ní ohání |
 | Znehybňující | Restraining | Spoutá či polapí oběť |
 
+## Příklad boje krok za krokem
+
+*Situace: 3 lovci (Mstitel Mark, Poděs Cray, Madam Paranoia) vs. Upír Lucius
+a 2 vlkodlačí surovci.*
+
+1. **Iniciativa:** Strážce určí pořadí podle logiky — Mark s puškou pálí první
+2. **Výměna zranění:** Mark hází Dej přes hubu na Upíra → 10+.
+   Upír utrží 3 zranění (brokovnice). Mark utrží 2 (drápy) — vybral efekt
+   „utržíš o 1 méně"
+3. **Hrozby jednají:** Vlkodlaci se vrhnou na Craye. Cray hází Jednej pod
+   tlakem → 6- (selhání). Tvrdý tah: „Vlkodlak tě srazil a zakousl se ti
+   do nohy za 3 zranění."
+4. **Ústup:** Madam Paranoia hází Jednej pod tlakem, aby odtáhla zraněného
+   Craye k dodávce
+5. **Finální zabití:** Lovci se vrátí připravení. Mark má dřevěný kůl (slabina).
+   Dokud kůl není použit, upír se regeneruje nebo unikne jako mlha
+
+---
+
 ## Zbraně lovců
 
 Výběr je určen playbookem. Definovány pomocí štítků:
@@ -82,3 +101,11 @@ Pro efekty přesahující standardní tah (vzkříšení, portály...).
 - Lovec sdělí záměr → Strážce stanoví podmínky → splnění → efekt bez hodu
 - Možné požadavky: dlouhé studium, vzácné přísady, hodiny zaklínání,
   pomoc mnoha lidí, konkrétní místo/čas, vedlejší účinky
+
+### Příklad magie v praxi
+
+1. **Záměr:** Cray chce uvěznit upíra
+2. **Popis:** „Upřeně se na něj podívám a stahuji ho silou mysli k zemi"
+3. **Požadavky Strážce:** „Vyžaduje 30 sekund soustředění a symbol ve vzduchu"
+4. **Hod:** Užij magii (+Podivínství) → 7–9
+5. **Výsledek:** Efekt „Uvěznění" + vada „Krátké trvání"

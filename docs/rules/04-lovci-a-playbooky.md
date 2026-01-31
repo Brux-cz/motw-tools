@@ -1,7 +1,7 @@
 # Lovci a playbooky (Hunters & Playbooks)
 
 > Zdroj: oficiální pravidla + NotebookLM analýza.
-> Poslední aktualizace: 2026-01-31
+> Poslední aktualizace: 2026-01-31 (v2 — kompletní výsledky tahů, léčení, štěstí v praxi)
 
 ---
 
@@ -30,28 +30,144 @@ Rozsah hodnot: -1 až +3
 | Zhodnoť situaci | Read a Bad Situation | +Bystrost | Taktická analýza nebezpečí |
 | Někoho zmanipuluj | Manipulate Someone | +Šarm | Přesvědčování NPC/lovce |
 
+## Kompletní výsledky základních tahů
+
+### Jednej pod tlakem (Act Under Pressure) — +Rozvaha
+- **10+:** Uděláš přesně to, cos chtěl
+- **7–9:** Strážce dá na výběr: horší výsledek, složitá volba nebo cena za úspěch
+- **6-:** Zvrtne se to (tvrdý tah Strážce)
+
+### Dej přes hubu (Kick Some Ass) — +Ostrost
+Představuje **výměnu úderů**, ne ojedinělý výstřel na bezbranný cíl.
+- **10+:** Vyměníte si zranění + volba extra efektu:
+  - Jsi ve výhodě (+1 na příště pro tebe/spojence)
+  - Způsobíš strašlivé zranění (+1 zranění)
+  - Utržíš menší zranění (-1 zranění)
+  - Zatlačíš protivníka tam, kde ho chceš mít
+- **7–9:** Vyměníte si zranění (ty podle zbraně, on svým útokem)
+- **6-:** Utržíš zranění, sám nepřítele nezasáhneš
+- **Důležité:** Příšeru nelze trvale zabít bez využití slabiny, i při dostatečném zranění
+
+### Někoho ochraňuj (Protect Someone) — +Ostrost
+- **10+:** Ochráníš cíl + volba extra efektu:
+  - Utržíš o 1 zranění méně
+  - Způsobíš nepříteli zranění
+  - Staneš se cílem veškerého nebezpečí
+- **7–9:** Ochráníš cíl, ale sám utržíš část/celé zranění místo něj
+- **6-:** Situaci jen zhoršíš
+- **Důležité:** Nelze chránit sám sebe — jen jinou postavu
+
+### Někomu pomoz (Help Out) — +Rozvaha
+- **10+:** Spojenec získá +1 k hodu
+- **7–9:** Spojenec získá +1, ale ty se vystavíš nebezpečí
+- **6-:** Vystavíš se nebezpečí a spojenec pomoc nezíská
+- **Načasování:** Lze použít i po hodu prvního hráče pro vylepšení výsledku
+
+### Vyšetřuj záhadu (Investigate a Mystery) — +Bystrost
+- **10+:** Získáš 2 body zásoby
+- **7–9:** Získáš 1 bod zásoby
+- **6-:** Odhalíš nechtěně informaci příšeře/NPC
+- **Otázky za body:**
+  1. Co se zde událo?
+  2. O jaký druh příšery se jedná?
+  3. Co umí?
+  4. Co ji může zranit?
+  5. Kam odešla?
+  6. Co chtěla udělat?
+  7. Co je očím skryto?
+
+### Zhodnoť situaci (Read a Bad Situation) — +Bystrost
+- **10+:** Získáš 3 body zásoby
+- **7–9:** Získáš 1 bod zásoby
+- **6-:** Špatně odhadneš nebo prozradíš info nepříteli
+- **Otázky za body:**
+  1. Jak se nejlépe dostat dovnitř?
+  2. Jak se nejlépe dostat ven?
+  3. Hrozí nám skryté nebezpečí?
+  4. Co představuje největší hrozbu?
+  5. Co je vůči mně nejzranitelnější?
+  6. Jak nejlépe ochránit oběti?
+
+### Někoho zmanipuluj (Manipulate Someone) — +Šarm
+Vyžaduje **pádný důvod** (prosba, úplatek, hrozba, lživá identita).
+
+**NPC:**
+- **10+:** Udělá to. Pokud je požadavek velký, řekne minimální cenu
+- **7–9:** Udělá to, ale chce okamžitou protislužbu
+- **6-:** Cíl lovce prokoukne, urazí se nebo se rozzlobí
+
+**Jiný lovec:**
+- **10+:** Pokud vyhoví → +1 na příště a 1 XP
+- **7–9:** Pokud vyhoví → 1 XP
+- **6-:** Manipulovaný lovec získá 1 XP pokud se rozhodne nevyhovět
+
+**Příšery:** Nelze běžně manipulovat (výjimka: Netvorův tah Temný vyjednávač)
+
+### Užij magii (Use Magic) — +Podivínství
+- **10+:** Kouzlo se povede, vyber efekt
+- **7–9:** Kouzlo se povede, ale vyber efekt + jednu vadu
+- **6-:** Ztráta kontroly nad magií
+- Efekty a vady viz soubor 05-bojovy-system.md
+
 ### Pokročilé tahy (Advanced Moves)
 
 Odemykají se po 5. úrovni. Přidávají výjimečné výsledky pro hod 12+:
 - Dej přes hubu 12+: žádné zranění NEBO dvojnásobné zranění
 - Vyšetřuj záhadu 12+: jakákoliv otázka mimo seznam
+- Někoho zmanipuluj 12+: cíl okamžitě splní rozkaz a stane se spojencem
+
+---
 
 ## Zranění (Harm)
 
-| Úroveň | Efekt |
-|---------|-------|
-| 0 | Dočasné otřesení, ztráta předmětu, -1 na příště |
-| 1–3 | Střední zranění, léčitelné první pomocí |
-| 4–7 | **Nestabilní** — bez ošetření +1 zranění časem |
-| 8+ | **Smrt** |
-
 **Kapacita lovce: 7 bodů zranění**
+
+### Tah zranění (Harm Move)
+
+Strážce při každém zranění aplikuje efekt podle závažnosti:
+
+| Úroveň | Efekty |
+|---------|--------|
+| 0 | Dočasné otřesení, ztráta předmětu, -1 na příště |
+| 1+ | Upadnutí, -1 situační, ztráta vědomí, silná bolest |
+| 4–7 | **Nestabilní** — bez ošetření Strážce přidává +1 zranění v čase |
+| 8+ | **Smrt** (lovci i NPC) |
+
+### Léčení a odpočinek
+
+| Metoda | Efekt | Poznámka |
+|--------|-------|----------|
+| **První pomoc** | Vyléčí 1 zranění | Každá rána jen jednou, nestabilizuje |
+| **Stabilizace** | Zastaví zhoršování | Vyžaduje lékaře, ošetřovnu nebo magii |
+| **Magie (Užij magii)** | Vyléčí 1 zranění, nemoc nebo jed | Standardní tah |
+| **Odpočinek mezi záhadami** | Plné vyléčení | Pokud mají čas na klid |
+| **Krátký odpočinek** | 1 zranění | Pokud nemají čas na plný klid |
+
+### Smrt lovce
+
+- Při 8+ zranění → smrt
+- **Vyvolený** může obětovat Štěstí a vstát (tah Jsem tu z jistého důvodu)
+- **Vzkříšení** vyžaduje Vysokou magii, hod 2d6 - Podivínství
+- Hráč si může vytvořit **novou postavu** okamžitě
 
 ## Štěstí (Luck)
 
 - **7 políček** (obvykle)
 - Zaškrtnutím: výsledek hodu → 12, NEBO utržené zranění → 0
 - Když dojdou: lovec je **Zatracený (Doomed)** — Strážce používá tvrdé tahy, osud se naplňuje
+
+### Štěstí v praxi
+
+- **Taktická volba:** Změna hodu na 12 pro kritický úspěch (např. u vyšetřování — všechny stopy najednou)
+- **Záchranný manévr:** Snížení smrtelného zásahu (4+) na 0
+- **Následky Zatracení:** Strážce může tvrdé tahy bez varování, naplňuje se osud dle playbooku
+
+## Vztahy mezi lovci
+
+- Definují se při startu v sekci **Společná minulost (History)**
+- Každý pár lovců má 2 vazby (jednu vybral každý hráč)
+- **Nemají pasivní bonusy** — ovlivňují narativně tahy Manipulace a Pomoci
+- Vyvíjejí se narativně; XP otázka „Dozvěděli jsme se něco o lovci?" je prohlubuje
 
 ## Levelování
 
