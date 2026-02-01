@@ -223,3 +223,61 @@ Pro efekty přesahující standardní tah (vzkříšení, portály, dimenzionál
 3. **Požadavky Strážce:** „Vyžaduje 30 sekund soustředění a symbol ve vzduchu"
 4. **Hod:** Užij magii (+Podivínství) → 7–9
 5. **Výsledek:** Efekt „Uvěznění" + vada „Krátké trvání"
+
+---
+
+## Ostatní výbava — štítky a vlastnosti
+
+U ne-zbraňového vybavení štítky primárně **otevírají nové herní možnosti** a popisují, co se s předmětem dá dělat.
+
+### Obecné štítky vybavení
+
+| Štítek | Efekt |
+|--------|-------|
+| noční vidění | Vidět a stopovat příšery i v absolutní tmě |
+| tekutinou plněná | Rozstřikuje látku, jež je slabinou příšery (vodní pistole apod.) |
+| magická | Předmět je očarovaný, může mít nadpřirozené účinky (amulet, grimoár, začarovaný oděv) |
+
+### Štítky vozidel (Vymoženosti)
+
+| Štítek | Efekt |
+|--------|-------|
+| vybavení ke sledování | Monitorování cílů a odposlech |
+| lékárnička | Stabilizace a léčení zranění |
+| obrněný | **+1 zbroj** pro všechny uvnitř vozidla |
+| prostorný | Přeprava většího počtu lidí nebo vybavení |
+| nenápadný / anonymní | Nevzbuzuje pozornost, splyne s okolím |
+| zastrašující | Vzhled pomáhá při manipulaci s lidmi |
+| bytelný | Vydrží hrubé zacházení a nárazy |
+| kufřík s nářadím | Nástroje pro opravy v terénu |
+| klec pro příšery | Bezpečný transport odchycených nadpřirozených entit |
+| skryté zbraně | Zabudované zbraňové systémy, nejsou vidět |
+| prostor na spaní | Odpočinek a léčení během cest |
+| veterán | Specifický historický model vozidla |
+
+### Vady vybavení a vozidel
+
+| Vada | Efekt |
+|------|-------|
+| hlučný | Vydává hluk, přivolává nechtěnou pozornost |
+| nápadný | Na první pohled podezřelé nebo snadno identifikovatelné |
+| vrtošivý / nespolehlivý | Vyžaduje častou údržbu, může v kritickou chvíli selhat |
+| rozbitý | Aktuálně nefunkční, vyžaduje opravu |
+| ohromná spotřeba | Náročný provoz na palivo nebo energii |
+| pomalý / starý | Omezuje rychlost pohybu nebo reakce |
+
+### Vlastnosti Útočiště (Haven)
+
+Funkční „štítky" s konkrétními herními efekty pro Expertčino útočiště:
+
+| Vlastnost | Efekt |
+|-----------|-------|
+| Knihovna tradic a legend | **+1 na příště** k Vyšetřuj záhadu (při studiu historických knih) |
+| Mystická knihovna | **+1 na příště** k Užij magii |
+| Ochranná kouzla | Lokalita chráněna proti vstupu příšer |
+| Ošetřovna | Stabilizace ran a dlouhodobé léčení |
+| Dílna | Výroba a oprava zbraní, aut a technických udělátek |
+| Tajemná skrýš | Izolovaná od duchů, příšer a magie — schované věci nelze najít |
+| Magická laboratoř | Ingredience pro sesílání kouzel a provádění Vysoké magie |
+
+> **Tahy vybavení na míru:** Pokud štítky nestačí, pravidla umožňují vytvořit pro vybavení tah na míru. Příklad: sportovní auto → „Když někomu ujíždíš nebo ho pronásleduješ, získáš +1 situační".
