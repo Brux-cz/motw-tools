@@ -27,6 +27,15 @@ generátor, referenční příručka a pomocník v jednom.
 
 ---
 
+## Herní styl a setting
+
+**Supernatural styl — americký setting.** Hra se odehrává převážně v USA,
+inspirace seriálem Supernatural (a podobnými: Buffy, X-Files). Český folklór
+a české reálie nejsou priorita — nástroje by měly generovat americká jména,
+americká města, americké reálie.
+
+---
+
 ## Proč to stavíme
 
 Příšera týdne je hra, kde:
@@ -106,13 +115,14 @@ Rychlé CLI nástroje pro přípravu hry:
 ## Co máme (stav k 2026-01-31)
 
 ### Hotovo
-- [x] Znalostní báze pravidel (`docs/rules/` — 7 souborů)
+- [x] Znalostní báze pravidel (`docs/rules/` — 13 souborů, většina oblastí ✅)
 - [x] Analýza NotebookLM integrace (`docs/notebooklm-collaboration-analysis.md`)
 - [x] Vize projektu (tento dokument)
+- [x] Česká lokalizace a slovník termínů
 
 ### Rozpracováno
 - [ ] Koncept mystery-creator nástroje (plán existuje, nezačala implementace)
-- [ ] Sběr pravidel z NotebookLM (základ hotov, chybí bonusové playbooky, Tome of Mysteries)
+- [ ] Tome of Mysteries (není v NotebookLM, potřeba jiný zdroj)
 
 ### Budoucí nápady
 - [ ] Randomizér příšer
