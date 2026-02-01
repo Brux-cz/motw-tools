@@ -1,7 +1,7 @@
 # Hrozby (Threats)
 
 > Zdroj: oficiální pravidla + NotebookLM analýza.
-> Poslední aktualizace: 2026-01-31
+> Poslední aktualizace: 2026-02-01
 
 ---
 
@@ -22,14 +22,17 @@
 | Šibal | Trickster | Vnést do všeho chaos |
 | Zploditel | Breeder | Přivést zlo na svět nebo ho stvořit |
 
-### Tvorba příšery
+### Tvorba příšery od nuly
 
-1. **Typ a motivace** — viz tabulka výše
-2. **Nadpřirozené schopnosti** — létání, neviditelnost, ovládání mysli, telekineze...
-3. **Útoky** — hodnota zranění (3–5), dosah, štítky
-4. **Zbroj** — hodnota 1–2 běžně, vyšší = velká výzva
-5. **Výdrž** — minimum 7, běžně 8–12, extrémně 14+
-6. **Slabina** — bez ní nelze příšeru trvale zabít
+Strážce musí definovat:
+
+1. **Popis** — jak příšera vypadá, jak se chová
+2. **Typ a motivace** — výběr z 12 typů (viz tabulka výše)
+3. **Nadpřirozené schopnosti** — létání, neviditelnost, ovládání mysli, telekineze...
+4. **Útoky** — hodnota zranění (3–5), dosah, štítky
+5. **Zbroj** — hodnota 1–2 běžně, vyšší = velká výzva
+6. **Výdrž** — minimum 7, běžně 8–12, extrémně 14+
+7. **Slabina** — bez ní nelze příšeru trvale zabít
 
 ### Kategorie slabin
 
@@ -50,10 +53,10 @@
 6. Tiše a prohnaně zaútočit (Attack with stealth and calculation)
 7. Rozkázat přisluhovačům provést strašné věci (Order minions to terrible deeds)
 8. Něco zničit (Destroy something)
-9. Uniknout bez ohledu na spoutání (Escape, no matter how well contained)
+9. Uniknout bez ohledu na to, jak dobře je spoutána (Escape, no matter how well contained)
 10. Pronásledovat (Pursue)
 11. Vrátit se do svého teritoria (Return to its home ground)
-12. Škodolibě se chvástat (Gloat and maybe reveal a secret)
+12. Škodolibě se chvástat a třeba i prozradit tajemství (Gloat and maybe reveal a secret)
 13. Navrátit se po zdánlivém skonu (Return from seeming death)
 14. Použít nadpřirozenou schopnost (Use a supernatural power)
 
@@ -76,17 +79,17 @@
 
 ### Tahy přisluhovačů — 11 tahů
 
-1. Náhlý záchvat nekontrolovaného násilí
-2. Koordinovaně zaútočit
-3. Někoho zajmout nebo něco ukrást
-4. Prozradit tajemství
-5. Odevzdat někoho nebo něco svému pánu
-6. Pronásledovat
-7. Vyhrožovat ve jménu svého pána
-8. Utéct
-9. Použít nadpřirozenou schopnost
-10. Ukázat záblesk svědomí nebo lidství
-11. Malicherným způsobem se vzepřít svému pánu
+1. Náhlý záchvat nekontrolovaného násilí (Burst with unprovoked violence)
+2. Koordinovaně zaútočit (Attack in concert)
+3. Někoho zajmout, nebo něco ukrást (Capture someone or steal something)
+4. Prozradit tajemství (Reveal a secret)
+5. Odevzdat někoho, nebo něco, svému pánu (Deliver someone or something to their master)
+6. Pronásledovat (Pursue)
+7. Vyhrožovat, nebo něco vyžadovat, ve jménu svého pána (Threaten or demand in their master's name)
+8. Utéct (Run away)
+9. Použít nadpřirozenou schopnost (Use a supernatural power)
+10. Ukázat záblesk svědomí, nebo lidství (Show a flicker of conscience or humanity)
+11. Malicherným způsobem se vzepřít svému pánu (Defy their master in a petty way)
 
 ---
 
@@ -106,23 +109,58 @@
 
 ### Tahy přihlížejících — 10 tahů
 
-1. Vydat se někam sám
-2. Dohadovat se s lovci
-3. Překážet
-4. Něco prozradit
-5. Přiznat se ke svým obavám
-6. Ze strachu ztratit hlavu
-7. Pokusit se pomoct lovcům
-8. Pokusit se ochránit lidi
-9. Projevit neschopnost nebo nemohoucnost
-10. Hledat pomoc nebo útěchu
+1. Vydat se někam sám (Go off alone)
+2. Dohadovat se s lovci (Argue with the hunters)
+3. Překážet (Get in the way)
+4. Něco prozradit (Reveal something)
+5. Přiznat se ke svým obavám (Confess their fears)
+6. Ze strachu ztratit hlavu (Freak out in terror)
+7. Pokusit se pomoct lovcům (Try to help the hunters)
+8. Pokusit se ochránit lidi (Try to protect people)
+9. Projevit neschopnost nebo nemohoucnost (Display inability or helplessness)
+10. Hledat pomoc nebo útěchu (Seek help or comfort)
 
 ### NPC — pravidla
 
-- Každý NPC potřebuje: jméno, stručný popis, typ a motivaci
-- Většina NPC vydrží 7 bodů zranění (jako lovci)
-- NPC se nevedou tahy lovců, ale tahy hrozby přihlížejících
-- Strážce má mít připravený seznam jmen pro náhodná NPC
+#### Tvorba NPC
+
+1. **Pojmenování** — každá postava ve světě musí mít jméno
+2. **Popis** — krátké vykreslení postavy jako obyčejného člověka
+3. **Určení typu a motivace** — výběr z 9 kategorií přihlížejících
+
+Příklady charakteristik z pravidel:
+*Ostrý, Podivínská, Knihomol, Zlý, Čestná, Mrzutá, Stoicky klidná,
+Přesná a organizovaná, Spirituální, Odhodlaná a optimistická, Teatrální.*
+
+#### Výdrž a zbroj NPC
+
+| Role | Výdrž | Zbroj |
+|------|-------|-------|
+| **Přihlížející** | 7 zranění (stejně jako lovci) | Běžně žádná; výjimky jako policejní vesta = 1-zbroj |
+| **Přisluhovači** | 5–10 zranění (výjimečně více, např. Koko = 12) | Obvykle 1-zbroj, zřídka 2+ |
+
+#### NPC v boji
+
+- NPC **neházejí kostkami** — jejich akce režíruje Strážce
+- Strážce používá tah **„Způsob zranění v souladu s pravidly"**
+- Útoky přisluhovačů se pohybují v rozmezí **1–4 zranění**
+- Strážce u NPC nemusí vést podrobné záznamy zranění — rozhoduje na základě závažnosti rány, zda je postava vyřazena nebo mrtvá
+- Používá k tomu **Tahy zranění** (Upadnutí, Ztráta vědomí, Silná bolest)
+
+#### Rozdíl mezi přisluhovači a přihlížejícími
+
+| | Přisluhovači (Minions) | Přihlížející (Bystanders) |
+|-|------------------------|---------------------------|
+| **Vztah** | Spojenci příšery, pracují **proti** lovcům | Obyčejní lidé, ztěžují situaci **neúmyslně** |
+| **Schopnosti** | Definované útoky, výdrž, často nadpřirozené | Bez bojových schopností |
+| **Motivace** | Slouží příšeře | Panika, skepticismus, byrokracie |
+
+#### Pravidla pro skupiny (davy, gangy)
+
+Pokud skupina (horda zombie, posedlé krysy, smečka) jedná jako celek:
+
+- **Útok:** Hodnota útoku se oproti jednotlivci **zvyšuje o 1**
+- **Výdrž:** Skupina má pouze **jeden společný ukazatel zranění** — utržená zranění platí pro celou skupinu jako celek, dokud není rozehnána
 
 ---
 
@@ -143,17 +181,17 @@
 
 ### Tahy lokalit — 11 tahů
 
-1. Představit hrozbu
-2. Něco odhalit
-3. Něco skrývat
-4. Zabránit v cestě
-5. Uvolnit cestu
-6. Přetvořit se
-7. Někoho polapit do pasti
-8. Navést na stopu
-9. Představit hlídače
-10. Něco tu nefunguje
-11. Navodit jedinečný dojem
+1. Představit hrozbu (Present a hazard)
+2. Něco odhalit (Reveal something)
+3. Něco skrývat (Hide something)
+4. Zabránit v cestě (Bar the way)
+5. Uvolnit cestu (Open a path)
+6. Přetvořit se (Change shape)
+7. Někoho polapit do pasti (Trap someone)
+8. Navést na stopu (Offer a clue)
+9. Představit hlídače (Present a guardian)
+10. Něco tu nefunguje (Something doesn't work right)
+11. Navodit jedinečný dojem (Create a distinct atmosphere)
 
 ---
 
@@ -166,3 +204,30 @@ Alternativa k příšeře — nadpřirozená situace bez ústředního nepříte
 - V základních pravidlech nemá formální typy (ty přidává Tome of Mysteries)
 - Používá tahy lokalit nebo tahy příšer
 - Příklady: houba ovládající mysl, smrtící choroba, paranormální úkazy
+
+---
+
+## České folklórní příšery (adaptace v pravidlech)
+
+Sekce „Pár ukázkových hrozeb z místního folklóru" (autor Daniel Vázquez Touriño):
+
+**Příšery:**
+| Bytost | Typ |
+|--------|-----|
+| Vodník | Požírač |
+| Hejkal | Mučitel |
+| Rýbrcoul / Krakonoš | Popravčí |
+| Otesánek | Požírač |
+
+**Přisluhovači:**
+| Bytost | Typ |
+|--------|-----|
+| Bludičky | Zrádce |
+| Golem | Hlídač |
+
+**Lokality:**
+| Místo | Typ |
+|-------|-----|
+| Petrovy kameny | Brána pekel |
+| Margita a Besná | Doupě |
+| Bludný kořen | Labyrint |

@@ -14,21 +14,33 @@ vývoj nástrojů v projektu motw-tools.
 | [05-bojovy-system.md](05-bojovy-system.md) | Boj, zbraně, dosah, 24 štítků, magie |
 | [06-vedeni-hry.md](06-vedeni-hry.md) | Agenda, principy, tahy Strážce, oblouky, spojenci |
 | [07-rozsireni.md](07-rozsireni.md) | Tome of Mysteries, bonusové playbooky, předpřipravené záhady |
+| [08-selhani-a-reakce.md](08-selhani-a-reakce.md) | Selhání (6-) u každého tahu, měkké/tvrdé tahy, chyby Strážců |
+| [09-hranicni-pripady.md](09-hranicni-pripady.md) | Hraniční případy: kdy který tah, zbroj, hold, překvapení, honičky |
+| [10-pokrocile-vedeni-hry.md](10-pokrocile-vedeni-hry.md) | Pokročilé vedení hry: NPC, atmosféra, pátrání, finální střet, pozornost |
+| [11-prizpusobeni-hry.md](11-prizpusobeni-hry.md) | Přizpůsobení tónu, délky kampaně, počet hráčů, session zero |
+| [12-dlouhodoba-kampan.md](12-dlouhodoba-kampan.md) | Mezi sezeními, downtime, smrt, endgame, dlouhodobé následky |
+| [13-ceska-lokalizace.md](13-ceska-lokalizace.md) | Slovník EN→CZ, vydavatel, české příšery, dostupné materiály |
 
 ## Stav pokrytí
 
 | Oblast | Status |
 |--------|--------|
 | Základy hry a průběh sezení | ✅ Kompletní |
-| Tvorba záhady | ✅ Kompletní |
+| Tvorba záhady | ✅ Kompletní (3 vzorové záhady, zárodky, změna receptury) |
 | Hrozby (všechny typy + tahy) | ✅ Kompletní |
 | Playbooky (12 základních) | ✅ Kompletní |
 | Bojový systém a zbraně | ✅ Kompletní |
 | Magie (standardní + vysoká) | ✅ Kompletní |
 | Vedení hry (agenda, principy) | ✅ Kompletní |
-| Příběhové oblouky | ✅ Základní |
-| Bonusové playbooky (11) | ⏳ Pouze seznam |
-| Tome of Mysteries | ⏳ Pouze zmínka |
+| Selhání a reakce Strážce | ✅ Kompletní (detailní rozbor každého tahu) |
+| Hraniční případy a scénáře | ✅ Kompletní (zbroj, hold, překvapení, honičky) |
+| Pokročilé vedení hry | ✅ Kompletní (NPC, atmosféra, finální střet, pozornost) |
+| Příběhové oblouky | ✅ Kompletní (šablony, odpočet, propojení, osobní příběhy) |
+| Bonusové playbooky (11) | ✅ Koncepty, mechanismy, pravidla zařazení |
+| Přizpůsobení hry a varianty | ✅ Kompletní (tón, délka, počet hráčů, session zero) |
+| Dlouhodobá kampaň a endgame | ✅ Kompletní (léčení, smrt, playbook swap, Štěstěna) |
+| Tome of Mysteries | ⏳ Pouze zmínka (není v NotebookLM) |
+| Česká lokalizace a terminologie | ✅ Kompletní (slovník, vydavatel, materiály) |
 | Záhady z komunity | ⏳ Prázdné |
 
 ## Zdroje dat
