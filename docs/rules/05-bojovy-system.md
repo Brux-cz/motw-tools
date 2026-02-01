@@ -177,18 +177,20 @@ Stavebnice — hráč konfiguruje z částí:
 
 ### Užij magii (Use Magic) — standardní tah
 
-Hod +Podivínství. Efekty:
-1. Způsobení 1-zranění (průrazné, magické)
+Hod +Podivínství. Efekty (10):
+1. Způsobení 1-zranění (průrazné, magické, do očí bijící)
 2. Očarování zbraně (+1 zranění, magická)
 3. Provedení něčeho nadlidského
-4. Zablokování/uvěznění bytosti
-5. Vyhnání ducha nebo sejmutí kletby
-6. Přivolání příšery nebo komunikace s ní
-7. Nahlédnutí do jiného času/prostoru
-8. Uzdravení 1-zranění nebo neutralizace jedu
+4. Zablokování vstupu konkrétní osobě/typu příšer na místo nebo do portálu
+5. Uvěznění konkrétní osoby, přisluhovače nebo příšery
+6. Vyhnání ducha nebo sejmutí kletby
+7. Přivolání příšery do tohoto světa
+8. Komunikace s něčím, co s tebou nesdílí jazyk
+9. Nahlédnutí do jiného času/prostoru
+10. Uzdravení 1-zranění, vyléčení nemoci nebo neutralizace jedu
 
-**Vady (7–9):** Oslabený efekt, kratší trvání, 1-zranění, přitáhne pozornost,
-problematické vedlejší účinky
+**Vady (7–9, vyber 1):** Oslabený efekt, kratší trvání, 1-zranění (průrazné),
+přitáhne nechtěnou pozornost, problematické vedlejší účinky
 
 **Podmínky Strážce:** Komponenty, čas (10s–1min), rituální zpěv, gesta,
 pomoc dalších osob
