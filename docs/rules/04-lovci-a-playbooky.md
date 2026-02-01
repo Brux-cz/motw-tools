@@ -255,7 +255,7 @@ Vyžaduje **Vysokou magii**. Hod: 2d6 - Podivínství (čím podivnější, tím
 | Mstitel | The Wronged | Hnaný osobní ztrátou | [mstitel.md](playbooky/mstitel.md) |
 | Nebeská | The Divine | Agent vyšší moci | [nebeska.md](playbooky/nebeska.md) |
 | Netvor | The Monstrous | Příšera na straně dobra | [netvor.md](playbooky/netvor.md) |
-| Normál | The Mundane | Obyčejný člověk | ⏳ |
+| Normál | The Mundane | Obyčejný člověk | [normal.md](playbooky/normal.md) |
 | Poděs | The Spooky | Temné magické schopnosti | ⏳ |
 | Profesionálka | The Professional | Agentka organizace | ⏳ |
 | Sesílač | The Spell-Slinger | Školený čaroděj | ⏳ |
