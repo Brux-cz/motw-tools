@@ -258,7 +258,7 @@ Vyžaduje **Vysokou magii**. Hod: 2d6 - Podivínství (čím podivnější, tím
 | Normál | The Mundane | Obyčejný člověk | [normal.md](playbooky/normal.md) |
 | Poděs | The Spooky | Temné magické schopnosti | [podes.md](playbooky/podes.md) |
 | Profesionálka | The Professional | Agentka organizace | [profesionalka.md](playbooky/profesionalka.md) |
-| Sesílač | The Spell-Slinger | Školený čaroděj | ⏳ |
+| Sesílač | The Spell-Slinger | Školený čaroděj | [sesilac.md](playbooky/sesilac.md) |
 | Vyvolený | The Chosen | Hrdina osudu | ⏳ |
 | Zasvěcená | The Initiate | Členka starověké sekty | ⏳ |
 
