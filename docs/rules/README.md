@@ -24,7 +24,7 @@ vývoj nástrojů v projektu motw-tools.
 | Oblast | Status |
 |--------|--------|
 | Základy hry a průběh sezení | ✅ Kompletní |
-| Tvorba záhady | ✅ Kompletní |
+| Tvorba záhady | ✅ Kompletní (3 vzorové záhady, zárodky, změna receptury) |
 | Hrozby (všechny typy + tahy) | ✅ Kompletní |
 | Playbooky (12 základních) | ✅ Kompletní |
 | Bojový systém a zbraně | ✅ Kompletní |

@@ -166,3 +166,18 @@ Alternativa k příšeře — nadpřirozená situace bez ústředního nepříte
 - V základních pravidlech nemá formální typy (ty přidává Tome of Mysteries)
 - Používá tahy lokalit nebo tahy příšer
 - Příklady: houba ovládající mysl, smrtící choroba, paranormální úkazy
+
+---
+
+## České folklórní příšery (adaptace v pravidlech)
+
+Pravidla adaptují české postavy pro použití jako příšery:
+
+| Bytost | Možný typ |
+|--------|-----------|
+| **Vodník** | Parazit / Pokušitel |
+| **Hejkal** | Bestie / Mučitel |
+| **Rýbrcoul (Krakonoš)** | Strážce / Popravčí |
+| **Otesánek** | Požírač |
+| **Bludičky** | Pokušitel / Past (lokalita) |
+| **Golem** | Bestie / Stvořenec |
