@@ -253,7 +253,7 @@ Vyžaduje **Vysokou magii**. Hod: 2d6 - Podivínství (čím podivnější, tím
 | Křivák | The Crooked | Bývalý zločinec s kontakty | [krivak.md](playbooky/krivak.md) |
 | Madam Paranoia | The Flake | Teoretička spiknutí | [madam-paranoia.md](playbooky/madam-paranoia.md) |
 | Mstitel | The Wronged | Hnaný osobní ztrátou | [mstitel.md](playbooky/mstitel.md) |
-| Nebeská | The Divine | Agent vyšší moci | ⏳ |
+| Nebeská | The Divine | Agent vyšší moci | [nebeska.md](playbooky/nebeska.md) |
 | Netvor | The Monstrous | Příšera na straně dobra | ⏳ |
 | Normál | The Mundane | Obyčejný člověk | ⏳ |
 | Poděs | The Spooky | Temné magické schopnosti | ⏳ |
