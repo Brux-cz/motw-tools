@@ -279,3 +279,43 @@ Vyžaduje **Vysokou magii**. Hod: 2d6 - Podivínství (čím podivnější, tím
 | Všetečné dítě | Dítě zapletené do nadpřirozena | ⏳ |
 | Vyhnankyně | Vyhoštěná z jiné dimenze/světa | ⏳ |
 | Zplozenec pekel | Potomek démona | ⏳ |
+
+---
+
+## Týmové koncepty (Team Concepts)
+
+Týmový koncept definuje, proč lovci spolupracují, a určuje jejich společnou historii. Pravidla nabízejí 4 vzorové koncepty (lze upravit nebo vytvořit vlastní):
+
+### 1. Přemožitel a spol. (Slayer and Co.)
+
+- **Středobod:** Vyvolený — tým existuje, aby mu pomohl naplnit osud
+- **Složení:** Mentoři (Expertka, Zasvěcená, Sesílač), přátelé (Normál, Madam Paranoia), magická podpora (Nebeská, Netvor, Poděs)
+- **Mechanické úpravy:** Výbava nebo tahy na míru podporující Vyvoleného (např. tréninkové vybavení v útočišti)
+
+### 2. Oddělení nevysvětlitelných případů (Department of Unexplained Phenomena)
+
+- **Středobod:** Profesionálka — tým je součástí větší Organizace řešící nadpřirozené případy
+- **Složení:** Vyžaduje Profesionálku. Další: Madam Paranoia, Normál, Expertka, Poděs, Mstitel, Křivák (kontakty z podsvětí)
+- **Mechanické úpravy:**
+  - **Tah na míru:** Každý lovec si může při postupu na úroveň vybrat Profesionálčin tah **Jednání s Organizací**
+  - **Speciální pravidlo:** Dokud si tah nevyberou, jsou lovci pouze externí konzultanti / najatí specialisté / stážisté
+
+### 3. Řád (The Order)
+
+- **Středobod:** Zasvěcená — vede tým, jako jediná zpočátku jedná s nadřízenými
+- **Složení:** Všichni lovci jsou členy starodávného tajného řádu. Další: Poděs, Expertka, Normál, Madam Paranoia, Křivák, Vyvolený
+- **Mechanické úpravy:**
+  - **Tah na míru:** Každý lovec si může při zvýšení úrovně vybrat tah **Se Sektou dobré vztahy**
+  - **Extra výbava:** Kdokoliv si může při tvorbě postavy vybrat místo jedné své zbraně libovolnou **staromódní zbraň** ze seznamu Zasvěcené
+
+### 4. Rodina lovců na cestách (Hunting Family)
+
+- **Středobod:** Lov příšer je rodinné řemeslo — život na cestách, zastavují se jen tam, kde je třeba něco zabít
+- **Složení:** Ideální pro Mstitele, Poděsa, Nebeskou, Expertku, Madam Paranoiu, Vyvoleného. Zasvěcená → Sekta = rodinné klany
+- **Mechanické úpravy:**
+  - **Extra výbava:** Tým potřebuje vozidlo (praktické, nenápadné nebo „bezva káru"). Pokud žádná příručka auto nenabízí, tým vozidlo **získá v rámci úpravy konceptu**
+
+### Další možnosti úprav konceptů
+
+- Přidání **mystických artefaktů** aktivovaných při zvýšení úrovně
+- Dodání **speciální výbavy** (týmová dodávka apod.), pokud to dává v příběhu smysl
