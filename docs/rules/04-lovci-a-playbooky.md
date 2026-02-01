@@ -244,174 +244,38 @@ Vyžaduje **Vysokou magii**. Hod: 2d6 - Podivínství (čím podivnější, tím
 
 ## 12 základních playbooků
 
-### Expertka (The Expert)
-- **Role:** Znalec monster a magie, má útočiště
-- **Vyber 2 tahy** z následujícího seznamu
+> Kompletní data playbooků (atributy, výbava, texty tahů) jsou v samostatných souborech
+> ve složce [`playbooky/`](playbooky/).
 
-**Řádky atributů (vyber 1):**
-
-| Šarm | Rozvaha | Bystrost | Ostrost | Podivínství |
-|:----:|:-------:|:--------:|:-------:|:-----------:|
-| -1 | +1 | +2 | +1 | 0 |
-| 0 | +1 | +2 | -1 | +1 |
-| +1 | -1 | +2 | +1 | 0 |
-| -1 | +1 | +2 | 0 | +1 |
-| -1 | 0 | +2 | -1 | +2 |
-
-**Startovní výbava — vyber 3 zbraně:**
-
-| Zbraň | Zranění | Dosah | Štítky |
-|-------|:-------:|-------|--------|
-| Palice a dřevěné kolíky | 3 | na těsno | pomalé, dřevěné |
-| Stříbrný meč | 2 | na dosah ruky | brutální, stříbrný |
-| Meč z ryzího železa | 2 | na dosah ruky | brutální, železný |
-| Požehnaný nůž | 2 | na dosah ruky | posvěcený |
-| Kouzelná dýka | 2 | na dosah ruky | magická |
-| Brašna vúdú | 1 | na dálku | magická |
-| Plamenomet | 3 | na blízko | ohnivý, těžký, nestabilní |
-| Magnum | 3 | na blízko | nabíjecí, hlučné |
-| Brokovnice | 3 | na blízko | brutální, hlučná |
-
-**Speciální systém:** Útočiště (Haven) — vybírá 3 z 9 možností:
-1. Knihovna tradic a legend (+1 vyšetřování)
-2. Mystická knihovna (+1 magie)
-3. Ochranná kouzla (příšery nemohou vstoupit)
-4. Zbrojnice (speciální zbraně)
-5. Ošetřovna (léčení)
-6. Dílna (výroba a opravy)
-7. Tajemná skrýš (izolace od příšer)
-8. Úkryt (zásoby na dny)
-9. Magická laboratoř (ingredience)
-
-**Tahy Expertky:**
-
-- **O tom už jsem četla:** Když jednáš pod tlakem, hoď +Bystrost místo +Rozvaha.
-- **Často mám pravdu:** Když se na tebe jiný lovec obrátí s problémem, upřímně mu poraď. Když se radou řídí → +1 situační a ty získáš XP.
-- **Předvídavost:** Když potřebuješ něco neobvyklého, hoď +Bystrost. **10+:** máš to tady a teď. **7–9:** vlastníš to, ale nemáš s sebou. **6-:** víš kde to je, ale na velmi špatném místě.
-- **Lepší, než se zdálo:** Jednou za záhadu pokus pokračovat navzdory zranění. Hoď +Rozvaha. **10+:** vyléčíš 2 zranění a stabilizuješ. **7–9:** stabilizace NEBO vyléčení 1. **6-:** horší než se zdálo (tah zranění nebo nestabilní).
-- **Přesný úder:** Když zraníš příšeru, zacílíš na slabé místo. Hoď +Ostrost. **10+:** +2 zranění. **7–9:** +1 zranění. **6-:** zůstaneš nekrytá útoku.
-- **Vždy připravena:** Na začátku záhady hoď +Bystrost. **10+:** 2 zásoby. **7–9:** 1 zásoba. Utrať zásobu = dostat se tam, kam potřebuješ, připravená. **6-:** Strážce získá 1 zásobu (nejhorší místo, nepřipravená).
-- **Temná minulost:** Prohledáváš vzpomínky. Hoď +Podivínství. **10+:** 2 otázky. **7–9:** 1 otázka. **6-:** můžeš se zeptat, ale jsi spoluvinná. Otázky: (1) Co jsem se dozvěděla o tomto stvoření? (2) Jakou znám černou magii? (3) Kdo by za tím mohl stát? (4) Kdo z mých známých by mohl pomoci?
-
-### Křivák (The Crooked)
-- **Role:** Bývalý zločinec s kontakty
-- **Tahy:** Artefakt, Parta, Smlouva s Ďáblem, Kámoši v uniformě, Našinec, Řidič, Výhoda domácího hřiště, Známá firma
-- **Speciální systém:** Profesní specializace (1 ze 7)
-
-**Specializace:**
-- Gangster: Manipulace přes Ostrost místo Šarmu
-- Bytař: Hod +Bystrost při vloupání
-- Šmejd: Otázka „Co přiměje tuto osobu...?"
-- Kšeftař: Hod +Šarm na nákup/prodej
-- Vrah: +2 zranění při prvním překvapivém útoku
-- Šarlatán: Falešná magie přes Rozvahu
-- Kapsář: Hod +Šarm na krádež drobnosti
-
-### Madam Paranoia (The Flake)
-- **Role:** Teoretička spiknutí, hledání spojitostí
-- **Tahy:** Dílky do skládačky, Šílený pohled, Dívej všechno sedí, Podezíravá mysl, Často přehlížená, Umanutost, Kámoši z netu, Úskočnost
-
-### Mstitel (The Wronged)
-- **Role:** Hnaný osobní ztrátou, specialista na boj
-- **Automatický tah:** Znám svou kořist
-- **Tahy:** Berserk, NIKDY VÍC, Co tě nezabije..., Verva, Hlavně bezpečně, Domácí felčařina, Věc nástroje
-
-### Nebeská (The Divine)
-- **Role:** Agent vyšší moci, nadpřirozené dary
-- **Tahy:** Šéf z jiného světa, Andělská křídla, Vždycky po ruce, Upokojení, Požehnaný dotek, Vyhánění zla, Bič boží
-- **Speciální systém:** Nadřízení — mise na začátku záhady (hod +Podivínství)
-
-### Netvor (The Monstrous)
-- **Role:** Příšera bojující na straně dobra
-- **Tahy:** Nesmrtelnost, Nadpřirozený půvab, Bezbožná síla, Netělesnost, Nadpřirozená rychlost, Bestiální drápy, Ovládnutí mysli, Nevyhasínající vitalita, Temný vyjednávač, Létání, Tvaroměnnost, Něco půjčeného
-- **Speciální systém:** Přirozené útoky
-
-**Přirozené útoky (základ + extra):**
-- Zuby: 3-zranění, na těsno
-- Drápy: 2-zranění, na dosah ruky
-- Magická moc: 1-zranění, magická, na blízko
-- Vysávající: 1-zranění, na těsno, vysávající
-- Extra: +1 zranění / průrazná / dosah navíc
-
-### Normál (The Mundane)
-- **Role:** Obyčejný člověk, kontakt s lidmi
-- **Tahy:** Věčná oběť, Ups!, Rychle odsud pryč!, Únikový východ, Síla srdce, Věř mi, Co by se mohlo pokazit?, Žádný strach já to obhlídnu
-
-### Poděs (The Spooky)
-- **Role:** Temné magické schopnosti
-- **Tahy:** Telepatie, Uhranutí, Zrak, Předtuchy, Tušení, Naladění, Spoušť, Smolík
-- **Speciální systém:** Temná strana
-
-**Temná strana — 16 štítků:**
-Násilí, Deprese, Tajemství, Chtíč, Temný pakt, Vina, Bezcitnost, Závislost,
-Náladovost, Zuřivost, Sebedestrukce, Lačnost po moci, Slabá kontrola nad pudy,
-Halucinace, Bolest, Paranoia
-
-**Mechanika:** Strážce vyžaduje strašné činy dle štítků. Poslechne → XP.
-Vzepře se → schopnosti nepoužitelné do konce záhady.
-
-### Profesionálka (The Professional)
-- **Role:** Agentka organizace, kvalitní výzbroj
-- **Automatický tah:** Jednání s Organizací (hod +Bystrost)
-- **Tahy:** Drž to v sobě, Neochvějnost, Přehled v boji, Kamarádi se neopouštějí, Mistryně taktiky, Zdravotnice, Mobilita
-- **Speciální systém:** Organizace (2 výhody + 2 nevýhody)
-
-**Výhody:** Kvalitní výzbroj, Slušně financovaná, Solidní trénink, Podpora shora,
-Krycí identity, Pobočky všude možně, Kvalitní informace, Uznávaná jako autorita,
-Roztodivná udělátka, Podpůrné týmy
-
-**Nevýhody:** Pochybné úmysly, Byrokracie, Neprůhledná hierarchie, Nejasné mise,
-Nepřátelští nadřízení, Soupeření mezi odděleními, Osekaný rozpočet,
-Politika „nebrat zajatce", Politika živého odchytu
-
-### Sesílač (The Spell-Slinger)
-- **Role:** Školený čaroděj, bojová magie
-- **Automatický tah:** Nástroje a techniky (3 ze 4 omezení)
-- **Tahy:** Vyšší škola magie, Tajemná reputace, Mohlo být hůř, Čarovný oděv, Forenzní divinace, Mysli ve velkém, Já to nebyl, Odborník, Ochranné kouzlo, Třetí oko
-
-**Omezení magie (vyber 3, 4. vyškrtni):**
-- Komponenty: prášky/oleje, bez nich 1-zranění
-- Fokalizátory: hůlky/hole, bez nich -1 zranění
-- Gesta: volné ruce, jinak -1 situační
-- Inkantace: tajemný jazyk, jinak Jednej pod tlakem
-
-### Vyvolený (The Chosen)
-- **Role:** Hrdina osudu, speciální zbraň
-- **Automatické tahy:** Hříčka Osudu, Jsem tu z jistého důvodu
-- **Tahy:** Triumfální vstup, Pustošivost, Svědomitost, Neporazitelnost, Houževnatost
-- **Speciální systém:** Proroctví + Speciální zbraň
-
-**Proroctví:**
-- 2 hrdinské štítky (Můžeš spasit svět, Pomoc shůry...)
-- 2 zhoubné štítky (Smrt, Nemůžeš zachránit každého, Zrada...)
-- Při utracení Štěstěny → Strážce vpraví prvek Osudu
-
-**Speciální zbraň (stavebnice):**
-- Rukojeť (1): hůl, topor, jílec (vyvážená), řetěz (plošná)
-- Funkční část (3): artefakt, ostny, čepel, těžká, dlouhá, vrhací, řetěz
-- Materiál: libovolný (ocel, stříbro, dřevo, kost...)
-
-### Zasvěcená (The Initiate)
-- **Role:** Členka starověké sekty
-- **Automatický tah:** Se Sektou dobré vztahy (hod +Šarm na začátku záhady)
-- **Tahy:** Starodávná bojová umění, Mystik, Věštění, Posvátná přísaha, Mentor, Učedník, Nápomocnost, Starodávná černá magie
-- **Speciální systém:** Sekta
-
-**Sekta — dobré tradice (vyber 2):**
-Erudovanost, Starodávné vědění, Magické vědění, Bojová umění, Jdete s dobou,
-Lóže všude možně, Světská moc, Flexibilní taktika, Otevřená hierarchie,
-Integrovaní do společnosti, Bohatství, Šikovná udělátka, Magické předměty
-
-**Sekta — špatné tradice (vyber 1):**
-Pochybné úmysly, Svázaní tradicemi, Krátkozrakost, Paranoidní a tajnůstkářští,
-Uzavřená hierarchie, Nejednotnost, Přísná pravidla, Tajemné přísahy,
-Tyranští vůdci, Absolutní poslušnost, Zastaralé vybavení, Chudoba
+| Playbook | EN | Role | Detaily |
+|----------|----|------|---------|
+| Expertka | The Expert | Znalec monster a magie, útočiště | [expertka.md](playbooky/expertka.md) |
+| Křivák | The Crooked | Bývalý zločinec s kontakty | [krivak.md](playbooky/krivak.md) |
+| Madam Paranoia | The Flake | Teoretička spiknutí | ⏳ |
+| Mstitel | The Wronged | Hnaný osobní ztrátou | ⏳ |
+| Nebeská | The Divine | Agent vyšší moci | ⏳ |
+| Netvor | The Monstrous | Příšera na straně dobra | ⏳ |
+| Normál | The Mundane | Obyčejný člověk | ⏳ |
+| Poděs | The Spooky | Temné magické schopnosti | ⏳ |
+| Profesionálka | The Professional | Agentka organizace | ⏳ |
+| Sesílač | The Spell-Slinger | Školený čaroděj | ⏳ |
+| Vyvolený | The Chosen | Hrdina osudu | ⏳ |
+| Zasvěcená | The Initiate | Členka starověké sekty | ⏳ |
 
 ---
 
 ## Bonusové playbooky (11)
 
-Bojovnice, Čmuchal, Nimrod, Podržtaška, Stvořenec, Šílený vědec, Tvrďák,
-Vědec dobrodruh, Všetečné dítě, Vyhnankyně, Zplozenec pekel
-
-> Poznámka: Detaily bonusových playbooků zatím nemáme — doplnit později.
+| Playbook | Koncept | Detaily |
+|----------|---------|---------|
+| Bojovnice | Expertka na boj a taktiku | ⏳ |
+| Čmuchal | Vyšetřovatel nadpřirozena | ⏳ |
+| Nimrod | Profesionální lovec příšer | ⏳ |
+| Podržtaška | Loajální pomocník lovce | ⏳ |
+| Stvořenec | Uměle vytvořená bytost | ⏳ |
+| Šílený vědec | Bláznivý vynálezce | ⏳ |
+| Tvrďák | Neúnavný bijec | ⏳ |
+| Vědec dobrodruh | Akademik v terénu | ⏳ |
+| Všetečné dítě | Dítě zapletené do nadpřirozena | ⏳ |
+| Vyhnankyně | Vyhoštěná z jiné dimenze/světa | ⏳ |
+| Zplozenec pekel | Potomek démona | ⏳ |
