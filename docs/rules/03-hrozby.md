@@ -22,14 +22,17 @@
 | Šibal | Trickster | Vnést do všeho chaos |
 | Zploditel | Breeder | Přivést zlo na svět nebo ho stvořit |
 
-### Tvorba příšery
+### Tvorba příšery od nuly
 
-1. **Typ a motivace** — viz tabulka výše
-2. **Nadpřirozené schopnosti** — létání, neviditelnost, ovládání mysli, telekineze...
-3. **Útoky** — hodnota zranění (3–5), dosah, štítky
-4. **Zbroj** — hodnota 1–2 běžně, vyšší = velká výzva
-5. **Výdrž** — minimum 7, běžně 8–12, extrémně 14+
-6. **Slabina** — bez ní nelze příšeru trvale zabít
+Strážce musí definovat:
+
+1. **Popis** — jak příšera vypadá, jak se chová
+2. **Typ a motivace** — výběr z 12 typů (viz tabulka výše)
+3. **Nadpřirozené schopnosti** — létání, neviditelnost, ovládání mysli, telekineze...
+4. **Útoky** — hodnota zranění (3–5), dosah, štítky
+5. **Zbroj** — hodnota 1–2 běžně, vyšší = velká výzva
+6. **Výdrž** — minimum 7, běžně 8–12, extrémně 14+
+7. **Slabina** — bez ní nelze příšeru trvale zabít
 
 ### Kategorie slabin
 

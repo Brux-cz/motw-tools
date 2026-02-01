@@ -46,6 +46,14 @@ pokud lovci překazí část plánu.
 **Varianta:** Existuje odpočet příběhového oblouku — stejná struktura, ale
 události mají větší rozsah (každá fáze může být celá záhada).
 
+## Šablony zápletek (Mystery Structures)
+
+| Šablona | Popis |
+|---------|-------|
+| **Příšeře v patách** | Přímočarý hon — lovci sledují stopy a pronásledují příšeru |
+| **Ďábelský rituál** | Zastavení rituálu — lovci musí přerušit obřad nebo sběr ingrediencí |
+| **Není to, jak se zdá** | Zvrat — identita příšery nebo skutečná povaha hrozby se ukáže jinak |
+
 ## Tahy na míru — příklady z pravidel
 
 - **Aura hrůzy:** -1 situační v blízkosti přízraku, pokud neuspěje Jednej pod tlakem

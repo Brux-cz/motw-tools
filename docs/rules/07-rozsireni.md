@@ -82,6 +82,15 @@ Dostupné na webu vydavatele (Evil Hat Productions / Generic Games). Oproti zák
 
 > TODO: Rozšířit o záhady z komunity, internetu, dalších knih
 
+## Tvorba vlastního playbooku
+
+Pravidla obsahují návod:
+
+1. **Koncept:** Musí jít o archetyp postavy, ne příliš specifický příklad
+2. **Vlastnosti:** Součet bonusů musí být 3; jedna vlastnost +2 (dvě +2 = počítá se jako hodnota 3)
+3. **Tahy:** Každý lovec začíná se 3 tahy. Negativní tah (jako Mstitel) = jeden kladný navíc jako kompenzace
+4. **Vylepšení:** Musí obsahovat: zvýšení vlastností (max +3), výběr tahů z jiných příruček, dvě speciální možnosti rozvoje
+
 ## Oficiální zdroje
 
 - Evil Hat Productions (vydavatel)

@@ -162,12 +162,20 @@ Strážce při každém zranění aplikuje efekt podle závažnosti:
 - **Záchranný manévr:** Snížení smrtelného zásahu (4+) na 0
 - **Následky Zatracení:** Strážce může tvrdé tahy bez varování, naplňuje se osud dle playbooku
 
-## Vztahy mezi lovci
+## Vztahy mezi lovci (History)
 
 - Definují se při startu v sekci **Společná minulost (History)**
-- Každý pár lovců má 2 vazby (jednu vybral každý hráč)
+- Hráč si vybere vazbu pro **každého dalšího lovce** v týmu
+- Každý pár lovců má **2 vazby** (jednu vybral každý hráč)
 - **Nemají pasivní bonusy** — ovlivňují narativně tahy Manipulace a Pomoci
 - Vyvíjejí se narativně; XP otázka „Dozvěděli jsme se něco o lovci?" je prohlubuje
+
+### Příklady vazeb z příruček
+
+- **Expertka:** „Jedná se o tvého učně" / „Zachránila jsi jí život"
+- **Mstitel:** „Viděl tě, když tě popadl amok" / „Pomohla ti v klíčovém okamžiku tvé honby"
+- **Netvor:** „Jednou jsi ztratil kontrolu a málem ji zabil" / „Zachránila tě před jiným lovcem"
+- **Profesionálka:** „Je v hledáčku Organizace a ty na něj máš dohlížet"
 
 ## Levelování
 
@@ -176,10 +184,10 @@ Strážce při každém zranění aplikuje efekt podle závažnosti:
 
 ### XP otázky na konci sezení
 
-1. Vyřešili jsme záhadu?
-2. Zachránili jsme někoho před smrtí?
-3. Dozvěděli jsme se o světě něco důležitého?
-4. Dozvěděli jsme se něco důležitého o lovci?
+1. **Vyřešili jsme aktuální záhadu?**
+2. **Zachránili jsme někoho před jistou smrtí (nebo něčím horším)?**
+3. **Dozvěděli jsme se o světě něco nového a důležitého?**
+4. **Dozvěděli jsme se něco nového a důležitého o některém z lovců?**
 
 → 1–2× ano = 1 XP, 3–4× ano = 2 XP
 
