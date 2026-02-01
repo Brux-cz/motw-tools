@@ -15,7 +15,7 @@
 | Mučitel | Torturer | Způsobit bolest a vyvolat hrůzu |
 | Ničitel | Destroyer | Přivodit konec světa |
 | Parazit | Parasite | Napadnout, ovládnout a sežrat |
-| Pokušitel | Temptation | Svést lidi ke konání zla |
+| Pokušitel | Tempter | Svést lidi ke konání zla |
 | Popravčí | Executioner | Trestat viníky |
 | Požírač | Devourer | Hodovat na lidech |
 | Sběratel | Collector | Krást specifický druh věcí |
