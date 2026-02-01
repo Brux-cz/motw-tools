@@ -171,13 +171,25 @@ Alternativa k příšeře — nadpřirozená situace bez ústředního nepříte
 
 ## České folklórní příšery (adaptace v pravidlech)
 
-Pravidla adaptují české postavy pro použití jako příšery:
+Sekce „Pár ukázkových hrozeb z místního folklóru" (autor Daniel Vázquez Touriño):
 
-| Bytost | Možný typ |
-|--------|-----------|
-| **Vodník** | Parazit / Pokušitel |
-| **Hejkal** | Bestie / Mučitel |
-| **Rýbrcoul (Krakonoš)** | Strážce / Popravčí |
-| **Otesánek** | Požírač |
-| **Bludičky** | Pokušitel / Past (lokalita) |
-| **Golem** | Bestie / Stvořenec |
+**Příšery:**
+| Bytost | Typ |
+|--------|-----|
+| Vodník | Požírač |
+| Hejkal | Mučitel |
+| Rýbrcoul / Krakonoš | Popravčí |
+| Otesánek | Požírač |
+
+**Přisluhovači:**
+| Bytost | Typ |
+|--------|-----|
+| Bludičky | Zrádce |
+| Golem | Hlídač |
+
+**Lokality:**
+| Místo | Typ |
+|-------|-----|
+| Petrovy kameny | Brána pekel |
+| Margita a Besná | Doupě |
+| Bludný kořen | Labyrint |

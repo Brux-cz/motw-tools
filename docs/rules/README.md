@@ -19,6 +19,7 @@ vývoj nástrojů v projektu motw-tools.
 | [10-pokrocile-vedeni-hry.md](10-pokrocile-vedeni-hry.md) | Pokročilé vedení hry: NPC, atmosféra, pátrání, finální střet, pozornost |
 | [11-prizpusobeni-hry.md](11-prizpusobeni-hry.md) | Přizpůsobení tónu, délky kampaně, počet hráčů, session zero |
 | [12-dlouhodoba-kampan.md](12-dlouhodoba-kampan.md) | Mezi sezeními, downtime, smrt, endgame, dlouhodobé následky |
+| [13-ceska-lokalizace.md](13-ceska-lokalizace.md) | Slovník EN→CZ, vydavatel, české příšery, dostupné materiály |
 
 ## Stav pokrytí
 
@@ -39,6 +40,7 @@ vývoj nástrojů v projektu motw-tools.
 | Přizpůsobení hry a varianty | ✅ Kompletní (tón, délka, počet hráčů, session zero) |
 | Dlouhodobá kampaň a endgame | ✅ Kompletní (léčení, smrt, playbook swap, Štěstěna) |
 | Tome of Mysteries | ⏳ Pouze zmínka (není v NotebookLM) |
+| Česká lokalizace a terminologie | ✅ Kompletní (slovník, vydavatel, materiály) |
 | Záhady z komunity | ⏳ Prázdné |
 
 ## Zdroje dat
