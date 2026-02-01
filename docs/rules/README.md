@@ -17,6 +17,7 @@ vývoj nástrojů v projektu motw-tools.
 | [08-selhani-a-reakce.md](08-selhani-a-reakce.md) | Selhání (6-) u každého tahu, měkké/tvrdé tahy, chyby Strážců |
 | [09-hranicni-pripady.md](09-hranicni-pripady.md) | Hraniční případy: kdy který tah, zbroj, hold, překvapení, honičky |
 | [10-pokrocile-vedeni-hry.md](10-pokrocile-vedeni-hry.md) | Pokročilé vedení hry: NPC, atmosféra, pátrání, finální střet, pozornost |
+| [11-prizpusobeni-hry.md](11-prizpusobeni-hry.md) | Přizpůsobení tónu, délky kampaně, počet hráčů, session zero |
 
 ## Stav pokrytí
 
@@ -34,7 +35,8 @@ vývoj nástrojů v projektu motw-tools.
 | Pokročilé vedení hry | ✅ Kompletní (NPC, atmosféra, finální střet, pozornost) |
 | Příběhové oblouky | ✅ Základní |
 | Bonusové playbooky (11) | ✅ Koncepty, mechanismy, pravidla zařazení |
-| Tome of Mysteries | ⏳ Pouze zmínka |
+| Přizpůsobení hry a varianty | ✅ Kompletní (tón, délka, počet hráčů, session zero) |
+| Tome of Mysteries | ⏳ Pouze zmínka (není v NotebookLM) |
 | Záhady z komunity | ⏳ Prázdné |
 
 ## Zdroje dat
