@@ -95,12 +95,28 @@ problematické vedlejší účinky
 **Podmínky Strážce:** Komponenty, čas (10s–1min), rituální zpěv, gesta,
 pomoc dalších osob
 
-### Vysoká magie (Big Magic)
+### Vysoká magie (Big Magic / High Magic)
 
-Pro efekty přesahující standardní tah (vzkříšení, portály...).
-- Lovec sdělí záměr → Strážce stanoví podmínky → splnění → efekt bez hodu
-- Možné požadavky: dlouhé studium, vzácné přísady, hodiny zaklínání,
-  pomoc mnoha lidí, konkrétní místo/čas, vedlejší účinky
+Pro efekty přesahující standardní tah (vzkříšení, portály, dimenzionální cestování...).
+
+**Postup:**
+1. **Zadání efektu** — lovec si zvolí magický účinek a sdělí Strážci
+2. **Stanovení podmínek** — Strážce rozhodne, co musí lovec splnit
+3. **Splnění** — během plnění podmínek se hází na jiné tahy (Jednej pod tlakem apod.)
+4. **Efekt** — na samotnou Vysokou magii se **nehází kostkami** — jakmile jsou podmínky splněny, efekt se dostaví
+
+**Možné podmínky Strážce:**
+- Dlouhá doba studia (dny až týdny)
+- Vzácné přísady
+- Pomoc mnoha lidí (např. 13 a více)
+- Konkrétní doba a místo (rozbřesk slunovratu, posvátný kruh)
+- Experimentování doprovázené selháními
+- Specifické vedlejší účinky a rizika
+
+**Vzkříšení** — speciální případ Vysoké magie:
+- Po úspěšném rituálu hod **2d6 - Podivínství** (čím podivnější, tím hůře se vrací)
+- Možné následky: stres, ztráta paměti, změněné vlastnosti, něco se vrátí s lovcem z Říše mrtvých
+- Příklad požadavků: týdny studia, přítomnost těla, rozbřesk slunovratu, dodatečné Užij magii — a může rozzuřit samotnou Smrt
 
 ### Příklad magie v praxi
 
