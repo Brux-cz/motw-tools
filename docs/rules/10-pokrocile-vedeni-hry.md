@@ -22,13 +22,22 @@
 - Připravit pár **„polotovarů"** (jen jméno + typ) pro nečekané situace
 - Nemusí být detailně připravení — osobnost roste během hry
 
+### Tvorba NPC za běhu (nepřipravené)
+
+Když lovci narazí na někoho nečekaného:
+1. **Pojmenuj ho** — ze seznamu jmen (mít po ruce!)
+2. **Urči typ přihlížejícího** — co NPC motivuje (Svědek? Byrokrat? Oběť?)
+3. **Přidej jednu vlastnost** — „mrzutý", „elegantní", „stoicky klidný"
+4. Zapiš si to — může se vrátit v budoucnosti
+
 ### Jak typ ovlivňuje chování
 
-| Typ | Jak se chová |
-|-----|-------------|
-| Skeptik | Odmítá nadpřirozená vysvětlení, i s důkazy |
-| Oběť | Vystavuje se nebezpečí, dělá hloupé věci |
-| Byrokrat | Pedant posedlý pravidly, klade formální překážky |
+| Typ | Jak se chová u stolu |
+|-----|----------------------|
+| Skeptik | Odmítá nadpřirozená vysvětlení: *„To byl únik plynu, ne duchové."* |
+| Oběť | Vystavuje se nebezpečí: *Jde v noci sama do sklepa i přes varování* |
+| Byrokrat | Klade formální překážky: *„Mám vidět povolení k vstupu do archivu."* |
+| Šťoural | Plete se do cizích věcí: *Sleduje lovce, volá policii* |
 | Pomocník | Chce pomoct, ale může být nezkušený/nebezpečný |
 
 ---
@@ -210,3 +219,43 @@ Jeden hráč mluví za všechny, rozhoduje, ostatní se nudí.
 3. Adresovat scény na konkrétní playbooky (Expertka v knihovně,
    Profesionálka jedná s organizací)
 4. NPC se obrátí na konkrétního lovce — ne na toho nejhlasitějšího
+
+---
+
+## NPC reakce na tahy lovců — dialogové příklady
+
+### Někoho zmanipuluj
+
+| Výsledek | NPC reakce | Příklad dialogu |
+|----------|-----------|-----------------|
+| **10+** | Udělá co chcete, dal jste pádný důvod | *„Dobře, věřím vám, že jste od policie. Tady je klíč od skladu."* |
+| **7–9** | Udělá to, ale chce něco hned na oplátku | *„Pustím vás tam, ale nejdřív mi podepíšete čestné prohlášení."* |
+| **6-** | Urazí se nebo rozzlobí | *„Vypadněte! Nemám čas na bláboly o upírech. Volám šerifa!"* |
+
+### Vyšetřuj záhadu (selhání u NPC)
+
+Při selhání NPC může získat informace o lovcích:
+- *„Proč se na ty vraždy ptáte tak podrobně? Odkud jste říkali, že jste? Počkejte, zavolám si do vaší centrály."*
+
+---
+
+## Změna NPC během záhady
+
+NPC nejsou statické — jejich role se může měnit:
+
+| Změna | Kdy | Příklad |
+|-------|-----|---------|
+| **Přihlížející → Spojenec** | Pokročilý tah (hod 12+), nebo narativně | Svědek se stane trvalým Důvěrníkem |
+| **Přihlížející → Přisluhovač** | Zrada, korupce, strach | Barman tajně donáší příšeře |
+| **Přisluhovač → Spojenec** | „Záblesk lidství" | Odmítne provést strašný rozkaz pána |
+| **NPC → Budoucí hrozba** | Lovci ho podvedli/urazili | Podvedený politik se stane Nemesis |
+
+---
+
+## Nejčastější chyby při hraní NPC
+
+1. **NPC jako pouhé zdroje informací** — NPC musí mít vlastní motivace, překážet, panikařit, podezírat
+2. **Nepojmenované postavy** — bez jména hráči nemají vztah, nemají motivaci zachraňovat
+3. **Přílišná ochota** — NPC by měly vyžadovat pádné důvody pro spolupráci
+4. **Ignorování špatného zacházení** — pokud lovci NPC urazí (selhání manipulace), NPC si to pamatuje a škodí
+5. **Všichni mluví stejně** — motivace typu by měla ovlivnit slovní zásobu a chování
