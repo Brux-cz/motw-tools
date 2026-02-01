@@ -33,7 +33,7 @@ vývoj nástrojů v projektu motw-tools.
 | Selhání a reakce Strážce | ✅ Kompletní (detailní rozbor každého tahu) |
 | Hraniční případy a scénáře | ✅ Kompletní (zbroj, hold, překvapení, honičky) |
 | Pokročilé vedení hry | ✅ Kompletní (NPC, atmosféra, finální střet, pozornost) |
-| Příběhové oblouky | ✅ Základní |
+| Příběhové oblouky | ✅ Kompletní (šablony, odpočet, propojení, osobní příběhy) |
 | Bonusové playbooky (11) | ✅ Koncepty, mechanismy, pravidla zařazení |
 | Přizpůsobení hry a varianty | ✅ Kompletní (tón, délka, počet hráčů, session zero) |
 | Tome of Mysteries | ⏳ Pouze zmínka (není v NotebookLM) |

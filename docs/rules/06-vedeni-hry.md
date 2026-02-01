@@ -47,21 +47,54 @@ věci vyžadované pravidly, záhadou nebo situací.
 
 ## Příběhové oblouky (Story Arcs)
 
-Propojují záhady do kampaně. Mají vlastní hrozby a odpočet.
+Propojují záhady do kampaně. Fungují jako zastřešující vyprávění — podobně jako celosezónní zápletky v seriálech (Buffy, Supernatural). Mají vlastní hrozby a odpočet.
 
 ### 4 šablony oblouků
 
 | Šablona | Popis |
 |---------|-------|
-| **Pradávné zlo se probouzí** | Spící entita, přisluhovači ji chtějí vyvolat |
-| **Nemesis** | Příšera aktivně verbuje spojence a loví lovce |
-| **Konec světa** | Apokalypsa — Ničitel, hordy příšer, rituály |
-| **Prohnilost** | Důvěryhodná skupina infiltrována zlem |
+| **Pradávné zlo se probouzí** | Spící/uvězněná příšera, přisluhovači připravují návrat (sběr obětí, rituály) |
+| **Nemesis** | Příšera (např. ta co unikla) cíleně jde po lovcích, sbírá info, chystá léčku |
+| **Konec světa** | Apokalypsa — Ničitel hledá artefakt, chystá rituál destrukce světa |
+| **Prohnilost** | Infiltrace organizace (Sekta, Organizace), které lovci věřili, zlem nebo zrádci |
 
 ### Odpočet oblouku
 
-Stejná struktura (Den → Půlnoc), ale události v měřítku celých záhad.
-Půlnoc = katastrofa globálního rozsahu.
+Stejná struktura (Den → Půlnoc), ale události v **měřítku celých záhad**:
+- Každý krok odpočtu by měl být natolik významný, aby mohl tvořit **základ samostatné záhady**
+- Mezi kroky mohou uplynout týdny či měsíce herního času
+- Půlnoc = katastrofa globálního rozsahu (svět trvale změněn k horšímu)
+
+### Posouvání odpočtu
+
+- Obvykle **mezi sezeními** na základě událostí ve hře
+- Posun nastane, pokud lovci přímo nezabrání ďábelskému plánu nebo uplynul dost času
+- Pokud se odpočet posune „mimo záběr", příští záhada by měla dát lovcům šanci to zastavit
+
+### Propojení oblouku se záhadami
+
+1. **Základ záhady:** Příští událost na odpočtu oblouku = téma nové záhady
+2. **Vedlejší motiv:** Během běžné záhady lovci narazí na stopy spojené s obloukem
+3. **Preventivní útok:** Hrozba z oblouku zaútočí na lovce během jiného případu
+4. **Příklad:** Vůdkyně vlkodlaků, která unikla, buduje novou smečku → série záhad o útocích a zmizelých lidech
+
+### Více oblouků najednou
+
+- V kampani může běžet **více oblouků současně**
+- Strážce udržuje přehled o hrozbách a odpočtech pro každý
+- Při střídání Strážců: oblouky buď sdílené (wiki/deník) nebo tajné
+
+### Propojení s osobními příběhy lovců
+
+- **Mstitel:** Oblouk kolem příšery, která mu způsobila ztrátu
+- **Vyvolený/Nebeská:** Oblouky reflektují Osud nebo Poslání
+- **Profesionálka/Zasvěcená:** Zkorumpované vedení → oblouk „Prohnilost"
+- **Štěstěna:** Vyčerpání Štěstěny aktivuje efekty spojené s oblouky
+
+### Dobrý vs. špatný oblouk
+
+- **Dobrý:** Flexibilní, reaguje na činy lovců, hrozby jsou osobně důležité
+- **Špatný:** Strážce ho tlačí silou bez ohledu na rozhodnutí lovců (porušuje zásady „neplánovat dopředu" a „hrát a pozorovat")
 
 ## Mezi sezeními
 
