@@ -136,3 +136,18 @@ když si lovci „naběhnou", nebo jsou Zatracení.
 2. Nedostatek nebezpečí — lovci se nemají cítit bezpečně
 3. Zatajování informací — stopy se mají dávat štědře
 4. Zapomínání na odpočet — svět se musí zhoršovat i mimo záběr lovců
+
+## Inkluze a přístupnost
+
+- **Genderová neutralita:** Původní anglický text je zcela genderově nebinární
+- **Reprezentace:** Jakákoliv postava (včetně archetypů v příručkách) může být mužská, ženská (trans i cis) nebo nebinární
+- **Otevřenost:** Hra deklaruje, že se jí věnují nejrůznější lidé a kdokoli si může vytvořit postavu dle libosti
+- **Možnost změny:** Pokud hráč svých voleb při tvorbě postavy po první hře zalituje, může je bez postihu změnit
+
+## Bezpečnost a komfort u stolu
+
+Pravidla výslovně nezmiňují nástroje jako X-Card nebo Lines & Veils, ale řeší komfort skrze:
+- **Session Zero:** Shoda na týmovém konceptu, tónu hry a vzájemných vztazích před první hrou
+- **Zásada „Fandi lovcům"** — Strážce nemá hráče šikanovat, ale dělat z nich hrdiny
+- **Zásada upřímnosti** — nabídnout možnost volby, vysvětlit následky dopředu
+- **Zpětná vazba na konci sezení** — co se líbilo/nelíbilo, Strážce se od toho odrazí při přípravě

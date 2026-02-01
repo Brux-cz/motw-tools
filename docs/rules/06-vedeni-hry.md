@@ -134,3 +134,11 @@ Oblouky **nemají vlastní seznam tahů**. Fungují takto:
 
 - Získávají se vylepšením nebo v rámci fikce
 - Nemají složité statistiky — typ, motivace, popis, dovednosti
+
+## Střídání role Strážce
+
+Pravidla přímo podporují střídání Strážců:
+- **Absence postavy:** Postava aktuálního Strážce v dané záhadě chybí (loví jinde, má dovolenou)
+- **Návrat:** Ošetřit pomocí Záhadných dopisů
+- **Oblouky:** Společné (sdílený deník/wiki) nebo tajné pro každého Strážce
+- **Společné záznamy:** Doporučeno vést společný deník/wiki se všemi odhalenými skutečnostmi o světě a mytologii

@@ -68,6 +68,15 @@ Když hráč chce dělat něco, co nezapadá do hororu:
 - Pravidlo **„Vždycky pověz, co vyžaduje upřímnost"** — sdělit následky, zeptat se jestli chce pokračovat
 - Tah Strážce **„Způsob někomu potíže"** (podezíraví policisté, otravní sousedé) — vrací hru k tématu
 
+## Citlivá témata v hororovém žánru
+
+Hra je žánrově hororová — násilí je ústředním prvkem:
+- **Zásada „Nikdo a nic není v bezpečí"** — svolení zabíjet NPC, pálit budovy
+- **Smrt a únosy dětí:** Přímo v předpřipravených záhadách (únos dítěte v Hledání prosněného času)
+- **Duševní zdraví:** Mechanika vzkříšení zahrnuje následky (zlomený člověk, šílenství, deprese, ztráta paměti)
+- **Temná stránka (Poděs):** Štítky jako Deprese, Halucinace, Sebedestrukce
+- **Řešení:** Zpětná vazba na konci sezení, zásada upřímnosti, Session Zero dohoda o tónu
+
 ## Session Zero a první sezení
 
 ### Co probrat před hrou (Session Zero)
