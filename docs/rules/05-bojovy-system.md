@@ -71,9 +71,107 @@ a 2 vlkodlačí surovci.*
 ## Zbraně lovců
 
 Výběr je určen playbookem. Definovány pomocí štítků:
-- **Zranění:** 1-zranění až 4-zranění
+- **Zranění:** 0-zranění až 4-zranění
 - **Dosah:** na těsno / na dosah ruky / na blízko / na dálku
 - **Popisné štítky:** viz tabulka výše
+
+### Improvizované a pomocné zbraně
+
+| Zbraň | EN | Zranění | Dosah | Štítky |
+|-------|----|:-------:|-------|--------|
+| Neozbrojený útok | Unarmed | 0 | na těsno/dosah | — |
+| Ostrý předmět (nůž, lampa) | Sharp object | 1 | na dosah ruky | — |
+| Těžký předmět (židle, mikrovlnka) | Very heavy object | 2 | na dosah ruky | těžký |
+| Vrhací předmět | Thrown object | +0 | na blízko | — |
+| Vodní pistole | Water pistol | 0 | na blízko | plněná tekutinou |
+
+### Chladné zbraně (Melee Weapons)
+
+| Zbraň | EN | Zranění | Dosah | Štítky |
+|-------|----|:-------:|-------|--------|
+| Velký nůž | Big knife | 1 | na dosah ruky | — |
+| Kapesní nůž / Multitool | Pocket knife | 1 | na dosah ruky | malý, multifunkční |
+| Rituální nůž | Ritual knife | 1 | na dosah ruky | — |
+| Baseballová pálka | Baseball bat | 1 | na dosah ruky | — |
+| Boxer | Brass knuckles | 1 | na dosah ruky | tichý, malý |
+| Zátěžové rukavice | Weighted gloves | 1 | na dosah ruky | — |
+| Svítilna s paralyzérem | Stun flashlight | 1 | na dosah ruky | — |
+| Bojové hole | Fighting sticks | 1 | na dosah ruky | rychlé |
+| Meč | Sword | 2 | na dosah ruky | brutální |
+| Sekera | Axe | 2 | na dosah ruky | brutální |
+| Válečnický nůž | Combat knife | 2 | na dosah ruky | tichý |
+| Golfová hůl / Hokejka | Golf club / Hockey stick | 2 | na dosah ruky | nevinná, brutální |
+| Kopí | Spear | 2 | dosah/blízko | — |
+| Palcát | Mace | 2 | na dosah ruky | brutální |
+| Nunčaky | Nunchuks | 2 | na dosah ruky | plošné |
+| Škrticí struna | Garrote wire | 3 | na těsno | — |
+
+### Střelné zbraně (Firearms)
+
+| Zbraň | EN | Zranění | Dosah | Štítky |
+|-------|----|:-------:|-------|--------|
+| Revolver .22 | .22 revolver | 1 | na blízko | nabíjecí, malý |
+| Revolver .38 | .38 revolver | 2 | na blízko | nabíjecí, hlučný |
+| Pistole 9mm | 9mm semi-auto | 2 | na blízko | hlučná |
+| Kapesní pistole | Holdout pistol | 2 | na blízko | hlučná, nabíjecí |
+| Vrhací nože | Throwing knives | 1 | na blízko | mnoho |
+| Lovecká puška | Hunting rifle | 2 | na dálku | hlučná |
+| Lovecká puška (těžká) | Hunting rifle (heavy) | 3 | na dálku | hlučná, nabíjecí |
+| Magnum | .357/.44 Magnum | 3 | na blízko | nabíjecí, hlučný |
+| Brokovnice | Shotgun | 3 | na blízko | brutální, hlučná |
+| Samopal | Submachine gun | 3 | na blízko | plošný, hlučný, nabíjecí |
+| Útočná puška | Assault rifle | 3 | blízko/dálka | plošná, hlučná, nabíjecí |
+| Odstřelovací puška | Sniper rifle | 4 | na dálku | — |
+| Kuše | Crossbow | 2 | na blízko | pomalá |
+
+### Těžké a destruktivní zbraně
+
+| Zbraň | EN | Zranění | Dosah | Štítky |
+|-------|----|:-------:|-------|--------|
+| Plamenomet | Flamethrower | 3 | na blízko | ohnivý, těžký, nestabilní |
+| Upilovaná brokovnice | Sawn-off shotgun | 3 | dosah/blízko | brutální, hlučná, nabíjecí |
+| Motorová pila | Chainsaw | 3 | na dosah ruky | brutální, nespolehlivá, hlučná, těžká |
+| Ruční dělo / Píšťala | Hand cannon | 3 | na blízko | hlučné |
+| Obří meč / sekera | Big sword / axe | 3 | na dosah ruky | brutální, těžké |
+| Velká sekyra | Great axe | 3 | na dosah ruky | brutální, pomalá, těžká |
+| Perlík / Hasičská sekera | Sledgehammer / Fire axe | 3 | na dosah ruky | brutální |
+| Granátomet | Grenade launcher | 4 | na dálku | plošný, brutální, hlučný, nabíjecí |
+| Granáty | Grenades | 4 | na blízko | plošné, brutální, hlučné |
+
+### Speciální, magické a přirozené zbraně
+
+| Zbraň | EN | Zranění | Dosah | Štítky |
+|-------|----|:-------:|-------|--------|
+| Stříbrný meč | Silver sword | 2 | na dosah ruky | brutální, stříbrný |
+| Stříbrný nůž | Silver knife | 1 | na dosah ruky | stříbrný |
+| Meč z ryzího železa | Cold iron sword | 2 | na dosah ruky | brutální, železný |
+| Požehnaný nůž | Blessed knife | 2 | na dosah ruky | posvěcený |
+| Očarovaná dýka | Enchanted dagger | 2 | na dosah ruky | magická |
+| Brašna vúdú | Juju bag | 1 | na dálku | magická |
+| Planoucí meč | Flaming sword | 3 | na dosah ruky | ohnivý, posvěcený |
+| Kladivo hromu | Thunder hammer | 3 | na dosah ruky | omračující, posvěcené |
+| Žiletkový bič | Razor whip | 3 | na dosah ruky | plošný, brutální, posvěcený |
+| Stříbrný trojzubec | Silver trident | 3 | na dosah ruky | stříbrný, posvěcený |
+| Pětidémonný pytel | Five-demon bag | 3 | na blízko | magický, posvěcený |
+| Bojová magie: Výbuch | Combat Magic: Blast | 2 | na blízko | magický, do očí bijící, hlučný |
+| Bojová magie: Střela | Combat Magic: Missile | 1 | na dálku | magická, do očí bijící, hlučná |
+
+### Přirozené útoky Netvora
+
+| Útok | EN | Zranění | Dosah | Štítky |
+|------|----|:-------:|-------|--------|
+| Zuby | Teeth | 3 | na těsno | — |
+| Drápy | Claws | 2 | na dosah ruky | — |
+| Vysávající | Life-drain | 1 | na těsno | vysávající |
+| Magická moc | Magical force | 1 | na blízko | magická |
+| Extra modifikátory | — | — | — | +1 zranění / průrazná / dosah navíc |
+
+### Zbraň Vyvoleného
+
+Stavebnice — hráč konfiguruje z částí:
+- **Rukojeť (1):** hůl, topor, jílec (vyvážená), řetěz (plošná)
+- **Funkční část (3):** artefakt, ostny, čepel, těžká, dlouhá, vrhací, řetěz
+- **Materiál:** libovolný (ocel, stříbro, dřevo, kost...)
 
 ## Magie
 
