@@ -54,12 +54,64 @@ události mají větší rozsah (každá fáze může být celá záhada).
 | **Ďábelský rituál** | Zastavení rituálu — lovci musí přerušit obřad nebo sběr ingrediencí |
 | **Není to, jak se zdá** | Zvrat — identita příšery nebo skutečná povaha hrozby se ukáže jinak |
 
-## Tahy na míru — příklady z pravidel
+## Tahy na míru (Custom Moves) — kompletní systém
+
+Tahy na míru se vytvářejí, když zamýšlené schopnosti hrozby nebo akce lovců nejsou dostatečně pokryty základními či příručkovými tahy.
+
+### Kdy vytvořit tah na míru
+
+- Příšera má unikátní schopnost (jed, ovládání mysli, kletba)
+- Lokace má specifické nebezpečí (bažiny, zakletý dům)
+- Vybavení má zvláštní vlastnosti
+- Situace vyžaduje speciální pravidlo
+
+### Tři typy struktur
+
+| Typ | Popis | Příklad |
+|-----|-------|---------|
+| **Tah s hodem** | 2k6 + Vlastnost (nebo jiná hodnota) | Prohledávání bažin (+Bystrost) |
+| **Bonus/postih** | +1 nebo -1 situační za podmínek | Aura hrůzy: -1 v blízkosti přízraku |
+| **Zvláštní efekt** | Stane se při aktivaci, bez hodu | Jed červa: 1-zranění každých 5 minut |
+
+### Definice spouštěče
+
+Spouštěč musí být **přesný a konkrétní** — všichni u stolu musí vědět, kdy tah vstupuje do hry.
+
+Příklady definic:
+- „Když scházíš do stoky…"
+- „Když jsi potřísněn Lamiinou žlučí…"
+- „Když se v tomto městě uložíš ke spánku…"
+
+### Struktura výsledků (pro tahy s hodem)
+
+- **10+:** Plný účinek bez komplikací
+- **7–9:** Cíle dosaženo, ale Strážce určí cenu / nabídne složitou volbu / horší výsledek
+- **6−:** Situace se zvrtne — Strážce uplatní tvrdý tah nebo se aktivují negativní efekty
+
+### Příklady tahů na míru z pravidel
+
+**S hodem:**
+
+- **Prohledávání bažin** (+Bystrost): Na 7–9 výběr z jobovek (ztracení se, pronásledování, hrozný nález)
+- **Noční můry** (hod + bonus za počet nocí): Na 10+ beznaděj, na 7–9 děsivá vize
+- **Volání duchů plamene** (plivnutí lihu do ohně): Na 10+ duchové odpoví a pálí, co lovec chce
+- **Domov** (+Šarm, vymlouvání se rodině): Na 7–9 rodina ví, že lžeš → -1 k příštímu hodu na tento tah
+- **Ďábelský kult** (+Bystrost, vyptávání místních): Na 6− se kult dozví, že po nich pátrám
+- **Porozhlédnutí se po základně Organizace:** Rozšiřuje Vyšetřuj záhadu o specifické otázky o cílech a členech Organizace
+
+**Bonus/postih:**
 
 - **Aura hrůzy:** -1 situační v blízkosti přízraku, pokud neuspěje Jednej pod tlakem
-- **Jak svoje boty:** Bonus od NPC průvodce k orientaci
-- **Pekelná lovecká smečka:** Útok udělí „značku smrti" — smečka oběť vždy najde
-- **Noční můry:** Hod na začátku noci — věštecká vize nebo špatný spánek
+- **Jak svoje boty:** Informovaný svědek dá 1 do zásoby pro +1 k hodu
+
+**Zvláštní efekt (bez hodu):**
+
+- **Pekelná lovecká smečka:** Kousnutí udělí „značku smrti" — smečka oběť vždy najde
+- **Nepřesné vzpomínky:** Oběť ovládání mysli uvádí fakta v logickém rozporu
+- **Jed mongolského červa:** 1-zranění každých 5 minut, dokud ránu neopláchne čistou vodou
+- **Dům O'Connellů:** Jakmile Marie (duch) zabouchne dveře, dům nelze opustit, dokud není Marie zničena nebo nedosáhne pokoje
+- **Bludný kořen:** Při překročení kořene se lovec okamžitě ztratí a nemůže se zastavit, dokud si neprohodí boty
+- **Vlkodlačí nákaza:** Pokud vlkodlak způsobí 4-zranění, oběť se začne měnit; po dalším úplňku se mění v Netvora nebo hrozbu
 
 ## Vzorová záhada: Útok mongolského červa
 

@@ -15,11 +15,43 @@
 - Strážce pokládá 4 otázky (např. „Dozvěděli jsme se něco nového o lovcích?")
 - Odpovědi přinesou 1–2 body zkušenosti
 
-### Záhadné dopisy
-- Speciální nástroj pro začátek sezení
-- Obsahují **tahy na míru** — co lovec dělal během absence
-- Příklady: výzkum kouzla, shánění speciální munice
-- Výsledek závisí na hodu
+### Záhadné dopisy (Mysterious Letters)
+
+Nástroj pro zahájení sezení s velkým dopadem — vhodné pro festivaly, návrat hráče po absenci, delší herní pauzu nebo start přímo uprostřed akce.
+
+**Struktura dopisu:**
+1. **Shrnutí** — co se stalo minule, kde vyprávění skončilo
+2. **Nové informace** — stopy, zákulisní informace získané mezitím
+3. **Tah na míru** — hod určující výchozí pozici lovce v novém sezení
+
+**Dva typy tahů v dopisech:**
+
+| Typ | Atribut | Účel |
+|-----|---------|------|
+| Tah k nalezení informací | +Podivínství nebo +Bystrost | Co lovec odhalil při studiu/pátrání mimo scénu |
+| Tah ke vpravení do akce | +Bystrost | Jak lovec zvládl úvodní nebezpečnou situaci |
+
+**Příklad 1 — Průzkum zakletého domu (dva tahy):**
+
+*Tah na informace (+Podivínství):*
+- **10+:** Polož Strážci **2 otázky** (fámy mezi lovci, krvavý vzkaz na zrcadle, detaily v mapě)
+- **7–9:** Polož **1 otázku**
+- **6−:** Můžeš se zeptat na cokoliv, ale musel jsi vykonat něco nebezpečného (následek určí Strážce)
+
+*Tah na vpravení do akce (+Bystrost):*
+- **10+:** Vyber **2 výhody**, **7–9:** Vyber **1 výhodu**:
+  - Máš poltergeista v pasti na duchy
+  - Neutrpěl jsi zranění (nemáš v noze zarytý velký střep zrcadla)
+  - Víš, kde jsou ostatní duchové
+- **6−:** Všechno je špatně — zraněný, bez pasti, v nebezpečí
+
+**Příklad 2 — Absence hráče (dopis pro postavu Carter):**
+
+*Tah na splnění úkolů (+Bystrost):*
+- Postava obdrží výsledky testů z laboratoře + možnost otázky
+- **10+:** Stihla **2 naplánované věci** (hledání úkrytu, výzkum kouzla, nákup speciální munice)
+- **7–9:** Stihla **1 věc**
+- **6−:** Může si vybrat 1 věc, ale dostala se při tom do nesnází řešených na začátku sezení
 
 ### Co Strážce dělá mezi sezeními
 1. Poznámky — co lovci zjistili, vztahy v týmu
