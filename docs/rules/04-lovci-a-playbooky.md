@@ -256,7 +256,7 @@ Vyžaduje **Vysokou magii**. Hod: 2d6 - Podivínství (čím podivnější, tím
 | Nebeská | The Divine | Agent vyšší moci | [nebeska.md](playbooky/nebeska.md) |
 | Netvor | The Monstrous | Příšera na straně dobra | [netvor.md](playbooky/netvor.md) |
 | Normál | The Mundane | Obyčejný člověk | [normal.md](playbooky/normal.md) |
-| Poděs | The Spooky | Temné magické schopnosti | ⏳ |
+| Poděs | The Spooky | Temné magické schopnosti | [podes.md](playbooky/podes.md) |
 | Profesionálka | The Professional | Agentka organizace | ⏳ |
 | Sesílač | The Spell-Slinger | Školený čaroděj | ⏳ |
 | Vyvolený | The Chosen | Hrdina osudu | ⏳ |
