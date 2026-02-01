@@ -95,3 +95,7 @@ Ve své čtvrti vždy počítej s pomocí — schování nebo drobná laskavost 
 
 ### Známá firma
 Značná pověst. Když **odhalíš totožnost** při manipulaci → děsivá reputace je důvod. Ale odhalení ti může později zatopit.
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: Strážce musí do hry vpravit **někoho z jeho kriminální minulosti**.

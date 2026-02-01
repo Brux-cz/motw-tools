@@ -80,3 +80,7 @@ Když se spojíš s lidmi z internetu, hoď **+Šarm**.
 
 ### Úskočnost
 Pokud někoho **přepadneš ze zálohy** nebo zaútočíš zezadu → **+2 zranění**.
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: Lovec si uvědomí, co současná záhada znamená v **širších a tajemných souvislostech**.

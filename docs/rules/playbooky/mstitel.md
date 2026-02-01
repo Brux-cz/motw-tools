@@ -77,3 +77,7 @@ Když někomu (včetně sebe) narychlo poskytneš improvizovanou první pomoc, h
 
 ### Věc nástroje
 Se svou ikonickou zbraní (viz výbava) získáš **+1 k tahu Dej přes hubu**.
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: Stopy lovce **navedou k jeho kořisti**, což může být velmi nebezpečné.

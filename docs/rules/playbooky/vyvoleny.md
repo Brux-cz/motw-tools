@@ -94,3 +94,7 @@ Vždycky máš **2-zbroj**. Nesčítá se s jinou obranou.
 
 ### Houževnatost
 Léčíš se rychleji: při každém uzdravení **+1 zranění navíc**. Utržená zranění se počítají jako o 1 nižší pro Strážcovy tahy zranění.
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: Strážce musí do hry vpravit **něco z jeho Osudu**.

@@ -67,3 +67,7 @@ Kdykoliv se **bezhlavě vrhneš do nebezpečí** → **2 do zásoby**. Utrať z�
 
 ### Žádný strach, já to obhlídnu
 Kdykoliv se **sám vydáš prohledat děsivé místo** (nebo věc) → zaškrtni si XP.
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: Lovec **narazí na něco podivného**.

@@ -92,3 +92,7 @@ Když **Někoho ochraňuješ** → **2-zbroj** proti zranění přecházejícím
 
 ### Třetí oko
 Při **Zhodnoť situaci** otevřeš třetí oko (vnímáš neviditelné). **+1 do zásoby** ke každému hodu 7+. Při selhání můžeš získat 1 do zásoby, ale hrozí nadpřirozené nebezpečí nebo pomatení.
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: **Čarodějný koncil** se začne šťourat v jeho soukromých záležitostech.

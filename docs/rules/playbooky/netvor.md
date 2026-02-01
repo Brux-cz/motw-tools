@@ -91,3 +91,7 @@ Můžeš změnit podobu (obvykle ve zvíře). **+1 k Vyšetřuj záhadu**, pokud
 
 ### Něco půjčeného
 Vyber si libovolný tah z jiné příručky lovce, která momentálně není ve hře.
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: Strážce může **zesílit nějaký aspekt z jeho netvoří strany**.

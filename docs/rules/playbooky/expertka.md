@@ -87,3 +87,7 @@ Když procházíš vzpomínky a hledáš něco důležitého pro situaci, hoď *
 2. Jakou znám černou magii, která by mi teď mohla být k užitku?
 3. Vím o někom, kdo by za tím mohl stát?
 4. Kdo z mých starých přátel a známých by nám teď mohl pomoci?
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: Události ze současné záhady jsou **spojené s něčím, s čím se potýkala v minulosti**.

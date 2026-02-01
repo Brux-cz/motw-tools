@@ -65,3 +65,7 @@ Vypudíš nadpřirozeného tvora ze své blízkosti. Hoď **+Ostrost**.
 
 ### Bič boží
 Tvé tělo a božská zbraň vždy působí jako **slabina příšery**. Neozbrojené útoky: **2-zranění** (na těsno, na dosah ruky, brutální).
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: Její **Nadřízení přijdou s naléhavým úkolem**.

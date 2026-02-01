@@ -99,3 +99,7 @@ Manipulace okolností. Hoď **+Podivínství**.
   - Překážej v akci NPC/příšeře
   - Způsob cíli 1-zranění nehodou
   - Cíl něco získá/ztratí
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: Stupňují se **požadavky jeho Temné stránky**.

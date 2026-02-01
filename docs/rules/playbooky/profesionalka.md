@@ -95,3 +95,7 @@ Lékárnička a trénink. Při první pomoci hoď **+Rozvaha** (nahrazuje běžn
 
 ### Mobilita
 Upravené vozidlo pro lov příšer. Vyber **2 vymoženosti** (obrněný, klec pro příšery, sledovací vybavení...) a **1 vadu** (hlučný, starý, ohromná spotřeba...).
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: Pro příští misi se připraví **obzvlášť nepříjemné nevýhody** ze strany její Organizace.

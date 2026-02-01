@@ -103,3 +103,7 @@ Při úspěšném **Někomu pomoz** → dotyčný získá **+2** místo obvyklé
 
 ### Starodávná černá magie
 Při **Užij magii** si můžeš jako efekt zvolit **položení otázky** z tahu Vyšetřuj záhadu.
+
+## Vrtochy Štěstěny (Luck)
+
+Pokaždé, když lovec utratí bod Štěstěny: **Něco zlého se stane její Sektě**.
