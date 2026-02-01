@@ -2,28 +2,30 @@
 
 > Tento dokument zachycuje celkovou vizi projektu motw-tools.
 > Je to živý dokument — bude se vyvíjet spolu s projektem.
-> Poslední aktualizace: 2026-01-31
+> Poslední aktualizace: 2026-02-01
 
 ---
 
 ## Jednou větou
 
-**Osobní asistent a pomocník pro hraní hry Příšera týdne (Monster of the Week).**
+**Strážcovský panel — webová appka pro online vedení hry Příšera týdne (Monster of the Week).**
 
 ---
 
 ## Co to je
 
-Ne jeden nástroj, ale **prostředí** — sada propojených pomůcek, které pomáhají
-Strážci (a hráčům) s přípravou i průběhem hry. Něco jako osobní herní deník,
-generátor, referenční příručka a pomocník v jednom.
+Webová aplikace běžící vedle Discord voice callu. Slouží jako **kokpit Strážce** —
+vše co potřebuješ pro přípravu, vedení a sledování hry na jednom místě.
+
+Příprava záhad, tracking lovců, NPC a lokací jako karty, quick reference pravidel,
+generátory pro inspiraci za běhu.
 
 ## Co to NENÍ
 
-- Není to náhrada pravidel — pravidla jsou v knize
-- Není to virtuální tabletop (Roll20, Foundry) — hra se hraje u stolu
-- Není to databáze — jde o praktické pomůcky, ne o skladiště dat
-- Není to pevný software s jedním účelem — je to rostoucí ekosystém
+- Není to VTT (Roll20, Foundry) — MotW je theater of the mind
+- Není to nástroj pro hráče — hráči mají PDF playbooky, komunikují hlasem
+- Není to náhrada pravidel — je to rychlá reference a organizační nástroj
+- Není to databáze — jde o praktické pomůcky pro živou hru
 
 ---
 
@@ -34,6 +36,9 @@ inspirace seriálem Supernatural (a podobnými: Buffy, X-Files). Český folkló
 a české reálie nejsou priorita — nástroje by měly generovat americká jména,
 americká města, americké reálie.
 
+**Způsob hraní:** Online přes Discord voice. Strážce má appku vedle Discordu
+na obrazovce. Hráči appku nevidí.
+
 ---
 
 ## Proč to stavíme
@@ -43,113 +48,137 @@ Příšera týdne je hra, kde:
 - Hra je **improvizovaná konverzace** — ne scénář
 - Strážce potřebuje **rychlé pomůcky**, ne složité systémy
 - Klíčové je mít po ruce **správné informace ve správný čas**
+- Online hra vyžaduje **digitální tracking** — nemáš papír před sebou
 
 Existující nástroje (generické RPG trackery, tabulky) neodpovídají tomuto
 stylu hry. Potřebujeme něco šitého na míru.
 
 ---
 
-## Z čeho vycházíme (poznatky z brainstormingu)
+## Architektura appky
 
-### Jak hra reálně funguje u stolu
+### 4 hlavní sekce
 
-1. Strážce má před sebou **vyplněnou šablonu záhady** na papíře
-2. Během hry **škrtá odpočet** tužkou
-3. Má po ruce **nápovědní kartu tahů** a **seznam jmen NPC**
-4. Vše ostatní improvizuje na základě konverzace s hráči
-5. Mezi sezeními analyzuje poznámky a připravuje novou záhadu
+| Sekce | Kdy se používá | Co obsahuje |
+|-------|----------------|-------------|
+| **Kampaň** | Mezi sezeními | Lovci, příběhové oblouky, NPC archiv, historie |
+| **Záhada** | Příprava před hrou | Příšera, NPC, lokace, odpočet, tahy na míru |
+| **Sezení** | Během živé hry | Odpočet, karty, harm tracking, poznámky, Strážcův panel |
+| **Pravidla** | Kdykoli | Quick reference, fulltextové hledání |
 
-### Co z toho plyne pro nástroje
-
-- **Rychlost je klíčová** — nástroj musí být rychlejší než tužka a papír
-- **Jednoduchost** — žádné složité wizardy, formuláře na 20 minut
-- **Inspirace > zadávání dat** — nástroj má nabízet nápady, ne vyžadovat input
-- **Tisknutelné výstupy** — výsledek musí jít vzít k hernímu stolu
-- **Offline first** — u stolu nemusí být internet
+Detailní specifikace: [`docs/app-spec.md`](docs/app-spec.md)
 
 ---
 
-## Co by prostředí mohlo obsahovat
+## Klíčové principy designu
 
-### Vrstva 1: Znalostní báze (už existuje)
+### Kokpit, ne kniha
+- **Vidíš pořád:** harm lovců, odpočet, zdraví příšery
+- **Mrkneš vpravo:** měkký/tvrdý tah — 5 slov na řádek
+- **Najedeš myší:** detail s příkladem
+- **Klikneš:** plné pravidlo
+
+### Progresivní detail (3 úrovně)
+1. **Mrkneš** — kompaktní, vždy viditelné (90 % situací)
+2. **Rozklikneš** — detail tahu, otázky, selhání
+3. **Plný text** — výjimečně, spor o pravidlo
+
+### Všechno je karta
+NPC, lokace, příšera, přisluhovač — jednotný formát. Karty jsou editovatelné
+kdykoli, patří kampani, přežijí záhadu, dají se znovu použít.
+
+### Rychlost > komplexita
+Nástroj musí být rychlejší než hledání v pravidlech. Žádné wizardy,
+žádné formuláře na 20 minut. Jeden klik → výsledek → edituj.
+
+---
+
+## Datový základ
+
+### Vrstva 1: Znalostní báze (hotovo)
 Strukturovaný přehled pravidel v `docs/rules/`. Slouží jako:
-- Referenční příručka pro Strážce i hráče
-- Datový základ pro generátory
-- Živý dokument rozšiřovaný o nový obsah (Tome of Mysteries, komunita)
+- Zdroj dat pro appku (tahy, typy hrozeb, zbraně, playbooky)
+- Referenční materiál pro Strážce
+- 13 souborů pravidel + 12 playbooků
 
-### Vrstva 2: Generátory a pomůcky
-Rychlé CLI nástroje pro přípravu hry:
-
-| Pomůcka | Co dělá | Priorita |
-|---------|---------|----------|
-| **Šablona záhady** | Vygeneruje prázdnou/předvyplněnou šablonu k tisku | Vysoká |
-| **Randomizér příšer** | Náhodný typ + motivace + slabina pro inspiraci | Vysoká |
-| **Generátor NPC** | Jméno + typ + motivace + krátký popis | Vysoká |
-| **Nápovědní karty** | Tahy Strážce, typy hrozeb, štítky — k tisku | Střední |
-| **Generátor odpočtu** | Pomoc s tvorbou 6 fází na základě příšery | Střední |
-| **Generátor záhady** | Kompletní záhada z náhodných/vybraných prvků | Nízká (ambiciózní) |
-
-### Vrstva 3: Sledování kampaně (budoucnost)
-- Archiv odehraných záhad
-- Sledování příběhových oblouků a jejich odpočtů
-- Seznam NPC, které lovci potkali
-- Herní deník
-
-### Vrstva 4: AI asistent (budoucnost)
-- Propojení s NotebookLM přes MCP pro research v pravidlech
-- AI generování záhad na základě vstupů Strážce
-- Interaktivní brainstorming příšer, NPC, zápletek
-
----
-
-## Principy vývoje
-
-1. **Jednoduchost** — radši malý užitečný nástroj než velký nepoužitelný systém
-2. **Postupně** — stavíme po malých krocích, každý krok musí být sám o sobě užitečný
-3. **Praxe rozhoduje** — pokud to nepomáhá u stolu, nemá to smysl
-4. **Otevřenost** — nový obsah (záhady, příšery, NPC) jde přidávat bez změny kódu
-5. **Brainstorming first** — hodně mluvit a přemýšlet, pak teprve kódovat
-
----
-
-## Co máme (stav k 2026-01-31)
-
-### Hotovo
-- [x] Znalostní báze pravidel (`docs/rules/` — 13 souborů, většina oblastí ✅)
-- [x] Analýza NotebookLM integrace (`docs/notebooklm-collaboration-analysis.md`)
-- [x] Vize projektu (tento dokument)
-- [x] Česká lokalizace a slovník termínů
-
-### Rozpracováno
-- [ ] Koncept mystery-creator nástroje (plán existuje, nezačala implementace)
-- [ ] Tome of Mysteries (není v NotebookLM, potřeba jiný zdroj)
-
-### Budoucí nápady
-- [ ] Randomizér příšer
-- [ ] Generátor NPC jmen
-- [ ] Nápovědní karty k tisku
-- [ ] Sledování kampaně
-- [ ] AI integrace (MCP + NotebookLM)
-- [ ] Generátor kompletních záhad
-- [ ] Import záhad z komunity / jiných knih
+### Vrstva 2: Strukturovaná data (potřeba vytvořit)
+JSON soubory pro appku:
+- Playbooky (atributy, tahy, zbraně, štěstěna)
+- Zbraně (harm, dosah, štítky)
+- Typy hrozeb (příšery, přisluhovači, přihlížející, lokace)
+- Tahy (základní, pokročilé, Strážce)
+- Jména NPC (americká, muž/žena/neutrální)
 
 ---
 
 ## Technologie
 
-- **Python** — CLI nástroje, jednoduché pro prototypování
-- **Markdown** — formát pro znalostní bázi i výstupy
-- **JSON** — datový formát pro uložení záhad, NPC, kampaní
-- **Git** — verzování všeho
+- **Static web app** — HTML + CSS + JS, žádný backend
+- **localStorage / IndexedDB** — persistentní stav (kampaň, záhady, lovci)
+- **JSON** — herní data i uložené kampaně
+- **GitHub Pages** — hosting zdarma přímo z repa
+- **Offline capable** — jednou načtené = běží bez internetu
+- **Export/import JSON** — backup a přenos dat
+
+---
+
+## Fáze implementace
+
+### Fáze 1: Kostra + reference
+- Panel se záložkami (Kampaň, Záhada, Sezení, Pravidla)
+- JSON data (tahy, typy hrozeb, zbraně, jména)
+- Pravidla tab — quick reference s progresivním detailem
+- Strážcův panel (tahy Strážce měkký/tvrdý, tahy lovců)
+
+### Fáze 2: Příprava záhady
+- Formulář záhady (příšera, NPC, lokace, odpočet, tahy na míru)
+- Generátory (příšera 🎲, NPC 🎲, lokace 🎲)
+- Kartový systém (NPC, lokace, přisluhovači)
+
+### Fáze 3: Session tracking
+- Harm/štěstí/XP tracking lovců (spodní lišta)
+- Odpočet tracker
+- Připnuté karty ve scéně
+- Poznámky za běhu
+
+### Fáze 4: Kampaň
+- Seznam lovců s poznámkami Strážce
+- Příběhové oblouky s odpočty
+- NPC archiv (filtrování, tagy, stavy)
+- Historie sezení
+
+### Fáze 5: Budoucnost
+- AI asistent (MCP + NotebookLM)
+- Generátor kompletních záhad
+- Import záhad z komunity
+- Sdílený tldraw canvas link
+
+---
+
+## Co máme (stav k 2026-02-01)
+
+### Hotovo
+- [x] Znalostní báze pravidel (`docs/rules/` — 13 souborů + 12 playbooků)
+- [x] Analýza NotebookLM integrace (`docs/notebooklm-collaboration-analysis.md`)
+- [x] Vize projektu (tento dokument)
+- [x] Česká lokalizace a slovník termínů
+- [x] Specifikace appky (`docs/app-spec.md`)
+
+### Další kroky
+- [ ] Konverze pravidel do JSON datových souborů
+- [ ] Kostra webové appky (HTML + CSS + JS)
+- [ ] Pravidla tab s progresivním detailem
+- [ ] Strážcův panel (tahy Strážce + tahy lovců)
+- [ ] NPC generátor
+- [ ] Příprava záhady
 
 ---
 
 ## Jak na tom pracujeme
 
-1. **Brainstorming** — konverzace, sbírání nápadů, výzkum pravidel
-2. **NotebookLM** — zdroj informací z pravidel (přes MCP nebo manuální export)
-3. **Znalostní báze** — ukládání poznatků do `docs/rules/`
-4. **Tento dokument** — aktualizace vize na základě nových poznatků
-5. **Implementace** — až bude koncept jasný, začneme kódovat
+1. **Brainstorming** — konverzace, UX design, iterace na specifikaci
+2. **Znalostní báze** — pravidla v `docs/rules/` jako zdroj dat
+3. **Specifikace** — detailní popis v `docs/app-spec.md`
+4. **Implementace** — po malých krocích, každý krok sám o sobě užitečný
 
-> Aktuálně jsme ve fázi 1–2: brainstormujeme a sbíráme znalosti.
+> Aktuálně: specifikace hotová, připraveno na implementaci.
