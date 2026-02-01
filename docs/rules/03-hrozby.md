@@ -91,6 +91,21 @@ Strážce musí definovat:
 10. Ukázat záblesk svědomí, nebo lidství (Show a flicker of conscience or humanity)
 11. Malicherným způsobem se vzepřít svému pánu (Defy their master in a petty way)
 
+### Tvorba přisluhovače — krok za krokem
+
+1. **Popis a koncept** — o jakou bytost jde, jaká role v příběhu (slabší jedinec druhu příšery, uctívač, nevědomý lidský služebník)
+2. **Typ a motivace** — výběr z 10 typů (viz tabulka výše)
+3. **Nadpřirozené schopnosti a slabiny** — speciální dovednosti; slabiny možné, ale nepovinné; pro unikátní schopnosti lze vytvořit tahy na míru
+4. **Útoky** — hodnota zranění (1–4), dosah, štítky
+5. **Výdrž a zbroj** — výdrž 5–10 (výjimečně více); zbroj obvykle 1, zřídka 2+
+6. **Skupiny (gangy)** — pokud útočí jako celek: útok +1, jeden společný ukazatel zranění
+
+**Příklad: Doktorka Kelly Morrison**
+- Popis: Posedlá vědkyně chránící mongolské červy
+- Typ: Hlídač
+- Motivace: Zahradit cestu, nebo něco chránit
+- Jako lidský přisluhovač nemusí mít nadpřirozené útoky — hrozba spočívá v maření vyšetřování
+
 ---
 
 ## Typy přihlížejících (Bystander Types) — 9 typů
