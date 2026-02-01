@@ -246,10 +246,33 @@ Vyžaduje **Vysokou magii**. Hod: 2d6 - Podivínství (čím podivnější, tím
 
 ### Expertka (The Expert)
 - **Role:** Znalec monster a magie, má útočiště
-- **Tahy:** O tom už jsem četla, Často mám pravdu, Předvídavost, Lepší než se zdálo, Přesný úder, Vždy připravena, Temná minulost
-- **Speciální systém:** Útočiště (Haven) — vybírá 3 z 9 možností
+- **Vyber 2 tahy** z následujícího seznamu
 
-**Možnosti útočiště:**
+**Řádky atributů (vyber 1):**
+
+| Šarm | Rozvaha | Bystrost | Ostrost | Podivínství |
+|:----:|:-------:|:--------:|:-------:|:-----------:|
+| -1 | +1 | +2 | +1 | 0 |
+| 0 | +1 | +2 | -1 | +1 |
+| +1 | -1 | +2 | +1 | 0 |
+| -1 | +1 | +2 | 0 | +1 |
+| -1 | 0 | +2 | -1 | +2 |
+
+**Startovní výbava — vyber 3 zbraně:**
+
+| Zbraň | Zranění | Dosah | Štítky |
+|-------|:-------:|-------|--------|
+| Palice a dřevěné kolíky | 3 | na těsno | pomalé, dřevěné |
+| Stříbrný meč | 2 | na dosah ruky | brutální, stříbrný |
+| Meč z ryzího železa | 2 | na dosah ruky | brutální, železný |
+| Požehnaný nůž | 2 | na dosah ruky | posvěcený |
+| Kouzelná dýka | 2 | na dosah ruky | magická |
+| Brašna vúdú | 1 | na dálku | magická |
+| Plamenomet | 3 | na blízko | ohnivý, těžký, nestabilní |
+| Magnum | 3 | na blízko | nabíjecí, hlučné |
+| Brokovnice | 3 | na blízko | brutální, hlučná |
+
+**Speciální systém:** Útočiště (Haven) — vybírá 3 z 9 možností:
 1. Knihovna tradic a legend (+1 vyšetřování)
 2. Mystická knihovna (+1 magie)
 3. Ochranná kouzla (příšery nemohou vstoupit)
@@ -259,6 +282,16 @@ Vyžaduje **Vysokou magii**. Hod: 2d6 - Podivínství (čím podivnější, tím
 7. Tajemná skrýš (izolace od příšer)
 8. Úkryt (zásoby na dny)
 9. Magická laboratoř (ingredience)
+
+**Tahy Expertky:**
+
+- **O tom už jsem četla:** Když jednáš pod tlakem, hoď +Bystrost místo +Rozvaha.
+- **Často mám pravdu:** Když se na tebe jiný lovec obrátí s problémem, upřímně mu poraď. Když se radou řídí → +1 situační a ty získáš XP.
+- **Předvídavost:** Když potřebuješ něco neobvyklého, hoď +Bystrost. **10+:** máš to tady a teď. **7–9:** vlastníš to, ale nemáš s sebou. **6-:** víš kde to je, ale na velmi špatném místě.
+- **Lepší, než se zdálo:** Jednou za záhadu pokus pokračovat navzdory zranění. Hoď +Rozvaha. **10+:** vyléčíš 2 zranění a stabilizuješ. **7–9:** stabilizace NEBO vyléčení 1. **6-:** horší než se zdálo (tah zranění nebo nestabilní).
+- **Přesný úder:** Když zraníš příšeru, zacílíš na slabé místo. Hoď +Ostrost. **10+:** +2 zranění. **7–9:** +1 zranění. **6-:** zůstaneš nekrytá útoku.
+- **Vždy připravena:** Na začátku záhady hoď +Bystrost. **10+:** 2 zásoby. **7–9:** 1 zásoba. Utrať zásobu = dostat se tam, kam potřebuješ, připravená. **6-:** Strážce získá 1 zásobu (nejhorší místo, nepřipravená).
+- **Temná minulost:** Prohledáváš vzpomínky. Hoď +Podivínství. **10+:** 2 otázky. **7–9:** 1 otázka. **6-:** můžeš se zeptat, ale jsi spoluvinná. Otázky: (1) Co jsem se dozvěděla o tomto stvoření? (2) Jakou znám černou magii? (3) Kdo by za tím mohl stát? (4) Kdo z mých známých by mohl pomoci?
 
 ### Křivák (The Crooked)
 - **Role:** Bývalý zločinec s kontakty
