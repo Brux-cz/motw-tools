@@ -91,6 +91,15 @@ Stejná struktura (Den → Půlnoc), ale události v **měřítku celých záhad
 - **Profesionálka/Zasvěcená:** Zkorumpované vedení → oblouk „Prohnilost"
 - **Štěstěna:** Vyčerpání Štěstěny aktivuje efekty spojené s oblouky
 
+### Tahy oblouků
+
+Oblouky **nemají vlastní seznam tahů**. Fungují takto:
+- Používají **standardní tahy hrozeb** (příšer, přisluhovačů, přihlížejících, lokalit), které oblouk obsahuje
+- Strážce vytváří **tahy na míru (custom moves)** specifické pro oblouk
+- Rozdíl oproti záhadám: tahy oblouku řeší **dlouhodobé následky a chronické problémy** napříč sezeními
+- **Příklad:** Oblouk s vlkodlačí smečkou → custom move pro postupnou proměnu lovce ve vlkodlaka (horečka, zostření smyslů, rituál do příštího úplňku)
+- Účel: upozornit lovce na závažnější problém za běžnými „příšerami týdne"
+
 ### Dobrý vs. špatný oblouk
 
 - **Dobrý:** Flexibilní, reaguje na činy lovců, hrozby jsou osobně důležité
