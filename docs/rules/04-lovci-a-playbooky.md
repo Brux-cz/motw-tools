@@ -251,7 +251,7 @@ Vyžaduje **Vysokou magii**. Hod: 2d6 - Podivínství (čím podivnější, tím
 |----------|----|------|---------|
 | Expertka | The Expert | Znalec monster a magie, útočiště | [expertka.md](playbooky/expertka.md) |
 | Křivák | The Crooked | Bývalý zločinec s kontakty | [krivak.md](playbooky/krivak.md) |
-| Madam Paranoia | The Flake | Teoretička spiknutí | ⏳ |
+| Madam Paranoia | The Flake | Teoretička spiknutí | [madam-paranoia.md](playbooky/madam-paranoia.md) |
 | Mstitel | The Wronged | Hnaný osobní ztrátou | ⏳ |
 | Nebeská | The Divine | Agent vyšší moci | ⏳ |
 | Netvor | The Monstrous | Příšera na straně dobra | ⏳ |
