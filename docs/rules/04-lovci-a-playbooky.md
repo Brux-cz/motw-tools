@@ -111,10 +111,35 @@ Vyžaduje **pádný důvod** (prosba, úplatek, hrozba, lživá identita).
 
 ### Pokročilé tahy (Advanced Moves)
 
-Odemykají se po 5. úrovni. Přidávají výjimečné výsledky pro hod 12+:
-- Dej přes hubu 12+: žádné zranění NEBO dvojnásobné zranění
-- Vyšetřuj záhadu 12+: jakákoliv otázka mimo seznam
-- Někoho zmanipuluj 12+: cíl okamžitě splní rozkaz a stane se spojencem
+Odemykají se po 5. úrovni (vylepšení „Označ dva ze svých základních tahů jako pokročilé"). Přidávají výjimečné výsledky pro hod 12+:
+
+#### Jednej pod tlakem 12+ (Act Under Pressure)
+S tlakem okolností si stoprocentně poradíš. Můžeš si vybrat: **provedeš původní záměr plus něco navíc**, nebo ho **dotáhneš k naprosté dokonalosti** (takovým způsobem, že si o tom lidé budou roky vyprávět).
+
+#### Někomu pomoz 12+ (Help Out)
+Změníš celou situaci. Pro osobu, které pomáháš, platí, **jako by si hodila 12**, nezávisle na tom, co jí skutečně padlo.
+
+#### Dej přes hubu 12+ (Kick Some Ass)
+Protivníka rozneseš na kopytech. Způsobíš a utržíš zranění jako obvykle + volíš **jeden efekt**:
+- Máš absolutní převahu: +1 na příště pro **všechny** zapletené do souboje
+- Neutržíš **vůbec žádné** zranění
+- Útok způsobí **dvojnásobné** zranění
+- Útok přinutí nepřítele ke **zběsilému úprku**
+
+#### Někoho ochraňuj 12+ (Protect Someone)
+Ochráníš dokonale. Ty i chráněná postava **vyváznete bez zranění**. Pokud jsi ochraňoval přihlížejícího, stane se navíc tvým **spojencem** (zvolíš typ spojence).
+
+#### Někoho zmanipuluj 12+ (Manipulate Someone)
+Cíl **naprosto přesvědčíš**. Hned udělá, co po něm chceš. Aby se jiný lovec vzepřel, musí **Jednat pod tlakem**. Pokud lovec uposlechne → +1 situační, dokud dělá to, o co jsi požádal. Přihlížející se stane tvým **spojencem** až do vyřešení záhady (nebo natrvalo, pokud toho pro něj vykonáš dost).
+
+#### Vyšetřuj záhadu 12+ (Investigate a Mystery)
+Můžeš Strážci položit **libovolnou otázku** související se záhadou — nejsi omezen seznamem.
+
+#### Zhodnoť situaci 12+ (Read a Bad Situation)
+Můžeš Strážci položit **libovolnou otázku** související se situací — nejsi omezen seznamem.
+
+#### Užij magii 12+ (Use Magic)
+Jsi prostoupen magickou mocí. **Stane se přesně to, co chceš**, a navíc ti Strážce nabídne **extra výhodu**.
 
 ---
 
