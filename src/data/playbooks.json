@@ -1,0 +1,62 @@
+{
+  "Chosen": {
+    "name": "Chosen",
+    "name_cz": "Chosen",
+    "description": "Playbook Chosen"
+  },
+  "Crooked": {
+    "name": "Crooked",
+    "name_cz": "Crooked",
+    "description": "Playbook Crooked"
+  },
+  "Divine": {
+    "name": "Divine",
+    "name_cz": "Divine",
+    "description": "Playbook Divine"
+  },
+  "Expert": {
+    "name": "Expert",
+    "name_cz": "Expert",
+    "description": "Playbook Expert"
+  },
+  "Flake": {
+    "name": "Flake",
+    "name_cz": "Flake",
+    "description": "Playbook Flake"
+  },
+  "Initiate": {
+    "name": "Initiate",
+    "name_cz": "Initiate",
+    "description": "Playbook Initiate"
+  },
+  "Monstrous": {
+    "name": "Monstrous",
+    "name_cz": "Monstrous",
+    "description": "Playbook Monstrous"
+  },
+  "Mundane": {
+    "name": "Mundane",
+    "name_cz": "Mundane",
+    "description": "Playbook Mundane"
+  },
+  "Professional": {
+    "name": "Professional",
+    "name_cz": "Professional",
+    "description": "Playbook Professional"
+  },
+  "Spell-Slinger": {
+    "name": "Spell-Slinger",
+    "name_cz": "Spell-Slinger",
+    "description": "Playbook Spell-Slinger"
+  },
+  "Spooky": {
+    "name": "Spooky",
+    "name_cz": "Spooky",
+    "description": "Playbook Spooky"
+  },
+  "Wronged": {
+    "name": "Wronged",
+    "name_cz": "Wronged",
+    "description": "Playbook Wronged"
+  }
+}

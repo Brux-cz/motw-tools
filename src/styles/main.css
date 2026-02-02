@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+/* Base Styles */
+body {
+  background-color: rgb(23 23 23 / 0.9);
+  color: rgb(229 231 235);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* App Grid Layout */
+.app-grid {
+  display: grid;
+  grid-template-rows: 60px 1fr 48px;
+  grid-template-columns: 200px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar-item {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  color: rgb(156 163 175);
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+
+.sidebar-item:hover {
+  background-color: rgb(255 255 255 / 0.05);
+  color: rgb(255 255 255);
+}
+
+.sidebar-item-active {
+  border-left-color: rgb(127 29 29 / 0.4);
+  background-color: rgb(0 0 0 / 0.2);
+  color: rgb(255 255 255);
+  font-weight: 600;
+}
+
+/* Timeline Countdown */
+.timeline-node {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 2px solid rgb(255 255 255 / 0.2);
+  cursor: pointer;
+  transition: all 0.15s;
+  background: #1e1e1e;
+}
+
+.timeline-node-active {
+  border-color: #b91c1c;
+}
+
+.timeline-node:hover {
+  transform: scale(1.1);
+}
+
+/* Card Styles */
+.card {
+  border-radius: 0.5rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background-color: rgb(0 0 0 / 0.2);
+  padding: 1rem;
+}
+
+.card-monster {
+  border-color: rgb(127 29 29 / 0.4);
+  background-color: rgb(69 10 10 / 0.5);
+}
+
+.card-location {
+  border-color: rgb(29 78 216 / 0.5);
+  background-color: rgb(30 58 138 / 0.3);
+}
+
+.card-npc {
+  border-color: rgb(126 34 206 / 0.5);
+  background-color: rgb(88 28 135 / 0.3);
+}
+
+/* Buttons */
+.btn {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  background-color: rgb(255 255 255 / 0.1);
+  transition: all 0.15s;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: rgb(255 255 255 / 0.05);
+}
+
+.btn-primary {
+  background-color: rgb(127 29 29);
+  border-color: rgb(153 27 27);
+  color: rgb(255 255 255);
+}
+
+.btn-primary:hover {
+  background-color: rgb(153 27 27 / 0.6);
+}
+
+/* Input */
+.input {
+  width: 100%;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  background-color: rgb(0 0 0 / 0.3);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 0.25rem;
+  color: rgb(229 231 235);
+}
+
+.input:focus {
+  outline: none;
+  border-color: rgb(185 28 28 / 0.5);
+}
+
+/* Harm/Luck boxes */
+.harm-box {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid rgb(127 29 29 / 0.4);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.harm-box:hover {
+  border-color: rgb(127 29 29 / 0.4);
+}
+
+.harm-box-filled {
+  background-color: rgb(220 38 38);
+}
+
+.luck-box {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid rgb(29 78 216 / 0.5);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.luck-box-filled {
+  background-color: rgb(29 78 216);
+}
+
+/* Log Entry */
+.log-entry {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: rgb(209 213 219);
+  border-left: 2px solid rgb(255 255 255 / 0.1);
+  padding-left: 0.75rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+/* Typography */
+.mono-font {
+  font-family: 'Courier New', monospace;
+}
+
+.text-luck-cyan {
+  color: #3b82f6;
+}
+
+.text-harm-red {
+  color: #dc2626;
+}
+
+/* Keeper Panel Tabs */
+.keeper-tab {
+  position: relative;
+  color: rgb(156 163 175);
+}
+
+.keeper-tab-active {
+  color: rgb(255 255 255);
+  background-color: rgb(0 0 0 / 0.2);
+}
+
+.keeper-tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: rgb(185 28 28);
+}
+
+/* Scrollbar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
