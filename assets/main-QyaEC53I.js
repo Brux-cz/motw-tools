@@ -291,7 +291,7 @@
         </div>
       </div>
     </div>
-  `}function Se(){const e=l("#btn-advance-countdown");e&&e.addEventListener("click",Ie);const t=l("#btn-add-log"),n=l("#log-input");t&&n&&(t.addEventListener("click",()=>P(n.value)),n.addEventListener("keypress",r=>{r.key==="Enter"&&P(n.value)})),document.querySelectorAll(".keeper-tab").forEach(r=>{r.addEventListener("click",()=>{const a=r.dataset.keeperTab;De(a)})}),Z()}function Ie(){const e=c(),t=e.campaign?.mysteries?.find(r=>r.id===e.currentMysteryId);if(!t||!t.countdown)return;const n=t.countdown.currentPhase||0;if(n>=5)return;t.countdown.currentPhase=n+1,d({campaign:e.campaign}),P(`Odpočet posunut: ${["Den","Příšeří","Západ","Soumrak","Noc","Půlnoc"][n+1]}`),w()}function P(e){if(!e||!e.trim())return;const n=c().sessionLog||[];n.push({timestamp:Date.now(),text:e.trim()}),d({sessionLog:n});const s=l("#log-input");s&&(s.value=""),w()}function De(e){document.querySelectorAll(".keeper-tab").forEach(n=>{n.dataset.keeperTab===e?n.classList.add("keeper-tab-active"):n.classList.remove("keeper-tab-active")}),document.querySelectorAll(".keeper-content").forEach(n=>{n.classList.add("hidden")});const t=l(`#keeper-content-${e}`);t&&t.classList.remove("hidden"),e==="moves"?Z():e==="hunter-moves"?Te():e==="weapons"&&Ce()}async function Z(){const e=l("#keeper-content-moves");if(e)try{const n=await(await fetch("/data/keeper-moves.json")).json(),s=n.filter(o=>o.type==="soft"),r=n.filter(o=>o.type==="hard"),a=n.filter(o=>o.type!=="soft"&&o.type!=="hard");e.innerHTML=`
+  `}function Se(){const e=l("#btn-advance-countdown");e&&e.addEventListener("click",Ie);const t=l("#btn-add-log"),n=l("#log-input");t&&n&&(t.addEventListener("click",()=>P(n.value)),n.addEventListener("keypress",r=>{r.key==="Enter"&&P(n.value)})),document.querySelectorAll(".keeper-tab").forEach(r=>{r.addEventListener("click",()=>{const a=r.dataset.keeperTab;De(a)})}),Z()}function Ie(){const e=c(),t=e.campaign?.mysteries?.find(r=>r.id===e.currentMysteryId);if(!t||!t.countdown)return;const n=t.countdown.currentPhase||0;if(n>=5)return;t.countdown.currentPhase=n+1,d({campaign:e.campaign}),P(`Odpočet posunut: ${["Den","Příšeří","Západ","Soumrak","Noc","Půlnoc"][n+1]}`),w()}function P(e){if(!e||!e.trim())return;const n=c().sessionLog||[];n.push({timestamp:Date.now(),text:e.trim()}),d({sessionLog:n});const s=l("#log-input");s&&(s.value=""),w()}function De(e){document.querySelectorAll(".keeper-tab").forEach(n=>{n.dataset.keeperTab===e?n.classList.add("keeper-tab-active"):n.classList.remove("keeper-tab-active")}),document.querySelectorAll(".keeper-content").forEach(n=>{n.classList.add("hidden")});const t=l(`#keeper-content-${e}`);t&&t.classList.remove("hidden"),e==="moves"?Z():e==="hunter-moves"?Te():e==="weapons"&&Ce()}async function Z(){const e=l("#keeper-content-moves");if(e)try{const n=await(await fetch("/motw-tools/data/keeper-moves.json")).json(),s=n.filter(o=>o.type==="soft"),r=n.filter(o=>o.type==="hard"),a=n.filter(o=>o.type!=="soft"&&o.type!=="hard");e.innerHTML=`
       <div class="space-y-4">
         ${s.length>0?`
           <div>
@@ -337,7 +337,7 @@
         `:""}
       </div>
     </details>
-  `}async function Te(){const e=l("#keeper-content-hunter-moves");if(e)try{const n=await(await fetch("/data/basic-moves.json")).json();e.innerHTML=`
+  `}async function Te(){const e=l("#keeper-content-hunter-moves");if(e)try{const n=await(await fetch("/motw-tools/data/basic-moves.json")).json();e.innerHTML=`
       <div class="space-y-2">
         ${n.map(s=>Pe(s)).join("")}
       </div>
@@ -389,7 +389,7 @@
         </div>
       </div>
     </details>
-  `}async function Ce(){const e=l("#keeper-content-weapons");if(e)try{const n=await(await fetch("/data/weapons.json")).json(),s={improvised:{name:"Improvizované",weapons:[]},melee:{name:"Chladné zbraně",weapons:[]},firearms:{name:"Střelné zbraně",weapons:[]},heavy:{name:"Těžké zbraně",weapons:[]},special:{name:"Speciální",weapons:[]},magic:{name:"Magie",weapons:[]},natural:{name:"Přirozené",weapons:[]}};n.weapons.forEach(r=>{s[r.category]&&s[r.category].weapons.push(r)}),e.innerHTML=`
+  `}async function Ce(){const e=l("#keeper-content-weapons");if(e)try{const n=await(await fetch("/motw-tools/data/weapons.json")).json(),s={improvised:{name:"Improvizované",weapons:[]},melee:{name:"Chladné zbraně",weapons:[]},firearms:{name:"Střelné zbraně",weapons:[]},heavy:{name:"Těžké zbraně",weapons:[]},special:{name:"Speciální",weapons:[]},magic:{name:"Magie",weapons:[]},natural:{name:"Přirozené",weapons:[]}};n.weapons.forEach(r=>{s[r.category]&&s[r.category].weapons.push(r)}),e.innerHTML=`
       <div class="space-y-4">
         ${Object.entries(s).map(([r,a])=>a.weapons.length===0?"":`
             <div>
