@@ -492,7 +492,7 @@ async function loadKeeperMoves() {
   if (!container) return;
 
   try {
-    const response = await fetch('/data/keeper-moves.json');
+    const response = await fetch(import.meta.env.BASE_URL + 'data/keeper-moves.json');
     const moves = await response.json();
 
     const softMoves = moves.filter(m => m.type === 'soft');
@@ -567,7 +567,7 @@ async function loadHunterMoves() {
   if (!container) return;
 
   try {
-    const response = await fetch('/data/basic-moves.json');
+    const response = await fetch(import.meta.env.BASE_URL + 'data/basic-moves.json');
     const moves = await response.json();
 
     container.innerHTML = `
@@ -644,7 +644,7 @@ async function loadWeapons() {
   if (!container) return;
 
   try {
-    const response = await fetch('/data/weapons.json');
+    const response = await fetch(import.meta.env.BASE_URL + 'data/weapons.json');
     const data = await response.json();
 
     // Group weapons by category
