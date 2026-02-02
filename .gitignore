@@ -1,0 +1,28 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtualenv
+.env
+.venv
+venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg
+*.whl
+
+# Editor/IDE
+.vscode/
+.idea/
+# Node
+node_modules/
+package-lock.json
+
+# Playwright
+.playwright-mcp/
+
+# Build
+*.log
