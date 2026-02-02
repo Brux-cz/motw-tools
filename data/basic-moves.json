@@ -1,0 +1,154 @@
+[
+  {
+    "name": "Kick Some Ass",
+    "name_cz": "Dej přes hubu",
+    "trigger": "When you attack an enemy in close combat",
+    "trigger_cz": "Když se pustíš do přímého boje s nepřítelem, který se může bránit",
+    "stat": "Tough",
+    "stat_cz": "Ostrost",
+    "description": "Představuje výměnu úderů, ne ojedinělý výstřel na bezbranný cíl.",
+    "result_10plus": "Vyměníte si zranění podle pravidel. Navíc si vyber jeden extra efekt:",
+    "result_10plus_options": [
+      "Jsi ve výhodě: +1 na příště pro tebe nebo spojence proti tomuto nepříteli",
+      "Způsobíš strašlivé zranění: +1 zranění",
+      "Utržíš menší zranění: -1 zranění",
+      "Zatlačíš protivníka tam, kde ho chceš mít"
+    ],
+    "result_7_9": "Vyměníte si zranění (ty podle své zbraně, nepřítel podle svého útoku)",
+    "result_6_minus": "Utržíš zranění, sám nepřítele nezasáhneš. Strážce provede tvrdý tah.",
+    "notes": "Příšeru nelze trvale zabít bez využití její slabiny, i když utrpí dostatečné zranění."
+  },
+  {
+    "name": "Act Under Pressure",
+    "name_cz": "Jednej pod tlakem",
+    "trigger": "When you act under pressure",
+    "trigger_cz": "Když musíš jednat v nebezpečné nebo stresující situaci",
+    "stat": "Cool",
+    "stat_cz": "Rozvaha",
+    "description": "Překonávání nebezpečí v klidu - vyhýbání se, útěk, stabilizace ran, odolávání strachu.",
+    "result_10plus": "Uděláš přesně to, cos chtěl. Plný úspěch.",
+    "result_7_9": "Strážce dá na výběr: horší výsledek, složitá volba nebo cena za úspěch.",
+    "result_6_minus": "Zvrtne se to. To, čemu ses snažil vyhnout, tě plně zasáhne. Strážce provede tvrdý tah.",
+    "notes": "Široká škála použití - od záchranných hodů až po klid pod palbou."
+  },
+  {
+    "name": "Help Out",
+    "name_cz": "Někomu pomoz",
+    "trigger": "When you help another hunter",
+    "trigger_cz": "Když pomáháš jinému lovci při jeho akci",
+    "stat": "Cool",
+    "stat_cz": "Rozvaha",
+    "description": "Poskytnutí bonusu spojenci - krytí palby, rozptýlení, porada.",
+    "result_10plus": "Spojenec získá +1 k jeho hodu.",
+    "result_7_9": "Spojenec získá +1, ale ty se vystavíš nebezpečí.",
+    "result_6_minus": "Vystavíš se nebezpečí a spojenec pomoc nezíská. Strážce provede tvrdý tah.",
+    "notes": "Lze použít i PO hodu prvního hráče pro vylepšení výsledku. Lze pomoci i na dálku (rady přes telefon)."
+  },
+  {
+    "name": "Investigate a Mystery",
+    "name_cz": "Vyšetřuj záhadu",
+    "trigger": "When you investigate a mystery",
+    "trigger_cz": "Když aktivně vyšetřuješ - prohledáváš místo činu, výslechuješ svědky, zkoumáš stopy",
+    "stat": "Sharp",
+    "stat_cz": "Bystrost",
+    "description": "Hledání stop a informací o záhadě. Body zásoby vyměníš za odpovědi na otázky.",
+    "result_10plus": "Získáš 2 body zásoby. Můžeš je utratit za otázky ze seznamu níže.",
+    "result_7_9": "Získáš 1 bod zásoby.",
+    "result_6_minus": "Odhalíš nechtěně informaci příšeře nebo NPC. Strážce provede tvrdý tah, ale NESMÍ zablokovat vyšetřování.",
+    "questions": [
+      "Co se zde událo?",
+      "O jaký druh příšery se jedná?",
+      "Co umí?",
+      "Co ji může zranit?",
+      "Kam odešla?",
+      "Co chtěla udělat?",
+      "Co je očím skryto?"
+    ],
+    "notes": "Selhání NESMÍ zablokovat vyšetřování - Strážce dá informaci, ale s komplikací (prozrazení, ztráta času)."
+  },
+  {
+    "name": "Manipulate Someone",
+    "name_cz": "Někoho zmanipuluj",
+    "trigger": "When you manipulate an NPC",
+    "trigger_cz": "Když chceš, aby NPC něco udělalo pro tebe",
+    "stat": "Charm",
+    "stat_cz": "Šarm",
+    "description": "Přesvědčování, vyjednávání, lhaní. Vyžaduje pádný důvod - prosbu, úplatek, hrozbu nebo lživou identitu.",
+    "result_10plus": "NPC: Udělá to. Pokud je požadavek velký, řekne minimální cenu.\nJiný lovec: Pokud vyhoví → získá +1 na příště a 1 XP.",
+    "result_7_9": "NPC: Udělá to, ale chce okamžitou protislužbu nebo odmítne.\nJiný lovec: Pokud vyhoví → získá 1 XP.",
+    "result_6_minus": "NPC: Cíl lovce prokoukne, urazí se nebo se rozzlobí. Strážce provede tvrdý tah.\nJiný lovec: Získá 1 XP pokud se rozhodne nevyhovět.",
+    "notes": "Příšery nelze běžně manipulovat (výjimka: Netvorův tah Temný vyjednávač). Vždy potřebuješ důvod - nejde jen 'přemluvit'."
+  },
+  {
+    "name": "Protect Someone",
+    "name_cz": "Ochraň někoho",
+    "trigger": "When you prevent harm to another hunter",
+    "trigger_cz": "Když se postavíš mezi jiného lovce a nebezpečí",
+    "stat": "Tough",
+    "stat_cz": "Ostrost",
+    "description": "Obrana jiné osoby - skočit před kulku, odtlačit ze cesty, odvrátit útok.",
+    "result_10plus": "Ochráníš cíl + vyber jeden extra efekt:",
+    "result_10plus_options": [
+      "Utržíš o 1 zranění méně",
+      "Způsobíš nepříteli zranění",
+      "Staneš se cílem veškerého nebezpečí (odvede pozornost)"
+    ],
+    "result_7_9": "Ochráníš cíl, ale sám utržíš část nebo celé zranění místo něj.",
+    "result_6_minus": "Situaci jen zhoršíš. Chráněný i ty můžete utrpět zranění. Strážce provede tvrdý tah.",
+    "notes": "Nelze chránit sám sebe - jen jinou postavu. Selhání může vést ke smrti chráněné osoby."
+  },
+  {
+    "name": "Read a Bad Situation",
+    "name_cz": "Zhodnoť situaci",
+    "trigger": "When you look around and read a charged situation",
+    "trigger_cz": "Když se rozhlédneš a analyzuješ nebezpečnou situaci",
+    "stat": "Sharp",
+    "stat_cz": "Bystrost",
+    "description": "Taktická analýza nebezpečí - hledání únikových cest, slabých míst, skrytých pastí.",
+    "result_10plus": "Získáš 3 body zásoby. Můžeš je utratit za otázky ze seznamu níže.",
+    "result_7_9": "Získáš 1 bod zásoby.",
+    "result_6_minus": "Špatně odhadneš situaci nebo prozradíš informaci nepříteli. Strážce provede tvrdý tah.",
+    "questions": [
+      "Jak se nejlépe dostat dovnitř?",
+      "Jak se nejlépe dostat ven?",
+      "Hrozí nám skryté nebezpečí?",
+      "Co představuje největší hrozbu?",
+      "Co je vůči mně nejzranitelnější?",
+      "Jak nejlépe ochránit oběti?"
+    ],
+    "notes": "Použij na začátku akční scény nebo když vstupuješ do nebezpečné oblasti. Body se nevracejí mezi scénami."
+  },
+  {
+    "name": "Use Magic",
+    "name_cz": "Užij magii",
+    "trigger": "When you use magic",
+    "trigger_cz": "Když použiješ magické síly nebo rituál",
+    "stat": "Weird",
+    "stat_cz": "Podivínství",
+    "description": "Magické efekty a rituály. Strážce může vyžadovat podmínky (čas, komponenty, gesta).",
+    "result_10plus": "Kouzlo se povede. Vyber jeden efekt ze seznamu 10 efektů.",
+    "result_10plus_effects": [
+      "Způsobení 1-zranění (průrazné, magické, do očí bijící)",
+      "Očarování zbraně (+1 zranění, magická)",
+      "Provedení něčeho nadlidského",
+      "Zablokování vstupu konkrétní osobě/typu příšer",
+      "Uvěznění konkrétní osoby, přisluhovače nebo příšery",
+      "Vyhnání ducha nebo sejmutí kletby",
+      "Přivolání příšery do tohoto světa",
+      "Komunikace s něčím, co s tebou nesdílí jazyk",
+      "Nahlédnutí do jiného času/prostoru",
+      "Uzdravení 1-zranění, vyléčení nemoci nebo neutralizace jedu"
+    ],
+    "result_7_9": "Kouzlo se povede. Vyber jeden efekt + Strážce vybere jednu vadu:",
+    "result_7_9_glitches": [
+      "Efekt je oslabený",
+      "Efekt má kratší trvání než jsi chtěl",
+      "Utržíš 1-zranění (průrazné, ignoruje zbroj)",
+      "Magie přitáhne nechtěnou pozornost nebo nebezpečí",
+      "Problematické vedlejší účinky"
+    ],
+    "result_6_minus": "Ztráta kontroly nad magií. Výsledek je nepředvídatelný a nebezpečný. Strážce provede tvrdý tah.",
+    "result_12plus": "Efekt i bez podmínek Strážce, nebo mnohem silnější efekt.",
+    "notes": "Pro mocnější efekty (vzkříšení, portály) použij Vysokou magii - vyžaduje splnění podmínek bez hodu kostkami."
+  }
+]

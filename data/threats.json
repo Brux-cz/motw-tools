@@ -1,0 +1,211 @@
+{
+  "monsterTypes": [
+    {
+      "type": "Beast",
+      "type_cz": "Bestie",
+      "motivation": "Run wild, destroy and kill",
+      "moves": ["Display its power", "Kill or hurt something", "Act with cunning", "Run rampant"]
+    },
+    {
+      "type": "Breeder",
+      "type_cz": "Plodič",
+      "motivation": "Spread and multiply",
+      "moves": ["Burst out in great numbers", "Impregnate, infect or spawn", "Swarm and overrun", "Burrow or hide"]
+    },
+    {
+      "type": "Collector",
+      "type_cz": "Sběratel",
+      "motivation": "Steal and hoard things",
+      "moves": ["Steal something", "Collect victims", "Steal prey from other monsters", "Show cunning"]
+    },
+    {
+      "type": "Destroyer",
+      "type_cz": "Ničitel",
+      "motivation": "Destroy everything",
+      "moves": ["Lay waste", "Smash things", "Cause mayhem", "Crush or break"]
+    },
+    {
+      "type": "Devourer",
+      "type_cz": "Požírač",
+      "motivation": "Eat everything",
+      "moves": ["Consume something", "Attack with desperate hunger", "Gain strength from eating", "Despoil and contaminate"]
+    },
+    {
+      "type": "Executioner",
+      "type_cz": "Kat",
+      "motivation": "Kill according to a plan",
+      "moves": ["Attack a victim", "Follow its death ritual", "Stalk its prey", "Set a trap"]
+    },
+    {
+      "type": "Parasite",
+      "type_cz": "Parazit",
+      "motivation": "Infest and control",
+      "moves": ["Attach to or enter a victim", "Control someone's actions", "Feed on life force", "Drain vitality"]
+    },
+    {
+      "type": "Plague",
+      "type_cz": "Mor",
+      "motivation": "Spread disease and death",
+      "moves": ["Infect someone", "Spread to new victims", "Cause sickness", "Contaminate"]
+    },
+    {
+      "type": "Queen",
+      "type_cz": "Královna",
+      "motivation": "Rule and control",
+      "moves": ["Command minions", "Display superiority", "Plan and scheme", "Threaten to punish"]
+    },
+    {
+      "type": "Sorcerer",
+      "type_cz": "Černokněžník",
+      "motivation": "Gain supernatural power",
+      "moves": ["Cast a spell", "Display full might", "Sacrifice something for power", "Use dark arts"]
+    },
+    {
+      "type": "Torturer",
+      "type_cz": "Mučitel",
+      "motivation": "Hurt and terrify",
+      "moves": ["Torture someone", "Cause pain and terror", "Capture a victim", "Reveal horrifying things"]
+    },
+    {
+      "type": "Trickster",
+      "type_cz": "Šprýmař",
+      "motivation": "Create chaos and confusion",
+      "moves": ["Play a trick", "Create confusion", "Lie and deceive", "Turn things to their advantage"]
+    }
+  ],
+  "minionTypes": [
+    {
+      "type": "Assassin",
+      "type_cz": "Vrah",
+      "motivation": "Kill the hunters",
+      "moves": ["Attack from hiding", "Stalk a victim", "Attack with stealth and precision"]
+    },
+    {
+      "type": "Brute",
+      "type_cz": "Brutál",
+      "motivation": "Intimidate and attack",
+      "moves": ["Intimidate", "Attack with great force", "Display inhuman strength"]
+    },
+    {
+      "type": "Cultist",
+      "type_cz": "Kultista",
+      "motivation": "Sacrifice victims",
+      "moves": ["Capture victims", "Conduct a ritual", "Worship the monster"]
+    },
+    {
+      "type": "Guardian",
+      "type_cz": "Strážce",
+      "motivation": "Protect the monster",
+      "moves": ["Bar the way", "Protect the monster", "Give warning"]
+    },
+    {
+      "type": "Scout",
+      "type_cz": "Zvěd",
+      "motivation": "Gather intelligence",
+      "moves": ["Spy on hunters", "Report to the monster", "Go unnoticed"]
+    },
+    {
+      "type": "Thief",
+      "type_cz": "Zloděj",
+      "motivation": "Steal and deliver to the monster",
+      "moves": ["Steal something", "Deliver to the monster", "Escape detection"]
+    },
+    {
+      "type": "Right Hand",
+      "type_cz": "Pravá ruka",
+      "motivation": "Back up the monster",
+      "moves": ["Act as lieutenant", "Carry out the monster's plans", "Make an independent plan"]
+    },
+    {
+      "type": "Renfield",
+      "type_cz": "Služebník",
+      "motivation": "Serve the monster",
+      "moves": ["Worship the monster", "Do anything for the monster", "Sacrifice self"]
+    },
+    {
+      "type": "Plague Bearer",
+      "type_cz": "Nosič moru",
+      "motivation": "Spread disease",
+      "moves": ["Infect someone", "Spread contamination", "Cause sickness"]
+    },
+    {
+      "type": "Witch",
+      "type_cz": "Čarodějnice",
+      "motivation": "Work dark magic",
+      "moves": ["Cast a spell", "Curse someone", "Use dark arts"]
+    }
+  ],
+  "bystanderTypes": [
+    {"type": "Busybody", "type_cz": "Všetečník", "motivation": "Interfere in other people's plans"},
+    {"type": "Detective", "type_cz": "Detektiv", "motivation": "Rule out explanations"},
+    {"type": "Gossip", "type_cz": "Drbna", "motivation": "Spread rumors"},
+    {"type": "Helper", "type_cz": "Pomocník", "motivation": "Join the hunt"},
+    {"type": "Innocent", "type_cz": "Nevinný", "motivation": "Do the right thing"},
+    {"type": "Official", "type_cz": "Úředník", "motivation": "Be suspicious"},
+    {"type": "Skeptic", "type_cz": "Skeptik", "motivation": "Deny the supernatural"},
+    {"type": "Victim", "type_cz": "Oběť", "motivation": "Put self in danger"},
+    {"type": "Witness", "type_cz": "Svědek", "motivation": "Reveal information"}
+  ],
+  "locationTypes": [
+    {
+      "type": "Crossroads",
+      "type_cz": "Křižovatka",
+      "motivation": "Bring people together",
+      "moves": ["Reveal information", "Provide something needed", "Bring people together"]
+    },
+    {
+      "type": "Deathtrap",
+      "type_cz": "Smrtící past",
+      "motivation": "Trap or endanger",
+      "moves": ["Trap someone", "Injure someone", "Reveal danger"]
+    },
+    {
+      "type": "Den",
+      "type_cz": "Doupě",
+      "motivation": "Shelter the monster",
+      "moves": ["Hide the monster", "Conceal evidence", "Deny entry"]
+    },
+    {
+      "type": "Fortress",
+      "type_cz": "Pevnost",
+      "motivation": "Deny entry",
+      "moves": ["Bar the way", "Protect something", "Withstand assault"]
+    },
+    {
+      "type": "Hellgate",
+      "type_cz": "Brána do pekel",
+      "motivation": "Release evil",
+      "moves": ["Open to allow passage", "Corrupt nearby area", "Attract evil"]
+    },
+    {
+      "type": "Hub",
+      "type_cz": "Centrum",
+      "motivation": "Connect places and people",
+      "moves": ["Bring people together", "Facilitate travel", "Provide information"]
+    },
+    {
+      "type": "Lab",
+      "type_cz": "Laboratoř",
+      "motivation": "Create new things",
+      "moves": ["Create something", "Reveal secrets", "Attract curious"]
+    },
+    {
+      "type": "Maze",
+      "type_cz": "Labyrint",
+      "motivation": "Confuse and separate",
+      "moves": ["Separate people", "Confuse and disorient", "Cause to get lost"]
+    },
+    {
+      "type": "Prison",
+      "type_cz": "Vězení",
+      "motivation": "Contain and hold",
+      "moves": ["Trap someone", "Prevent escape", "Isolate"]
+    },
+    {
+      "type": "Wilds",
+      "type_cz": "Divočina",
+      "motivation": "Expose people to nature",
+      "moves": ["Expose to elements", "Isolate from civilization", "Provide resources"]
+    }
+  ]
+}

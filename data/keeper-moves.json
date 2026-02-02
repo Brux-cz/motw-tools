@@ -1,0 +1,171 @@
+[
+  {
+    "name": "Separate them",
+    "name_cz": "Rozděl je",
+    "type": "soft",
+    "description": "Rozdělit lovce od sebe navzájem nebo od jejich vybavení/spojenců. Obvykle měkký tah - dej lovcům možnost se rozhodnout.",
+    "description_en": "Split hunters from each other or from their equipment/allies. Usually a soft move - give hunters a chance to decide.",
+    "when_to_use": "Když jsou lovci příliš silní jako skupina, nebo když chceš vytvořit napětí a individuální scény.",
+    "examples": [
+      "\"Podlaha se pod tebou propadá. Tvoji kamarádi jsou na druhé straně trhliny. Co uděláš?\"",
+      "\"Příšera skočí přímo na tebe a odtlačí tě do vedlejší místnosti, daleko od ostatních.\"",
+      "\"Telefonní signál vypadl. Vidíš, jak se ostatní lovci pohybují v dálce, ale nemůžeš je kontaktovat.\""
+    ]
+  },
+  {
+    "name": "Reveal future badness",
+    "name_cz": "Odhal nekalost, která se teprve stane",
+    "type": "soft",
+    "description": "Varuj lovce před budoucím nebezpečím. Dej jim šanci reagovat, než se to stane.",
+    "description_en": "Warn hunters about future danger. Give them a chance to react before it happens.",
+    "when_to_use": "Když odpočet postupuje nebo když chceš vytvořit napětí bez přímé újmy.",
+    "examples": [
+      "\"V knihovně najdeš článek z novin: 'Další zmizení hlášeno na starém hřbitově.' Datum je dnešek.\"",
+      "\"NPC šeptá: 'Dnes v noci bude úplněk. Pokud rituál dokončí, už se to nezastaví.'\"",
+      "\"Vidíš, jak příšera pomalu obklopuje budovu, kde se ukrývají civilisté. Za pár minut tam bude.\""
+    ]
+  },
+  {
+    "name": "Reveal off-screen badness",
+    "name_cz": "Odhal nekalost dějící se mimo záběr",
+    "type": "soft",
+    "description": "Pověz lovcům o něčem hrozném, co se stalo jinde, zatímco byli zaneprázdnění.",
+    "description_en": "Tell hunters about something terrible that happened elsewhere while they were busy.",
+    "when_to_use": "Když lovci ignorují odpočet nebo se soustředí jen na jednu věc. Ukaž jim důsledky jejich voleb.",
+    "examples": [
+      "\"Tvůj telefon zvoní. Je to šerif: 'Právě našli další tělo. Stejný způsob jako minule.'\"",
+      "\"Když se vrátíte k dodávce, všimnete si, že je rozbitá okna a vybavení zmizelo.\"",
+      "\"TV zprávy hlásí: 'Další útok v centru města. Policie evakuuje oblast.'\""
+    ]
+  },
+  {
+    "name": "Inflict harm as established",
+    "name_cz": "Způsob zranění v souladu s pravidly",
+    "type": "hard",
+    "description": "Způsob zranění podle pravidel. Obvykle tvrdý tah po selhání nebo když si lovci sami naběhnou.",
+    "description_en": "Inflict harm according to the rules. Usually a hard move after failure or when hunters walk into it.",
+    "when_to_use": "Po selhání v boji, nebo když lovec ignoruje jasné nebezpečí.",
+    "examples": [
+      "\"Příšera tě popadne a kousne za 3 zranění. Cítíš ostré zuby, jak se ti zařezávají do ramene.\"",
+      "\"Výbuch tě srazí k zemi. Utržíš 2 zranění od střepin a jsi na chvíli ohlušený.\"",
+      "\"Pád ze stropu tě tvrdě zasáhne. 4 zranění a máš vymknuté rameno.\""
+    ]
+  },
+  {
+    "name": "Make them investigate",
+    "name_cz": "Donuť je vyšetřovat",
+    "type": "soft",
+    "description": "Nabídni lovcům zajímavou stopu nebo záhadu, kterou budou chtít vyšetřit.",
+    "description_en": "Offer hunters an interesting clue or mystery they'll want to investigate.",
+    "when_to_use": "Když lovci tápu nebo potřebují posun v příběhu.",
+    "examples": [
+      "\"Na místě činu najdeš podivný symbol vyryté do zdi. Nikdy jsi nic takového neviděl.\"",
+      "\"Svědek se bojí mluvit, ale zmíní: 'Viděl jsem ho vejít do starého mlýna. Nikdy nevyšel.'\"",
+      "\"V zápisníku oběti je adresa s poznámkou: 'Tady to všechno začalo.'\""
+    ]
+  },
+  {
+    "name": "Make them acquire stuff",
+    "name_cz": "Donuť je získat potřebné věci",
+    "type": "soft",
+    "description": "Ukáž lovcům, že potřebují speciální předmět nebo informaci pro pokračování.",
+    "description_en": "Show hunters they need a special item or information to proceed.",
+    "when_to_use": "Když chceš přidat komplikaci nebo side-quest, nebo když lovci potřebují zpomalit.",
+    "examples": [
+      "\"Expert ti řekne: 'Na zabití tohoto démona potřebuješ zasvěcenou dýku. Takové má jen klášter.'\"",
+      "\"Dveře jsou zavřené rituálním zámkem. Potřebuješ specifickou ingredienci na odemknutí.\"",
+      "\"Příšera je imunní vůči běžným zbraním. Musíte najít její slabinu.\""
+    ]
+  },
+  {
+    "name": "Tell them the consequences and ask",
+    "name_cz": "Sděl jim následky a zeptej se",
+    "type": "soft",
+    "description": "Jasně popiš, co se stane, pokud budou pokračovat. Pak se zeptej, co udělají.",
+    "description_en": "Clearly describe what will happen if they continue. Then ask what they do.",
+    "when_to_use": "Když lovec navrhuje něco nebezpečného nebo unáhleného. Dej mu šanci změnit názor.",
+    "examples": [
+      "\"Pokud půjdeš dovnitř sám, nikdo ti nepomůže, pokud tě příšera napadne. Chceš to risknout?\"",
+      "\"Rituál vyžaduje tvou krev. Utrpíš 2 zranění. Pořád to chceš udělat?\"",
+      "\"Pokud teď odejdete, civilisté zůstanou sami s příšerou. Co uděláte?\""
+    ]
+  },
+  {
+    "name": "Turn their move back on them",
+    "name_cz": "Obrať jejich tah proti nim",
+    "type": "hard",
+    "description": "Použij lovcovu akci nebo plán proti nim. Ukáže důsledky jejich jednání.",
+    "description_en": "Use hunter's action or plan against them. Shows consequences of their actions.",
+    "when_to_use": "Po selhání, nebo když lovci jednají unáhleně či arogantně.",
+    "examples": [
+      "\"Snažíš se manipulovat policajem, ale on prokoukne tvou lež a začne tě podezírat: 'Kdo vlastně jste?'\"",
+      "\"Použiješ magii na přivolání příšery, ale kouzlo je moc silné. Přivoláš nejen ji, ale i její přisluhovače.\"",
+      "\"Snažíš se tiše projít kolem strážce, ale tvůj pokus ho upozorní. Teď je v plné pohotovosti.\""
+    ]
+  },
+  {
+    "name": "Offer an opportunity with a cost",
+    "name_cz": "Nabídni příležitost a cenu",
+    "type": "soft",
+    "description": "Dej lovcům šanci uspět, ale za cenu (čas, zdroje, zranění, kompromis).",
+    "description_en": "Give hunters a chance to succeed, but at a cost (time, resources, harm, compromise).",
+    "when_to_use": "Když chceš posunout děj, ale s komplikací. Často lepší než prosté selhání.",
+    "examples": [
+      "\"Můžeš porazit přisluhovače, ale trvá to tak dlouho, že příšera mezitím stihne utéct.\"",
+      "\"Znáš rituál na zastavení kletby, ale vyžaduje vzácný prvek. Znáš sběratele, který ho má, ale ten ti nebude sympatický.\"",
+      "\"Můžeš zachránit civilisty, ale musíš nechat příšeru jít.\""
+    ]
+  },
+  {
+    "name": "Take away their stuff",
+    "name_cz": "Uzmi lovcům věci",
+    "type": "hard",
+    "description": "Odeber lovcům zbraň, vybavení nebo spojence. Obvykle tvrdý tah.",
+    "description_en": "Take away hunters' weapon, equipment or ally. Usually a hard move.",
+    "when_to_use": "Po selhání, nebo když lovci jsou příliš sebejistí. Způsob komplikace.",
+    "examples": [
+      "\"Příšera tě zasáhne tak silně, že ti vyrazí zbraň z ruky. Dopadne na druhé straně místnosti.\"",
+      "\"Tvůj spojenec je zajat. Vidíš, jak ho odvlékají pryč.\"",
+      "\"Když se probudíš, zjistíš, že ti ukradli dodávku se vším vybavením.\""
+    ]
+  },
+  {
+    "name": "Make them pay a price",
+    "name_cz": "Způsob potíže",
+    "type": "hard",
+    "description": "Způsob komplikaci, která není přímé zranění - ztráta času, prozrazení, reputace.",
+    "description_en": "Cause a complication that isn't direct harm - loss of time, exposure, reputation.",
+    "when_to_use": "Po selhání mimo boj, nebo jako důsledek neuvážených činů.",
+    "examples": [
+      "\"Policie tě načapala u místa činu. Zadržují tě na výslech - ztrácíš několik hodin.\"",
+      "\"Tvoje magie způsobila viditelný efekt. Svědci to viděli a volají zprávy.\"",
+      "\"Přisluhovač uprchl a varoval příšeru. Teď ví, že po ní jdete.\""
+    ]
+  },
+  {
+    "name": "Use a threat move",
+    "name_cz": "Použij tah hrozby",
+    "type": "varies",
+    "description": "Použij specifický tah příšery, NPC nebo lokace podle jejich typu a motivace.",
+    "description_en": "Use a specific move of the monster, NPC or location based on their type and motivation.",
+    "when_to_use": "Kdykoli, zvláště když je tah relevantní k situaci nebo motivaci hrozby.",
+    "examples": [
+      "\"Upír použije své kouzlo: Hypnotizuj lovce. Zkoušíš odolat, ale jeho pohled tě stahuje...\"",
+      "\"Svědkyně (Žvanilka) začne říkat všem kolem: 'Tohle jsou ti lovci, co mluví o příšerách!'\"",
+      "\"Lokace (Pasti a zápisy) se aktivuje: Slyšíš klapnutí a cítíš, jak se podlaha začíná klesat.\""
+    ]
+  },
+  {
+    "name": "Ask what they do",
+    "name_cz": "Zeptej se, co udělají",
+    "type": "soft",
+    "description": "Po každém tahu Strážce nebo když situace vyžaduje reakci - zeptej se: 'Co uděláš?'",
+    "description_en": "After every Keeper move or when situation requires reaction - ask: 'What do you do?'",
+    "when_to_use": "Po KAŽDÉM tahu. Nikdy nepopisuj akce lovců za ně. Vždy se ptej.",
+    "examples": [
+      "\"Příšera se otočí a běží směrem k civilistům. Co uděláš?\"",
+      "\"Slyšíš vrčení ze tmy. Co uděláš?\"",
+      "\"NPC odmítá pomoci. Co uděláš?\""
+    ]
+  }
+]

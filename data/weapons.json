@@ -1,0 +1,778 @@
+{
+  "weapons": [
+    {
+      "name": "Unarmed",
+      "name_cz": "Neozbrojený útok",
+      "harm": 0,
+      "range": "intimate",
+      "range_cz": "na těsno",
+      "tags": [],
+      "category": "improvised"
+    },
+    {
+      "name": "Sharp object",
+      "name_cz": "Ostrý předmět",
+      "harm": 1,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": [],
+      "category": "improvised"
+    },
+    {
+      "name": "Very heavy object",
+      "name_cz": "Těžký předmět",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["heavy"],
+      "category": "improvised"
+    },
+    {
+      "name": "Thrown object",
+      "name_cz": "Vrhací předmět",
+      "harm": 0,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": [],
+      "category": "improvised"
+    },
+    {
+      "name": "Water pistol",
+      "name_cz": "Vodní pistole",
+      "harm": 0,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["filled-with-liquid"],
+      "category": "improvised"
+    },
+    {
+      "name": "Big knife",
+      "name_cz": "Velký nůž",
+      "harm": 1,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": [],
+      "category": "melee"
+    },
+    {
+      "name": "Pocket knife",
+      "name_cz": "Kapesní nůž",
+      "harm": 1,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["small", "utility"],
+      "category": "melee"
+    },
+    {
+      "name": "Ritual knife",
+      "name_cz": "Rituální nůž",
+      "harm": 1,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": [],
+      "category": "melee"
+    },
+    {
+      "name": "Baseball bat",
+      "name_cz": "Baseballová pálka",
+      "harm": 1,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": [],
+      "category": "melee"
+    },
+    {
+      "name": "Brass knuckles",
+      "name_cz": "Boxer",
+      "harm": 1,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["quiet", "small"],
+      "category": "melee"
+    },
+    {
+      "name": "Weighted gloves",
+      "name_cz": "Zátěžové rukavice",
+      "harm": 1,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": [],
+      "category": "melee"
+    },
+    {
+      "name": "Stun flashlight",
+      "name_cz": "Svítilna s paralyzérem",
+      "harm": 1,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": [],
+      "category": "melee"
+    },
+    {
+      "name": "Fighting sticks",
+      "name_cz": "Bojové hole",
+      "harm": 1,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["quick"],
+      "category": "melee"
+    },
+    {
+      "name": "Sword",
+      "name_cz": "Meč",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy"],
+      "category": "melee"
+    },
+    {
+      "name": "Axe",
+      "name_cz": "Sekera",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy"],
+      "category": "melee"
+    },
+    {
+      "name": "Combat knife",
+      "name_cz": "Válečnický nůž",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["quiet"],
+      "category": "melee"
+    },
+    {
+      "name": "Golf club",
+      "name_cz": "Golfová hůl",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["innocuous", "messy"],
+      "category": "melee"
+    },
+    {
+      "name": "Hockey stick",
+      "name_cz": "Hokejka",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["innocuous", "messy"],
+      "category": "melee"
+    },
+    {
+      "name": "Spear",
+      "name_cz": "Kopí",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "dosah/blízko",
+      "tags": [],
+      "category": "melee"
+    },
+    {
+      "name": "Mace",
+      "name_cz": "Palcát",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy"],
+      "category": "melee"
+    },
+    {
+      "name": "Nunchuks",
+      "name_cz": "Nunčaky",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["area"],
+      "category": "melee"
+    },
+    {
+      "name": "Garrote wire",
+      "name_cz": "Škrticí struna",
+      "harm": 3,
+      "range": "intimate",
+      "range_cz": "na těsno",
+      "tags": [],
+      "category": "melee"
+    },
+    {
+      "name": ".22 revolver",
+      "name_cz": "Revolver .22",
+      "harm": 1,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["reload", "small"],
+      "category": "firearms"
+    },
+    {
+      "name": ".38 revolver",
+      "name_cz": "Revolver .38",
+      "harm": 2,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["reload", "loud"],
+      "category": "firearms"
+    },
+    {
+      "name": "9mm semi-auto",
+      "name_cz": "Pistole 9mm",
+      "harm": 2,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["loud"],
+      "category": "firearms"
+    },
+    {
+      "name": "Holdout pistol",
+      "name_cz": "Kapesní pistole",
+      "harm": 2,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["loud", "reload"],
+      "category": "firearms"
+    },
+    {
+      "name": "Throwing knives",
+      "name_cz": "Vrhací nože",
+      "harm": 1,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["many"],
+      "category": "firearms"
+    },
+    {
+      "name": "Hunting rifle",
+      "name_cz": "Lovecká puška",
+      "harm": 2,
+      "range": "far",
+      "range_cz": "na dálku",
+      "tags": ["loud"],
+      "category": "firearms"
+    },
+    {
+      "name": "Hunting rifle (heavy)",
+      "name_cz": "Lovecká puška (těžká)",
+      "harm": 3,
+      "range": "far",
+      "range_cz": "na dálku",
+      "tags": ["loud", "reload"],
+      "category": "firearms"
+    },
+    {
+      "name": ".357 Magnum",
+      "name_cz": "Magnum .357",
+      "harm": 3,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["reload", "loud"],
+      "category": "firearms"
+    },
+    {
+      "name": ".44 Magnum",
+      "name_cz": "Magnum .44",
+      "harm": 3,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["reload", "loud"],
+      "category": "firearms"
+    },
+    {
+      "name": "Shotgun",
+      "name_cz": "Brokovnice",
+      "harm": 3,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["messy", "loud"],
+      "category": "firearms"
+    },
+    {
+      "name": "Submachine gun",
+      "name_cz": "Samopal",
+      "harm": 3,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["area", "loud", "reload"],
+      "category": "firearms"
+    },
+    {
+      "name": "Assault rifle",
+      "name_cz": "Útočná puška",
+      "harm": 3,
+      "range": "far",
+      "range_cz": "blízko/dálka",
+      "tags": ["area", "loud", "reload"],
+      "category": "firearms"
+    },
+    {
+      "name": "Sniper rifle",
+      "name_cz": "Odstřelovací puška",
+      "harm": 4,
+      "range": "far",
+      "range_cz": "na dálku",
+      "tags": [],
+      "category": "firearms"
+    },
+    {
+      "name": "Crossbow",
+      "name_cz": "Kuše",
+      "harm": 2,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["slow"],
+      "category": "firearms"
+    },
+    {
+      "name": "Flamethrower",
+      "name_cz": "Plamenomet",
+      "harm": 3,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["fire", "heavy", "unstable"],
+      "category": "heavy"
+    },
+    {
+      "name": "Sawn-off shotgun",
+      "name_cz": "Upilovaná brokovnice",
+      "harm": 3,
+      "range": "close",
+      "range_cz": "dosah/blízko",
+      "tags": ["messy", "loud", "reload"],
+      "category": "heavy"
+    },
+    {
+      "name": "Chainsaw",
+      "name_cz": "Motorová pila",
+      "harm": 3,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy", "unreliable", "loud", "heavy"],
+      "category": "heavy"
+    },
+    {
+      "name": "Hand cannon",
+      "name_cz": "Ruční dělo",
+      "harm": 3,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["loud"],
+      "category": "heavy"
+    },
+    {
+      "name": "Big sword",
+      "name_cz": "Obří meč",
+      "harm": 3,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy", "heavy"],
+      "category": "heavy"
+    },
+    {
+      "name": "Big axe",
+      "name_cz": "Obří sekera",
+      "harm": 3,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy", "heavy"],
+      "category": "heavy"
+    },
+    {
+      "name": "Great axe",
+      "name_cz": "Velká sekyra",
+      "harm": 3,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy", "slow", "heavy"],
+      "category": "heavy"
+    },
+    {
+      "name": "Sledgehammer",
+      "name_cz": "Perlík",
+      "harm": 3,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy"],
+      "category": "heavy"
+    },
+    {
+      "name": "Fire axe",
+      "name_cz": "Hasičská sekera",
+      "harm": 3,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy"],
+      "category": "heavy"
+    },
+    {
+      "name": "Grenade launcher",
+      "name_cz": "Granátomet",
+      "harm": 4,
+      "range": "far",
+      "range_cz": "na dálku",
+      "tags": ["area", "messy", "loud", "reload"],
+      "category": "heavy"
+    },
+    {
+      "name": "Grenades",
+      "name_cz": "Granáty",
+      "harm": 4,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["area", "messy", "loud"],
+      "category": "heavy"
+    },
+    {
+      "name": "Silver sword",
+      "name_cz": "Stříbrný meč",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy", "silver"],
+      "category": "special"
+    },
+    {
+      "name": "Silver knife",
+      "name_cz": "Stříbrný nůž",
+      "harm": 1,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["silver"],
+      "category": "special"
+    },
+    {
+      "name": "Cold iron sword",
+      "name_cz": "Meč z ryzího železa",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["messy", "cold-iron"],
+      "category": "special"
+    },
+    {
+      "name": "Blessed knife",
+      "name_cz": "Požehnaný nůž",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["holy"],
+      "category": "special"
+    },
+    {
+      "name": "Enchanted dagger",
+      "name_cz": "Očarovaná dýka",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["magic"],
+      "category": "special"
+    },
+    {
+      "name": "Juju bag",
+      "name_cz": "Brašna vúdú",
+      "harm": 1,
+      "range": "far",
+      "range_cz": "na dálku",
+      "tags": ["magic"],
+      "category": "special"
+    },
+    {
+      "name": "Flaming sword",
+      "name_cz": "Planoucí meč",
+      "harm": 3,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["fire", "holy"],
+      "category": "special"
+    },
+    {
+      "name": "Thunder hammer",
+      "name_cz": "Kladivo hromu",
+      "harm": 3,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["stun", "holy"],
+      "category": "special"
+    },
+    {
+      "name": "Razor whip",
+      "name_cz": "Žiletkový bič",
+      "harm": 3,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["area", "messy", "holy"],
+      "category": "special"
+    },
+    {
+      "name": "Silver trident",
+      "name_cz": "Stříbrný trojzubec",
+      "harm": 3,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": ["silver", "holy"],
+      "category": "special"
+    },
+    {
+      "name": "Five-demon bag",
+      "name_cz": "Pětidémonný pytel",
+      "harm": 3,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["magic", "holy"],
+      "category": "special"
+    },
+    {
+      "name": "Combat Magic: Blast",
+      "name_cz": "Bojová magie: Výbuch",
+      "harm": 2,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["magic", "obvious", "loud"],
+      "category": "magic"
+    },
+    {
+      "name": "Combat Magic: Missile",
+      "name_cz": "Bojová magie: Střela",
+      "harm": 1,
+      "range": "far",
+      "range_cz": "na dálku",
+      "tags": ["magic", "obvious", "loud"],
+      "category": "magic"
+    },
+    {
+      "name": "Teeth",
+      "name_cz": "Zuby",
+      "harm": 3,
+      "range": "intimate",
+      "range_cz": "na těsno",
+      "tags": [],
+      "category": "natural"
+    },
+    {
+      "name": "Claws",
+      "name_cz": "Drápy",
+      "harm": 2,
+      "range": "hand",
+      "range_cz": "na dosah ruky",
+      "tags": [],
+      "category": "natural"
+    },
+    {
+      "name": "Life-drain",
+      "name_cz": "Vysávání",
+      "harm": 1,
+      "range": "intimate",
+      "range_cz": "na těsno",
+      "tags": ["life-drain"],
+      "category": "natural"
+    },
+    {
+      "name": "Magical force",
+      "name_cz": "Magická moc",
+      "harm": 1,
+      "range": "close",
+      "range_cz": "na blízko",
+      "tags": ["magic"],
+      "category": "natural"
+    }
+  ],
+  "tags": [
+    {
+      "name": "barrier",
+      "name_cz": "bariéra",
+      "description": "Zraňuje průchozí, funguje jako zbroj",
+      "description_en": "Inflicts harm on passers-through, functions as armor"
+    },
+    {
+      "name": "messy",
+      "name_cz": "brutální",
+      "description": "Zanechává krev a zkázu",
+      "description_en": "Leaves blood and devastation"
+    },
+    {
+      "name": "valuable",
+      "name_cz": "cenná",
+      "description": "Starožitnost nebo drahý materiál",
+      "description_en": "Antique or expensive material"
+    },
+    {
+      "name": "loud",
+      "name_cz": "hlučná",
+      "description": "Přivolává pozornost",
+      "description_en": "Attracts attention"
+    },
+    {
+      "name": "magic",
+      "name_cz": "magická",
+      "description": "Očarovaná, účinná proti odolným zbrojím",
+      "description_en": "Enchanted, effective against resistant armor"
+    },
+    {
+      "name": "small",
+      "name_cz": "malá",
+      "description": "Snadno utajitelná",
+      "description_en": "Easy to conceal"
+    },
+    {
+      "name": "silver",
+      "name_cz": "stříbrná",
+      "description": "Ze stříbra, slabina pro některé příšery",
+      "description_en": "Made of silver, weakness for some monsters"
+    },
+    {
+      "name": "cold-iron",
+      "name_cz": "železná",
+      "description": "Z ryzího železa, slabina pro některé příšery",
+      "description_en": "Made of cold iron, weakness for some monsters"
+    },
+    {
+      "name": "many",
+      "name_cz": "mnoho",
+      "description": "Malé zbraně, hromady u sebe",
+      "description_en": "Small weapons, piles together"
+    },
+    {
+      "name": "utility",
+      "name_cz": "multifunkční",
+      "description": "Má i jiné využití",
+      "description_en": "Has other uses"
+    },
+    {
+      "name": "reload",
+      "name_cz": "nabíjecí",
+      "description": "Omezená munice",
+      "description_en": "Limited ammunition"
+    },
+    {
+      "name": "unreliable",
+      "name_cz": "nespolehlivá",
+      "description": "Vyžaduje údržbu",
+      "description_en": "Requires maintenance"
+    },
+    {
+      "name": "unstable",
+      "name_cz": "nestabilní",
+      "description": "Nebezpečná a nestálá",
+      "description_en": "Dangerous and unstable"
+    },
+    {
+      "name": "innocuous",
+      "name_cz": "nevinná",
+      "description": "Nevzbuzuje podezření",
+      "description_en": "Does not arouse suspicion"
+    },
+    {
+      "name": "fire",
+      "name_cz": "ohnivá",
+      "description": "Zapaluje věci",
+      "description_en": "Sets things on fire"
+    },
+    {
+      "name": "area",
+      "name_cz": "plošná",
+      "description": "Zasáhne několik nepřátel",
+      "description_en": "Hits multiple enemies"
+    },
+    {
+      "name": "slow",
+      "name_cz": "pomalá",
+      "description": "Zdlouhavá příprava",
+      "description_en": "Lengthy preparation"
+    },
+    {
+      "name": "holy",
+      "name_cz": "posvěcená",
+      "description": "Účinná proti příšerám zranitelným svěcenými předměty",
+      "description_en": "Effective against monsters vulnerable to holy items"
+    },
+    {
+      "name": "ignore-armour",
+      "name_cz": "průrazná",
+      "description": "Ignoruje zbroj",
+      "description_en": "Ignores armor"
+    },
+    {
+      "name": "forceful",
+      "name_cz": "rázná",
+      "description": "Pohybuje zasaženými",
+      "description_en": "Moves the struck"
+    },
+    {
+      "name": "quick",
+      "name_cz": "rychlá",
+      "description": "Šance udeřit první",
+      "description_en": "Chance to strike first"
+    },
+    {
+      "name": "heavy",
+      "name_cz": "těžká",
+      "description": "Složitě se s ní zachází",
+      "description_en": "Difficult to handle"
+    },
+    {
+      "name": "life-drain",
+      "name_cz": "vysávající",
+      "description": "Přesouvá životní energii, léčí držitele",
+      "description_en": "Transfers life energy, heals wielder"
+    },
+    {
+      "name": "balanced",
+      "name_cz": "vyvážená",
+      "description": "Snadno se s ní ohání",
+      "description_en": "Easy to wield"
+    },
+    {
+      "name": "restraining",
+      "name_cz": "znehybňující",
+      "description": "Spoutá či polapí oběť",
+      "description_en": "Binds or traps victim"
+    },
+    {
+      "name": "filled-with-liquid",
+      "name_cz": "plněná tekutinou",
+      "description": "Rozstřikuje látku, jež je slabinou příšery",
+      "description_en": "Sprays substance that is a monster's weakness"
+    },
+    {
+      "name": "quiet",
+      "name_cz": "tichý",
+      "description": "Nevydává hluk",
+      "description_en": "Makes no noise"
+    },
+    {
+      "name": "obvious",
+      "name_cz": "do očí bijící",
+      "description": "Viditelná a nápadná",
+      "description_en": "Visible and conspicuous"
+    },
+    {
+      "name": "stun",
+      "name_cz": "omračující",
+      "description": "Může omráčit cíl",
+      "description_en": "Can stun target"
+    }
+  ],
+  "ranges": [
+    {
+      "name": "intimate",
+      "name_cz": "na těsno",
+      "description": "Nejmenší vzdálenost, těsné objetí"
+    },
+    {
+      "name": "hand",
+      "name_cz": "na dosah ruky",
+      "description": "Vzdálenost paže"
+    },
+    {
+      "name": "close",
+      "name_cz": "na blízko",
+      "description": "Mimo dosah ruky, ale ne daleko"
+    },
+    {
+      "name": "far",
+      "name_cz": "na dálku",
+      "description": "Velká vzdálenost"
+    }
+  ]
+}
