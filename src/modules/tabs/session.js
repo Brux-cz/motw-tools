@@ -100,11 +100,10 @@ function renderCountdown(mystery) {
                 isActive
                   ? 'bg-red-900/30 border-red-700/50 ring-2 ring-red-700/30'
                   : isPast
-                  ? 'bg-gray-800/20 border-white/5 opacity-50'
+                  ? 'bg-gray-800/20 border-white/5 hover:bg-gray-700/30'
                   : 'bg-black/20 border-white/5 hover:bg-white/5'
               }"
               data-phase-index="${index}"
-              ${isPast ? 'disabled' : ''}
             >
               <div class="flex items-center gap-2 mb-1">
                 <span class="material-symbols-outlined text-sm ${isActive ? 'text-red-400' : 'text-gray-500'}">
@@ -120,8 +119,13 @@ function renderCountdown(mystery) {
         }).join('')}
       </div>
 
-      <div class="p-4 border-t border-white/5">
-        <button id="btn-advance-countdown" class="w-full bg-red-900/40 hover:bg-red-800/60 px-4 py-2 rounded border border-red-700/50 transition text-sm font-semibold flex items-center justify-center gap-2"
+      <div class="p-4 border-t border-white/5 flex gap-2">
+        <button id="btn-back-countdown" class="flex-1 bg-gray-700/40 hover:bg-gray-600/60 px-4 py-2 rounded border border-gray-600/50 transition text-sm font-semibold flex items-center justify-center gap-2"
+          ${currentPhase <= 0 ? 'disabled' : ''}>
+          <span class="material-symbols-outlined text-sm">skip_previous</span>
+          ◂ Zpět
+        </button>
+        <button id="btn-advance-countdown" class="flex-1 bg-red-900/40 hover:bg-red-800/60 px-4 py-2 rounded border border-red-700/50 transition text-sm font-semibold flex items-center justify-center gap-2"
           ${currentPhase >= 5 ? 'disabled' : ''}>
           <span class="material-symbols-outlined text-sm">skip_next</span>
           Posunout ▸
@@ -372,11 +376,25 @@ function renderKeeperPanel() {
  * Initialize Session Events
  */
 function initSessionEvents() {
-  // Advance countdown
+  // Countdown controls
   const btnAdvance = $('#btn-advance-countdown');
   if (btnAdvance) {
     btnAdvance.addEventListener('click', handleAdvanceCountdown);
   }
+
+  const btnBack = $('#btn-back-countdown');
+  if (btnBack) {
+    btnBack.addEventListener('click', handleBackCountdown);
+  }
+
+  // Phase buttons - click to jump to any phase
+  const phaseButtons = document.querySelectorAll('.countdown-phase');
+  phaseButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const phaseIndex = parseInt(e.currentTarget.dataset.phaseIndex);
+      handleSetCountdownPhase(phaseIndex);
+    });
+  });
 
   // Add log entry
   const btnAddLog = $('#btn-add-log');
@@ -422,6 +440,53 @@ function handleAdvanceCountdown() {
   // Add log entry
   const phases = ['Den', 'Příšeří', 'Západ', 'Soumrak', 'Noc', 'Půlnoc'];
   handleAddLog(`Odpočet posunut: ${phases[currentPhase + 1]}`);
+
+  renderSessionTab();
+}
+
+/**
+ * Handle Back Countdown
+ */
+function handleBackCountdown() {
+  const state = getState();
+  const mystery = state.campaign?.mysteries?.find(m => m.id === state.currentMysteryId);
+
+  if (!mystery || !mystery.countdown) return;
+
+  const currentPhase = mystery.countdown.currentPhase || 0;
+  if (currentPhase <= 0) return; // Already at first phase
+
+  mystery.countdown.currentPhase = currentPhase - 1;
+
+  setState({ campaign: state.campaign });
+
+  // Add log entry
+  const phases = ['Den', 'Příšeří', 'Západ', 'Soumrak', 'Noc', 'Půlnoc'];
+  handleAddLog(`Odpočet vrácen: ${phases[currentPhase - 1]}`);
+
+  renderSessionTab();
+}
+
+/**
+ * Handle Set Countdown Phase - jump to specific phase
+ */
+function handleSetCountdownPhase(phaseIndex) {
+  const state = getState();
+  const mystery = state.campaign?.mysteries?.find(m => m.id === state.currentMysteryId);
+
+  if (!mystery || !mystery.countdown) return;
+
+  const currentPhase = mystery.countdown.currentPhase || 0;
+  if (phaseIndex === currentPhase) return; // Already at this phase
+
+  mystery.countdown.currentPhase = phaseIndex;
+
+  setState({ campaign: state.campaign });
+
+  // Add log entry
+  const phases = ['Den', 'Příšeří', 'Západ', 'Soumrak', 'Noc', 'Půlnoc'];
+  const action = phaseIndex > currentPhase ? 'posunut' : 'vrácen';
+  handleAddLog(`Odpočet ${action} na: ${phases[phaseIndex]}`);
 
   renderSessionTab();
 }
