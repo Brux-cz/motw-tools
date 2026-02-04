@@ -33,3 +33,16 @@ export function sanitizeAttribute(text) {
     return entities[char];
   });
 }
+
+/**
+ * Template literal tag pro vytváření HTML řetězců
+ * @param {TemplateStringsArray} strings - Template strings
+ * @param {...any} values - Hodnoty k interpolaci
+ * @returns {string} HTML řetězec
+ */
+export function html(strings, ...values) {
+  return strings.reduce((result, str, i) => {
+    const value = values[i] !== undefined ? values[i] : '';
+    return result + str + value;
+  }, '');
+}

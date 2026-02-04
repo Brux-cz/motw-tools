@@ -9,7 +9,6 @@ import { generateId } from '../../utils/id.js';
 import { generateNPC } from '../generators/npc.js';
 import { generateLocation } from '../generators/location.js';
 import { html } from '../../utils/html.js';
-import { showModal, hideModal } from './modals.js';
 import threatsData from '../../data/threats.json';
 
 let currentStep = 1;
@@ -93,67 +92,76 @@ function renderWizardStep() {
   const content = getStepContent(currentStep);
 
   const wizardHTML = html`
-    <div class="mystery-wizard bg-slate-900 text-slate-100 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-      <!-- Header -->
-      <div class="wizard-header bg-slate-800 px-6 py-4 border-b border-slate-700">
-        <h2 class="text-2xl font-bold mb-2">Vytvoření záhady</h2>
-        <div class="flex items-center gap-2">
-          ${Array.from({ length: totalSteps }, (_, i) => {
-            const stepNum = i + 1;
-            const isActive = stepNum === currentStep;
-            const isCompleted = stepNum < currentStep;
-            return html`
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
-                  ${isActive ? 'bg-red-600 text-white' : ''}
-                  ${isCompleted ? 'bg-green-600 text-white' : ''}
-                  ${!isActive && !isCompleted ? 'bg-slate-700 text-slate-400' : ''}
-                ">
-                  ${isCompleted ? '✓' : stepNum}
+    <div id="mystery-wizard-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+      <div class="mystery-wizard bg-slate-900 text-slate-100 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col mx-4">
+        <!-- Header -->
+        <div class="wizard-header bg-slate-800 px-6 py-4 border-b border-slate-700">
+          <h2 class="text-2xl font-bold mb-2">Vytvoření záhady</h2>
+          <div class="flex items-center gap-2">
+            ${Array.from({ length: totalSteps }, (_, i) => {
+              const stepNum = i + 1;
+              const isActive = stepNum === currentStep;
+              const isCompleted = stepNum < currentStep;
+              return html`
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
+                    ${isActive ? 'bg-red-600 text-white' : ''}
+                    ${isCompleted ? 'bg-green-600 text-white' : ''}
+                    ${!isActive && !isCompleted ? 'bg-slate-700 text-slate-400' : ''}
+                  ">
+                    ${isCompleted ? '✓' : stepNum}
+                  </div>
+                  ${stepNum < totalSteps ? html`<div class="w-8 h-0.5 ${isCompleted ? 'bg-green-600' : 'bg-slate-700'}"></div>` : ''}
                 </div>
-                ${stepNum < totalSteps ? html`<div class="w-8 h-0.5 ${isCompleted ? 'bg-green-600' : 'bg-slate-700'}"></div>` : ''}
-              </div>
-            `;
-          }).join('')}
+              `;
+            }).join('')}
+          </div>
+          <div class="text-sm text-slate-400 mt-2">
+            Krok ${currentStep} z ${totalSteps}: ${getStepTitle(currentStep)}
+          </div>
         </div>
-        <div class="text-sm text-slate-400 mt-2">
-          Krok ${currentStep} z ${totalSteps}: ${getStepTitle(currentStep)}
+
+        <!-- Content -->
+        <div class="wizard-content flex-1 overflow-y-auto p-6">
+          ${content}
         </div>
-      </div>
 
-      <!-- Content -->
-      <div class="wizard-content flex-1 overflow-y-auto p-6">
-        ${content}
-      </div>
-
-      <!-- Footer -->
-      <div class="wizard-footer bg-slate-800 px-6 py-4 border-t border-slate-700 flex justify-between">
-        <button
-          onclick="window.mysteryWizard.cancel()"
-          class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded transition-colors"
-        >
-          Zrušit
-        </button>
-        <div class="flex gap-2">
+        <!-- Footer -->
+        <div class="wizard-footer bg-slate-800 px-6 py-4 border-t border-slate-700 flex justify-between">
           <button
-            onclick="window.mysteryWizard.previousStep()"
-            class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded transition-colors ${currentStep === 1 ? 'opacity-50 cursor-not-allowed' : ''}"
-            ${currentStep === 1 ? 'disabled' : ''}
+            onclick="window.mysteryWizard.cancel()"
+            class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded transition-colors"
           >
-            ← Zpět
+            Zrušit
           </button>
-          <button
-            onclick="window.mysteryWizard.nextStep()"
-            class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition-colors font-bold"
-          >
-            ${currentStep === totalSteps ? 'Vytvořit záhadu' : 'Pokračovat →'}
-          </button>
+          <div class="flex gap-2">
+            <button
+              onclick="window.mysteryWizard.previousStep()"
+              class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded transition-colors ${currentStep === 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+              ${currentStep === 1 ? 'disabled' : ''}
+            >
+              ← Zpět
+            </button>
+            <button
+              onclick="window.mysteryWizard.nextStep()"
+              class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition-colors font-bold"
+            >
+              ${currentStep === totalSteps ? 'Vytvořit záhadu' : 'Pokračovat →'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   `;
 
-  showModal(wizardHTML, 'mystery-wizard-modal');
+  // Remove existing modal if any
+  const existingModal = document.getElementById('mystery-wizard-modal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  // Insert modal into DOM
+  document.body.insertAdjacentHTML('beforeend', wizardHTML);
 }
 
 /**
@@ -698,7 +706,7 @@ function renderStep7_Locations() {
 
       <div class="flex gap-2 mb-4">
         <button
-          onclick="window.mysteryWizard.generateLocation()"
+          onclick="window.mysteryWizard.addGeneratedLocation()"
           class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded"
         >
           🎲 Generovat náhodnou lokaci
@@ -873,7 +881,10 @@ export function previousStep() {
 
 export function cancel() {
   if (confirm('Opravdu chcete zrušit vytváření záhady? Všechna data budou ztracena.')) {
-    hideModal('mystery-wizard-modal');
+    const modal = document.getElementById('mystery-wizard-modal');
+    if (modal) {
+      modal.remove();
+    }
   }
 }
 
@@ -892,7 +903,10 @@ function saveMystery() {
   addMystery(mysteryData);
 
   // Close modal
-  hideModal('mystery-wizard-modal');
+  const modal = document.getElementById('mystery-wizard-modal');
+  if (modal) {
+    modal.remove();
+  }
 
   // Show success message
   alert('Záhada byla úspěšně vytvořena!');
@@ -982,7 +996,7 @@ export function removeBystander(index) {
   renderWizardStep();
 }
 
-export async function generateLocation() {
+export async function addGeneratedLocation() {
   const loc = await generateLocation();
   mysteryData.locations.push(loc);
   renderWizardStep();
@@ -1077,7 +1091,7 @@ if (typeof window !== 'undefined') {
     updateBystanderField,
     updateBystanderType,
     removeBystander,
-    generateLocation,
+    addGeneratedLocation,
     addEmptyLocation,
     updateLocationField,
     updateLocationType,
