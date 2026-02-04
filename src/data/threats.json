@@ -1,0 +1,437 @@
+{
+  "monsterTypes": [
+    {
+      "type": "Bestie",
+      "type_en": "Beast",
+      "motivation": "Svobodně se pohybovat, ničit a zabíjet"
+    },
+    {
+      "type": "Černokněžník",
+      "type_en": "Sorcerer",
+      "motivation": "Uchvátit nadpřirozenou moc"
+    },
+    {
+      "type": "Královna",
+      "type_en": "Queen",
+      "motivation": "Posednout a ovládnout"
+    },
+    {
+      "type": "Mučitel",
+      "type_en": "Torturer",
+      "motivation": "Způsobit bolest a vyvolat hrůzu"
+    },
+    {
+      "type": "Ničitel",
+      "type_en": "Destroyer",
+      "motivation": "Přivodit konec světa"
+    },
+    {
+      "type": "Parazit",
+      "type_en": "Parasite",
+      "motivation": "Napadnout, ovládnout a sežrat"
+    },
+    {
+      "type": "Pokušitel",
+      "type_en": "Tempter",
+      "motivation": "Svést lidi ke konání zla"
+    },
+    {
+      "type": "Popravčí",
+      "type_en": "Executioner",
+      "motivation": "Trestat viníky"
+    },
+    {
+      "type": "Požírač",
+      "type_en": "Devourer",
+      "motivation": "Hodovat na lidech"
+    },
+    {
+      "type": "Sběratel",
+      "type_en": "Collector",
+      "motivation": "Krást specifický druh věcí"
+    },
+    {
+      "type": "Šibal",
+      "type_en": "Trickster",
+      "motivation": "Vnést do všeho chaos"
+    },
+    {
+      "type": "Zploditel",
+      "type_en": "Breeder",
+      "motivation": "Přivést zlo na svět nebo ho stvořit"
+    }
+  ],
+  "monsterMoves": [
+    {
+      "name_cz": "Naznačit její přítomnost",
+      "name_en": "Hint at its presence"
+    },
+    {
+      "name_cz": "Odhalit její skutečnou moc",
+      "name_en": "Display its full might"
+    },
+    {
+      "name_cz": "Z čista jasna se objevit",
+      "name_en": "Appear out of nowhere"
+    },
+    {
+      "name_cz": "Vztekle zaútočit vší silou",
+      "name_en": "Attack with fury and contempt"
+    },
+    {
+      "name_cz": "Někoho nebo něčeho se zmocnit",
+      "name_en": "Seize someone or something"
+    },
+    {
+      "name_cz": "Tiše a prohnaně zaútočit",
+      "name_en": "Attack with stealth and calculation"
+    },
+    {
+      "name_cz": "Rozkázat přisluhovačům provést strašné věci",
+      "name_en": "Order minions to terrible deeds"
+    },
+    {
+      "name_cz": "Něco zničit",
+      "name_en": "Destroy something"
+    },
+    {
+      "name_cz": "Uniknout bez ohledu na to, jak dobře je spoutána",
+      "name_en": "Escape, no matter how well contained"
+    },
+    {
+      "name_cz": "Pronásledovat",
+      "name_en": "Pursue"
+    },
+    {
+      "name_cz": "Vrátit se do svého teritoria",
+      "name_en": "Return to its home ground"
+    },
+    {
+      "name_cz": "Škodolibě se chvástat a třeba i prozradit tajemství",
+      "name_en": "Gloat and maybe reveal a secret"
+    },
+    {
+      "name_cz": "Navrátit se po zdánlivém skonu",
+      "name_en": "Return from seeming death"
+    },
+    {
+      "name_cz": "Použít nadpřirozenou schopnost",
+      "name_en": "Use a supernatural power"
+    }
+  ],
+  "minionTypes": [
+    {
+      "type": "Hlídač",
+      "type_en": "Guardian",
+      "motivation": "Zahradit cestu nebo něco chránit"
+    },
+    {
+      "type": "Kultista",
+      "type_en": "Cultist",
+      "motivation": "Zachránit si kůži za každou cenu"
+    },
+    {
+      "type": "Mor",
+      "type_en": "Plague",
+      "motivation": "Zaplavit a zničit"
+    },
+    {
+      "type": "Pravá ruka",
+      "type_en": "Right Hand",
+      "motivation": "Stát za příšerou"
+    },
+    {
+      "type": "Průzkumník",
+      "type_en": "Scout",
+      "motivation": "Stopovat, sledovat a podat zprávu"
+    },
+    {
+      "type": "Renfield",
+      "type_en": "Renfield",
+      "motivation": "Zajistit příšeře přísun obětí"
+    },
+    {
+      "type": "Surovec",
+      "type_en": "Brute",
+      "motivation": "Zastrašit a zaútočit"
+    },
+    {
+      "type": "Vrah",
+      "type_en": "Assassin",
+      "motivation": "Zabít lovce"
+    },
+    {
+      "type": "Zloděj",
+      "type_en": "Thief",
+      "motivation": "Něco pro příšeru ukrást"
+    },
+    {
+      "type": "Zrádce",
+      "type_en": "Traitor",
+      "motivation": "Zradit lidi"
+    }
+  ],
+  "minionMoves": [
+    {
+      "name_cz": "Náhlý záchvat nekontrolovaného násilí",
+      "name_en": "Burst with unprovoked violence"
+    },
+    {
+      "name_cz": "Koordinovaně zaútočit",
+      "name_en": "Attack in concert"
+    },
+    {
+      "name_cz": "Někoho zajmout, nebo něco ukrást",
+      "name_en": "Capture someone or steal something"
+    },
+    {
+      "name_cz": "Prozradit tajemství",
+      "name_en": "Reveal a secret"
+    },
+    {
+      "name_cz": "Odevzdat někoho, nebo něco, svému pánu",
+      "name_en": "Deliver someone or something to their master"
+    },
+    {
+      "name_cz": "Pronásledovat",
+      "name_en": "Pursue"
+    },
+    {
+      "name_cz": "Vyhrožovat, nebo něco vyžadovat, ve jménu svého pána",
+      "name_en": "Threaten or demand in their master's name"
+    },
+    {
+      "name_cz": "Utéct",
+      "name_en": "Run away"
+    },
+    {
+      "name_cz": "Použít nadpřirozenou schopnost",
+      "name_en": "Use a supernatural power"
+    },
+    {
+      "name_cz": "Ukázat záblesk svědomí, nebo lidství",
+      "name_en": "Show a flicker of conscience or humanity"
+    },
+    {
+      "name_cz": "Malicherným způsobem se vzepřít svému pánu",
+      "name_en": "Defy their master in a petty way"
+    }
+  ],
+  "bystanderTypes": [
+    {
+      "type": "Byrokrat",
+      "type_en": "Official",
+      "motivation": "Podezírat"
+    },
+    {
+      "type": "Detektiv",
+      "type_en": "Detective",
+      "motivation": "Zavrhnout rozumné vysvětlení"
+    },
+    {
+      "type": "Drbna",
+      "type_en": "Gossip",
+      "motivation": "Šířit klevety"
+    },
+    {
+      "type": "Nevinný",
+      "type_en": "Innocent",
+      "motivation": "Zachovat se správně"
+    },
+    {
+      "type": "Oběť",
+      "type_en": "Victim",
+      "motivation": "Vystavit se nebezpečí"
+    },
+    {
+      "type": "Pomocník",
+      "type_en": "Helper",
+      "motivation": "Přidat se k lovu"
+    },
+    {
+      "type": "Skeptik",
+      "type_en": "Skeptic",
+      "motivation": "Odmítat nadpřirozené vysvětlení"
+    },
+    {
+      "type": "Svědek",
+      "type_en": "Witness",
+      "motivation": "Poskytnout informace"
+    },
+    {
+      "type": "Šťoural",
+      "type_en": "Busybody",
+      "motivation": "Plést se do záležitostí jiných lidí"
+    },
+    {
+      "type": "Role",
+      "type_en": "Výdrž",
+      "motivation": "Zbroj"
+    },
+    {
+      "type": "**Přihlížející**",
+      "type_en": "7 zranění (stejně jako lovci)",
+      "motivation": "Běžně žádná; výjimky jako policejní vesta = 1-zbroj"
+    },
+    {
+      "type": "**Přisluhovači**",
+      "type_en": "5–10 zranění (výjimečně více, např. Koko = 12)",
+      "motivation": "Obvykle 1-zbroj, zřídka 2+"
+    },
+    {
+      "type": "**Vztah**",
+      "type_en": "Spojenci příšery, pracují **proti** lovcům",
+      "motivation": "Obyčejní lidé, ztěžují situaci **neúmyslně**"
+    },
+    {
+      "type": "**Schopnosti**",
+      "type_en": "Definované útoky, výdrž, často nadpřirozené",
+      "motivation": "Bez bojových schopností"
+    },
+    {
+      "type": "**Motivace**",
+      "type_en": "Slouží příšeře",
+      "motivation": "Panika, skepticismus, byrokracie"
+    }
+  ],
+  "bystanderMoves": [
+    {
+      "name_cz": "Vydat se někam sám",
+      "name_en": "Go off alone"
+    },
+    {
+      "name_cz": "Dohadovat se s lovci",
+      "name_en": "Argue with the hunters"
+    },
+    {
+      "name_cz": "Překážet",
+      "name_en": "Get in the way"
+    },
+    {
+      "name_cz": "Něco prozradit",
+      "name_en": "Reveal something"
+    },
+    {
+      "name_cz": "Přiznat se ke svým obavám",
+      "name_en": "Confess their fears"
+    },
+    {
+      "name_cz": "Ze strachu ztratit hlavu",
+      "name_en": "Freak out in terror"
+    },
+    {
+      "name_cz": "Pokusit se pomoct lovcům",
+      "name_en": "Try to help the hunters"
+    },
+    {
+      "name_cz": "Pokusit se ochránit lidi",
+      "name_en": "Try to protect people"
+    },
+    {
+      "name_cz": "Projevit neschopnost nebo nemohoucnost",
+      "name_en": "Display inability or helplessness"
+    },
+    {
+      "name_cz": "Hledat pomoc nebo útěchu",
+      "name_en": "Seek help or comfort"
+    }
+  ],
+  "locationTypes": [
+    {
+      "type": "Brána pekel",
+      "type_en": "Hellgate",
+      "motivation": "Stvořit zlo"
+    },
+    {
+      "type": "Divočina",
+      "type_en": "Wilds",
+      "motivation": "Obsahovat skryté věci"
+    },
+    {
+      "type": "Doupě",
+      "type_en": "Den",
+      "motivation": "Ukrývat příšery"
+    },
+    {
+      "type": "Knihovna",
+      "type_en": "Hub",
+      "motivation": "Poskytnout informace"
+    },
+    {
+      "type": "Křižovatka",
+      "type_en": "Crossroads",
+      "motivation": "Svést lidi a věci dohromady"
+    },
+    {
+      "type": "Laboratoř",
+      "type_en": "Lab",
+      "motivation": "Vytvářet prapodivnosti"
+    },
+    {
+      "type": "Labyrint",
+      "type_en": "Maze",
+      "motivation": "Zmást a rozdělit"
+    },
+    {
+      "type": "Past",
+      "type_en": "Deathtrap",
+      "motivation": "Zranit vetřelce"
+    },
+    {
+      "type": "Pevnost",
+      "type_en": "Fortress",
+      "motivation": "Bránit ve vstupu"
+    },
+    {
+      "type": "Vězení",
+      "type_en": "Prison",
+      "motivation": "Zadržet a zabránit v úniku"
+    }
+  ],
+  "locationMoves": [
+    {
+      "name_cz": "Představit hrozbu",
+      "name_en": "Present a hazard"
+    },
+    {
+      "name_cz": "Něco odhalit",
+      "name_en": "Reveal something"
+    },
+    {
+      "name_cz": "Něco skrývat",
+      "name_en": "Hide something"
+    },
+    {
+      "name_cz": "Zabránit v cestě",
+      "name_en": "Bar the way"
+    },
+    {
+      "name_cz": "Uvolnit cestu",
+      "name_en": "Open a path"
+    },
+    {
+      "name_cz": "Přetvořit se",
+      "name_en": "Change shape"
+    },
+    {
+      "name_cz": "Někoho polapit do pasti",
+      "name_en": "Trap someone"
+    },
+    {
+      "name_cz": "Navést na stopu",
+      "name_en": "Offer a clue"
+    },
+    {
+      "name_cz": "Představit hlídače",
+      "name_en": "Present a guardian"
+    },
+    {
+      "name_cz": "Něco tu nefunguje",
+      "name_en": "Something doesn't work right"
+    },
+    {
+      "name_cz": "Navodit jedinečný dojem",
+      "name_en": "Create a distinct atmosphere"
+    }
+  ]
+}

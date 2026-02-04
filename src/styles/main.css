@@ -220,3 +220,820 @@ body {
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* Disabled Button State */
+button:disabled,
+button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Focus Styling for Accessibility */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgb(185 28 28);
+  outline-offset: 2px;
+}
+
+/* Modal Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* ===== HUNTER FOOTER TABS ===== */
+
+.footer-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 45px;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.05);
+  background-color: rgb(0 0 0 / 0.3);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.footer-tabs-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.footer-tabs-bar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.footer-tabs-bar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem 0.375rem 0 0;
+  background-color: rgb(255 255 255 / 0.05);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-bottom: none;
+  color: rgb(156 163 175);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tab-item:hover {
+  background-color: rgb(255 255 255 / 0.1);
+  color: rgb(229 231 235);
+}
+
+.tab-item-active {
+  background-color: rgb(127 29 29 / 0.3);
+  border-color: rgb(185 28 28 / 0.5);
+  color: rgb(255 255 255);
+  font-weight: 600;
+}
+
+.tab-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  background-color: transparent;
+  border: none;
+  color: rgb(156 163 175);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-left: 0.25rem;
+}
+
+.tab-close:hover {
+  background-color: rgb(220 38 38 / 0.3);
+  color: rgb(220 38 38);
+}
+
+.tab-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  background-color: rgb(255 255 255 / 0.05);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: rgb(156 163 175);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.tab-add:hover {
+  background-color: rgb(127 29 29 / 0.3);
+  border-color: rgb(185 28 28 / 0.5);
+  color: rgb(220 38 38);
+}
+
+/* ===== HUNTER CARD ===== */
+
+.hunter-card {
+  padding: 1.5rem;
+  background-color: rgb(0 0 0 / 0.2);
+}
+
+.hunter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.05);
+}
+
+.hunter-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hunter-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: rgb(229 231 235);
+}
+
+.hunter-playbook {
+  font-size: 0.75rem;
+  color: rgb(156 163 175);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.btn-edit-hunter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  background-color: transparent;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: rgb(156 163 175);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-edit-hunter:hover {
+  background-color: rgb(255 255 255 / 0.05);
+  border-color: rgb(185 28 28 / 0.5);
+  color: rgb(220 38 38);
+}
+
+/* ===== STATS BAR ===== */
+
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: rgb(0 0 0 / 0.3);
+  border-radius: 0.375rem;
+  border: 1px solid rgb(255 255 255 / 0.05);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: rgb(156 163 175);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: rgb(229 231 235);
+}
+
+.stat-value-positive {
+  color: rgb(34 197 94);
+}
+
+.stat-value-negative {
+  color: rgb(239 68 68);
+}
+
+/* ===== CORE TRACKERS ===== */
+
+.core-trackers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: rgb(0 0 0 / 0.3);
+  border-radius: 0.375rem;
+  border: 1px solid rgb(255 255 255 / 0.05);
+}
+
+.tracker-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tracker-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: rgb(156 163 175);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tracker-boxes {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.xp-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.xp-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgb(34 197 94);
+  min-width: 2rem;
+  text-align: center;
+}
+
+.xp-increment,
+.xp-decrement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.25rem;
+  background-color: rgb(255 255 255 / 0.05);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: rgb(156 163 175);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.xp-increment:hover {
+  background-color: rgb(34 197 94 / 0.2);
+  border-color: rgb(34 197 94 / 0.5);
+  color: rgb(34 197 94);
+}
+
+.xp-decrement:hover {
+  background-color: rgb(220 38 38 / 0.2);
+  border-color: rgb(220 38 38 / 0.5);
+  color: rgb(220 38 38);
+}
+
+/* ===== CONDITIONS BAR ===== */
+
+.conditions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: rgb(0 0 0 / 0.3);
+  border-radius: 0.375rem;
+  border: 1px solid rgb(255 255 255 / 0.05);
+  min-height: 3rem;
+  align-items: center;
+}
+
+.condition-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid;
+  transition: all 0.15s;
+}
+
+.condition-game {
+  background-color: rgb(220 38 38 / 0.2);
+  border-color: rgb(220 38 38 / 0.5);
+  color: rgb(252 165 165);
+}
+
+.condition-story {
+  background-color: rgb(168 85 247 / 0.2);
+  border-color: rgb(168 85 247 / 0.5);
+  color: rgb(216 180 254);
+}
+
+.btn-remove-condition {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  background-color: transparent;
+  border: none;
+  color: currentColor;
+  font-size: 0.875rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-left: 0.125rem;
+}
+
+.btn-remove-condition:hover {
+  background-color: rgb(0 0 0 / 0.3);
+}
+
+.btn-add-condition {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.375rem;
+  background-color: rgb(255 255 255 / 0.05);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: rgb(156 163 175);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-add-condition:hover {
+  background-color: rgb(127 29 29 / 0.2);
+  border-color: rgb(185 28 28 / 0.5);
+  color: rgb(220 38 38);
+}
+
+/* ===== COLLAPSIBLE SECTIONS ===== */
+
+.collapsible-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.collapsible-section {
+  border-radius: 0.375rem;
+  background-color: rgb(0 0 0 / 0.2);
+  border: 1px solid rgb(255 255 255 / 0.05);
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  background-color: rgb(0 0 0 / 0.2);
+  border-bottom: 1px solid rgb(255 255 255 / 0.05);
+}
+
+.section-header:hover {
+  background-color: rgb(255 255 255 / 0.05);
+}
+
+.section-header .chevron {
+  font-size: 0.875rem;
+  color: rgb(156 163 175);
+  transition: transform 0.15s;
+  width: 1rem;
+  text-align: center;
+}
+
+.section-header .title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(229 231 235);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 1;
+}
+
+.section-header .count {
+  font-size: 0.75rem;
+  color: rgb(156 163 175);
+}
+
+.btn-add-item {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: transparent;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: rgb(156 163 175);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-add-item:hover {
+  background-color: rgb(127 29 29 / 0.2);
+  border-color: rgb(185 28 28 / 0.5);
+  color: rgb(220 38 38);
+}
+
+.section-content {
+  padding: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+  transition: max-height 0.3s ease-out;
+}
+
+.section-content.collapsed {
+  max-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ===== GEAR ITEMS ===== */
+
+.gear-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: rgb(0 0 0 / 0.3);
+  border-radius: 0.375rem;
+  border: 1px solid rgb(255 255 255 / 0.05);
+  transition: all 0.15s;
+}
+
+.gear-item:hover {
+  background-color: rgb(255 255 255 / 0.05);
+  border-color: rgb(255 255 255 / 0.1);
+}
+
+.gear-item:last-child {
+  margin-bottom: 0;
+}
+
+.gear-details {
+  flex: 1;
+}
+
+.gear-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(229 231 235);
+  margin-bottom: 0.125rem;
+}
+
+.gear-stats {
+  font-size: 0.75rem;
+  color: rgb(156 163 175);
+}
+
+.btn-remove-gear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.25rem;
+  background-color: transparent;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: rgb(156 163 175);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-remove-gear:hover {
+  background-color: rgb(220 38 38 / 0.2);
+  border-color: rgb(220 38 38 / 0.5);
+  color: rgb(220 38 38);
+}
+
+/* ===== STORY TAGS ===== */
+
+.story-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: rgb(168 85 247 / 0.1);
+  border-radius: 0.375rem;
+  border: 1px solid rgb(168 85 247 / 0.3);
+  font-size: 0.875rem;
+  color: rgb(216 180 254);
+  transition: all 0.15s;
+}
+
+.story-tag:hover {
+  background-color: rgb(168 85 247 / 0.15);
+  border-color: rgb(168 85 247 / 0.4);
+}
+
+.story-tag:last-child {
+  margin-bottom: 0;
+}
+
+.btn-remove-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.25rem;
+  background-color: transparent;
+  border: 1px solid currentColor;
+  color: currentColor;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.btn-remove-tag:hover {
+  background-color: rgb(220 38 38 / 0.3);
+  border-color: rgb(220 38 38);
+  color: rgb(220 38 38);
+}
+
+/* ===== GEAR PICKER MODAL ===== */
+
+.gear-picker {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.gear-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.gear-category h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgb(229 231 235);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.weapon-option {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem;
+  background-color: rgb(0 0 0 / 0.3);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 0.375rem;
+  color: rgb(229 231 235);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 0.5rem;
+}
+
+.weapon-option:hover {
+  background-color: rgb(255 255 255 / 0.05);
+  border-color: rgb(185 28 28 / 0.5);
+}
+
+.weapon-option:last-child {
+  margin-bottom: 0;
+}
+
+.condition-option {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem;
+  background-color: rgb(0 0 0 / 0.3);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 0.375rem;
+  color: rgb(229 231 235);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 0.5rem;
+}
+
+.condition-option:hover {
+  background-color: rgb(255 255 255 / 0.05);
+  border-color: rgb(220 38 38 / 0.5);
+}
+
+.condition-option:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== MOVE ITEM ===== */
+
+.move-item {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: rgb(0 0 0 / 0.3);
+  border-radius: 0.375rem;
+  border: 1px solid rgb(255 255 255 / 0.05);
+}
+
+.move-item:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== RULES TAB ===== */
+
+.rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+
+.rules-table thead {
+  background-color: rgb(0 0 0 / 0.3);
+  border-bottom: 2px solid rgb(255 255 255 / 0.1);
+}
+
+.rules-table th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: rgb(255 255 255);
+}
+
+.rules-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.05);
+}
+
+.rules-table tbody tr:hover {
+  background-color: rgb(255 255 255 / 0.02);
+}
+
+/* Prose styling for rules content */
+.prose h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: rgb(255 255 255);
+}
+
+.prose h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: rgb(229 231 235);
+}
+
+.prose p {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.prose ul {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+}
+
+.prose li {
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: rgb(255 255 255);
+}
+
+.prose em {
+  font-style: italic;
+  color: rgb(209 213 219);
+}
+
+.prose mark {
+  background-color: rgb(245 158 11 / 0.3);
+  color: rgb(253 230 138);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.125rem;
+}
+
+/* ===== ANIMATIONS ===== */
+
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(185, 28, 28, 0);
+  }
+  50% {
+    box-shadow: 0 0 12px 4px rgba(185, 28, 28, 0.3);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Critical harm warning */
+.hunter-critical {
+  background-color: rgb(127 29 29 / 0.3);
+  border-color: rgb(185 28 28 / 0.7);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Empty luck warning */
+.hunter-unlucky {
+  border: 2px solid rgb(245 158 11);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+}
+
+/* XP ready for level-up */
+.hunter-levelup {
+  background-color: rgb(245 158 11 / 0.2);
+  border-color: rgb(245 158 11 / 0.7);
+}
+
+/* Fade transition */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 200ms ease-in;
+}
+
+/* Tooltip styles */
+.tooltip {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.tooltip-arrow {
+  z-index: -1;
+}

@@ -2,31 +2,64 @@
  * NPC Generator
  */
 
-import threatsData from '../../data/threats.json';
-import namesData from '../../data/names.json';
+import { generateId } from '../../utils/id.js';
 
 /**
  * Generate random NPC
  */
-export function generateNPC() {
-  const type = randomElement(threatsData.bystanderTypes);
-  const gender = randomElement(['male', 'female']);
-  const firstName = randomElement(namesData[gender]);
-  const lastName = randomElement(namesData.surnames);
+export async function generateNPC() {
+  try {
+    // Load NPC data
+    const response = await fetch(import.meta.env.BASE_URL + 'data/npc-names.json');
 
-  return {
-    id: generateId(),
-    name: `${firstName} ${lastName}`,
-    type: type.type,
-    type_cz: type.type_cz,
-    motivation: type.motivation,
-    description: generateNPCDescription(type, gender),
-    status: 'alive',
-    tags: generateNPCTags(type),
-    appearsIn: [],
-    image: null,
-    notes: []
-  };
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Validate data structure
+    if (!data.firstNames || !data.lastNames || !data.bystanderTypes || !data.motivations) {
+      throw new Error('Invalid NPC data structure');
+    }
+
+    const gender = randomElement(['male', 'female']);
+    const firstName = randomElement(data.firstNames[gender]);
+    const lastName = randomElement(data.lastNames);
+    const bystanderType = randomElement(data.bystanderTypes);
+    const motivation = randomElement(data.motivations);
+
+    return {
+      id: generateId(),
+      name: `${firstName} ${lastName}`,
+      type: bystanderType.name_cz,
+      typeOriginal: bystanderType.type,
+      motivation: motivation,
+      description: bystanderType.description,
+      status: 'alive',
+      tags: [],
+      appearsIn: [],
+      image: null,
+      notes: []
+    };
+  } catch (error) {
+    console.error('Failed to generate NPC:', error);
+
+    // Fallback - return basic NPC
+    return {
+      id: generateId(),
+      name: 'Neznámý NPC',
+      type: 'Svědek',
+      typeOriginal: 'Witness',
+      motivation: 'Přežít',
+      description: 'Generování selhalo - edituj ručně',
+      status: 'alive',
+      tags: [],
+      appearsIn: [],
+      image: null,
+      notes: []
+    };
+  }
 }
 
 /**
@@ -88,10 +121,22 @@ function randomElement(array) {
 }
 
 /**
+ * Fisher-Yates shuffle - uniform distribution
+ */
+function shuffleArray(array) {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+/**
  * Utility: Random subset from array
  */
 function randomSubset(array, count) {
-  const shuffled = [...array].sort(() => Math.random() - 0.5);
+  const shuffled = shuffleArray(array);
   return shuffled.slice(0, Math.min(count, array.length));
 }
 
@@ -100,11 +145,4 @@ function randomSubset(array, count) {
  */
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-/**
- * Utility: Generate unique ID
- */
-function generateId() {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }

@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Kick Some Ass",
+    "name_cz": "Nakopej prdel",
+    "trigger": "When you attack an enemy in close combat",
+    "stat": "Tough"
+  },
+  {
+    "name": "Act Under Pressure",
+    "name_cz": "Jednej pod tlakem",
+    "trigger": "When you act under pressure",
+    "stat": "Cool"
+  },
+  {
+    "name": "Help Out",
+    "name_cz": "Pomoz",
+    "trigger": "When you help another hunter",
+    "stat": "Cool"
+  },
+  {
+    "name": "Investigate a Mystery",
+    "name_cz": "Vyšetřuj záhadu",
+    "trigger": "When you investigate a mystery",
+    "stat": "Sharp"
+  },
+  {
+    "name": "Manipulate Someone",
+    "name_cz": "Manipuluj s někým",
+    "trigger": "When you manipulate an NPC",
+    "stat": "Charm"
+  },
+  {
+    "name": "Protect Someone",
+    "name_cz": "Ochraň někoho",
+    "trigger": "When you prevent harm to another hunter",
+    "stat": "Tough"
+  },
+  {
+    "name": "Read a Bad Situation",
+    "name_cz": "Vyčti špatnou situaci",
+    "trigger": "When you look around and read a charged situation",
+    "stat": "Sharp"
+  },
+  {
+    "name": "Use Magic",
+    "name_cz": "Použij magii",
+    "trigger": "When you use magic",
+    "stat": "Weird"
+  }
+]

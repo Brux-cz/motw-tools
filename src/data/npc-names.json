@@ -1,0 +1,52 @@
+{
+  "firstNames": {
+    "male": [
+      "Jan", "Petr", "Pavel", "Tomáš", "Martin", "Jakub", "Michal", "Lukáš", "David", "Jiří",
+      "Ondřej", "Marek", "Daniel", "Milan", "Josef", "Václav", "Stanislav", "Karel", "Filip", "Adam",
+      "Vojtěch", "Richard", "Roman", "Aleš", "Vladimír", "Robert", "Miroslav", "Zdeněk", "Radek", "Igor"
+    ],
+    "female": [
+      "Jana", "Marie", "Eva", "Anna", "Hana", "Petra", "Lenka", "Kateřina", "Lucie", "Alena",
+      "Veronika", "Barbora", "Ivana", "Tereza", "Martina", "Michaela", "Andrea", "Monika", "Kristýna", "Simona",
+      "Markéta", "Zuzana", "Dagmar", "Helena", "Ludmila", "Klára", "Nikola", "Eliška", "Adéla", "Karolína"
+    ]
+  },
+  "lastNames": [
+    "Novák", "Svoboda", "Novotný", "Dvořák", "Černý", "Procházka", "Kučera", "Veselý", "Horák", "Němec",
+    "Marek", "Pospíšil", "Pokorný", "Hájek", "Jelínek", "Král", "Růžička", "Beneš", "Fiala", "Sedláček",
+    "Doležal", "Zeman", "Kolář", "Navrátil", "Čermák", "Urban", "Vaněk", "Blažek", "Kříž", "Kovář",
+    "Kratochvíl", "Bartoš", "Vlček", "Polák", "Konečný", "Malý", "Holub", "Čech", "Štěpánek", "Staněk"
+  ],
+  "bystanderTypes": [
+    { "type": "Gossip", "name_cz": "Klevetník", "description": "Ví věci, které by neměl vědět" },
+    { "type": "Witness", "name_cz": "Svědek", "description": "Viděl něco důležitého" },
+    { "type": "Official", "name_cz": "Úředník", "description": "Má autoritu a moc" },
+    { "type": "Victim", "name_cz": "Oběť", "description": "V nebezpečí nebo už utrpěl" },
+    { "type": "Helper", "name_cz": "Pomocník", "description": "Chce pomoci lovcům" },
+    { "type": "Busybody", "name_cz": "Všetečný", "description": "Plete se do všeho" },
+    { "type": "Detective", "name_cz": "Detektiv", "description": "Vyšetřuje vlastní stopou" },
+    { "type": "Skeptic", "name_cz": "Skeptik", "description": "Nevěří v nadpřirozeno" }
+  ],
+  "motivations": [
+    "Přežít za každou cenu",
+    "Ochránit svou rodinu",
+    "Najít pravdu",
+    "Získat moc",
+    "Pomstít se",
+    "Zůstat skrytý",
+    "Ukončit prokletí",
+    "Najít ztracené",
+    "Dokázat svou hodnotu",
+    "Udržet pořádek",
+    "Získat slávu",
+    "Chránit tajemství",
+    "Najít vykoupení",
+    "Zachránit ostatní",
+    "Utéct z minulosti",
+    "Získat bohatství",
+    "Odhalit konspiráci",
+    "Ochránit město",
+    "Najít lásku",
+    "Dokončit misi"
+  ]
+}

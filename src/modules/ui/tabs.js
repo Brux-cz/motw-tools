@@ -3,6 +3,7 @@
  */
 
 import { setState, getState } from '../state/store.js';
+import { renderRulesTab } from '../tabs/rules.js';
 
 /**
  * Initialize tab switching
@@ -52,6 +53,11 @@ export function switchTab(tabId) {
 
   // Update state
   setState({ currentTab: tabId });
+
+  // Trigger tab-specific render functions
+  if (tabId === 'rules') {
+    renderRulesTab();
+  }
 
   console.log('Switched to tab:', tabId);
 }

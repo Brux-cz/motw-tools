@@ -1,0 +1,190 @@
+{
+  "templates": [
+    {
+      "id": "monster-on-hunt",
+      "name": "Příšera na lovu",
+      "name_en": "Monster on a Hunt",
+      "description": "Klasická záhada s příšerou, která loví lidi v určité oblasti",
+      "structure": {
+        "hook": "Série záhadných úmrtí v [lokace]. Oběti nesou známky [způsob útoku].",
+        "monster": {
+          "type": "Bestie",
+          "harm": 10,
+          "armor": 1,
+          "powers": ["Noční vidění", "Rychlost", "Silné čichové smysly"],
+          "attack": {
+            "description": "Drápy a zuby",
+            "harm": 3,
+            "range": "hand"
+          },
+          "weakness": "[Definuj specifickou slabinu]"
+        },
+        "countdown": [
+          { "day": "Day", "description": "První oběť - lovná příšera se přestěhovala do oblasti" },
+          { "day": "Shadows", "description": "Druhá oběť - příšera si buduje území" },
+          { "day": "Sunset", "description": "Veřejný útok - oběť přežije ale je traumatizována" },
+          { "day": "Dusk", "description": "Masivní útok - více obětí najednou" },
+          { "day": "Nightfall", "description": "Příšera se stane odvážnější, útočí na den" },
+          { "day": "Midnight", "description": "Příšera terorizuje celou oblast, nikdo není v bezpečí" }
+        ],
+        "bystanderTypes": ["Oběť", "Svědek", "Skeptik"],
+        "locationTypes": ["Divočina", "Doupě"]
+      }
+    },
+    {
+      "id": "devils-ritual",
+      "name": "Ďábelský rituál",
+      "name_en": "Devil's Ritual",
+      "description": "Někdo provádí temný rituál s katastrofickými důsledky",
+      "structure": {
+        "hook": "Podivné symboly objeveny na místě činu. [Oběti] zmizely za záhadných okolností.",
+        "monster": {
+          "type": "Černokněžník",
+          "harm": 8,
+          "armor": 2,
+          "powers": ["Temná magie", "Vyvolávání", "Předvídání"],
+          "attack": {
+            "description": "Magická energie",
+            "harm": 4,
+            "range": "close"
+          },
+          "weakness": "[Zničit zdroj moci / Dokončit protirituál]"
+        },
+        "countdown": [
+          { "day": "Day", "description": "První fáze rituálu - sběr ingrediencí" },
+          { "day": "Shadows", "description": "Druhá fáze - příprava místa moci" },
+          { "day": "Sunset", "description": "První oběť rituálu" },
+          { "day": "Dusk", "description": "Druhá oběť - rituál nabírá na síle" },
+          { "day": "Nightfall", "description": "Finální přípravy - portál se začína otevírat" },
+          { "day": "Midnight", "description": "Rituál dokončen - katastrofa nastává" }
+        ],
+        "bystanderTypes": ["Kultista", "Detektiv", "Nevinný"],
+        "locationTypes": ["Knihovna", "Brána pekel", "Křižovatka"]
+      }
+    },
+    {
+      "id": "not-what-it-seems",
+      "name": "Není to, čím se zdá",
+      "name_en": "Not What It Seems",
+      "description": "Zdánlivě normální situace skrývá nadpřirozené nebezpečí",
+      "structure": {
+        "hook": "Obyvatelé [místo] se chovají podivně. Něco není v pořádku, ale nikdo neví co.",
+        "monster": {
+          "type": "Parazit",
+          "harm": 7,
+          "armor": 0,
+          "powers": ["Ovládání mysli", "Skoková infekce", "Mimetismus"],
+          "attack": {
+            "description": "Psychická invaze",
+            "harm": 2,
+            "range": "intimate"
+          },
+          "weakness": "[Identifikovat hostitele / Zničit mateřskou bytost]"
+        },
+        "countdown": [
+          { "day": "Day", "description": "První infekce - jeden člověk pod kontrolou" },
+          { "day": "Shadows", "description": "Infekce se šíří - 3-5 lidí ovládnuto" },
+          { "day": "Sunset", "description": "Ovládnutí klíčové osoby (starosta, šerif)" },
+          { "day": "Dusk", "description": "Polovina populace infikována" },
+          { "day": "Nightfall", "description": "Téměř všichni pod kontrolou - lovci izolováni" },
+          { "day": "Midnight", "description": "Kompletní převzetí - [místo] je ztraceno" }
+        ],
+        "bystanderTypes": ["Nevinný", "Byrokrat", "Pomocník"],
+        "locationTypes": ["Křižovatka", "Vězení", "Pevnost"]
+      }
+    },
+    {
+      "id": "cursed-artifact",
+      "name": "Prokletý artefakt",
+      "name_en": "Cursed Artifact",
+      "description": "Mocný magický předmět způsobuje chaos",
+      "structure": {
+        "hook": "[Předmět] se objevil v [místo]. Každý, kdo se ho dotkl, zemřel nebo zmizel.",
+        "monster": {
+          "type": "Sběratel",
+          "harm": 9,
+          "armor": 2,
+          "powers": ["Teleportace", "Duševní vazba", "Energie vyčerpání"],
+          "attack": {
+            "description": "Vysává životní sílu",
+            "harm": 3,
+            "range": "close"
+          },
+          "weakness": "[Zničit artefakt / Vrátit ho původnímu místu]"
+        },
+        "countdown": [
+          { "day": "Day", "description": "Artefakt nalezen - první majitel zmizí" },
+          { "day": "Shadows", "description": "Artefakt mění majitele - druhá oběť" },
+          { "day": "Sunset", "description": "Pravá povaha artefaktu se odhaluje" },
+          { "day": "Dusk", "description": "Artefakt začíná měnit realitu kolem sebe" },
+          { "day": "Nightfall", "description": "Oblast ovlivněna - paranormální jevy" },
+          { "day": "Midnight", "description": "Artefakt dosáhl plné moci - trvalé změny reality" }
+        ],
+        "bystanderTypes": ["Sběratel", "Skeptik", "Drbna"],
+        "locationTypes": ["Knihovna", "Past", "Labyrint"]
+      }
+    },
+    {
+      "id": "vengeful-spirit",
+      "name": "Mstivý duch",
+      "name_en": "Vengeful Spirit",
+      "description": "Duch touží po pomstě za křivdy z minulosti",
+      "structure": {
+        "hook": "Lidé spojení s [událost z minulosti] umírají za podivných okolností.",
+        "monster": {
+          "type": "Popravčí",
+          "harm": 8,
+          "armor": 1,
+          "powers": ["Nehmotnost", "Posednutí", "Telekineze"],
+          "attack": {
+            "description": "Duch vysává životní sílu",
+            "harm": 3,
+            "range": "hand"
+          },
+          "weakness": "[Vyřešit minulou křivdu / Zničit kotvící předmět]"
+        },
+        "countdown": [
+          { "day": "Day", "description": "První označený cíl zemře" },
+          { "day": "Shadows", "description": "Druhý cíl - vzor začíná být zřejmý" },
+          { "day": "Sunset", "description": "Duch se zjevuje naživo - svědkové traumatizováni" },
+          { "day": "Dusk", "description": "Masové zabíjení - všichni vinní označeni" },
+          { "day": "Nightfall", "description": "Duch získává tělesnou formu" },
+          { "day": "Midnight", "description": "Pomsta dokončena - duch terorizuje nevinné" }
+        ],
+        "bystanderTypes": ["Svědek", "Oběť", "Drbna"],
+        "locationTypes": ["Doupě", "Vězení", "Křižovatka"]
+      }
+    },
+    {
+      "id": "breeding-horror",
+      "name": "Množící se hrůza",
+      "name_en": "Breeding Horror",
+      "description": "Příšera se rychle množí a zaplavuje oblast",
+      "structure": {
+        "hook": "Záhadná stvoření se objevila v [místo]. Jejich počet každým dnem roste.",
+        "monster": {
+          "type": "Zploditel",
+          "harm": 10,
+          "armor": 2,
+          "powers": ["Rychlé množení", "Rojové myšlení", "Adaptace"],
+          "attack": {
+            "description": "Rojový útok",
+            "harm": 4,
+            "range": "close"
+          },
+          "weakness": "[Zničit královnu / Vyhubit hnízdo]"
+        },
+        "countdown": [
+          { "day": "Day", "description": "První generace se líhne - desítky tvorů" },
+          { "day": "Shadows", "description": "Tvorové budují hnízdo" },
+          { "day": "Sunset", "description": "Druhá generace - stovky tvorů" },
+          { "day": "Dusk", "description": "Tvorové začínají lovit organizovaně" },
+          { "day": "Nightfall", "description": "Třetí generace - tisíce tvorů, oblast zaplavena" },
+          { "day": "Midnight", "description": "Nekontrolovatelná infestace - oblast musí být evakuována" }
+        ],
+        "bystanderTypes": ["Oběť", "Byrokrat", "Pomocník"],
+        "locationTypes": ["Divočina", "Doupě", "Labyrint"]
+      }
+    }
+  ]
+}

@@ -3,11 +3,12 @@
  */
 
 // Import modules
-import { initDB } from './modules/state/storage.js';
+import { initDB, getAllCampaigns, loadCampaign } from './modules/state/storage.js';
 import { subscribe, getState, setState, createNewCampaign } from './modules/state/store.js';
 import { initTabs, switchTab } from './modules/ui/tabs.js';
-import { initFooter, renderHuntersCollapsed, renderHuntersExpanded } from './modules/ui/footer.js';
+import { initFooter, renderHuntersCollapsed, renderActiveHunter, renderHunterTabs } from './modules/ui/footer.js';
 import { initTimeline } from './modules/ui/timeline.js';
+import { initTooltips } from './modules/ui/tooltips.js';
 import { renderSessionTab } from './modules/tabs/session.js';
 import { $, $$ } from './utils/dom.js';
 
@@ -25,6 +26,10 @@ async function init() {
     // Initialize UI components
     initTabs();
     initFooter();
+    initTooltips();
+
+    // Initialize header buttons
+    initHeaderButtons();
 
     console.log('✓ UI components initialized');
 
@@ -40,12 +45,13 @@ async function init() {
       // Update footer when hunters change
       if (newState.campaign?.hunters !== oldState.campaign?.hunters) {
         renderHuntersCollapsed();
-        renderHuntersExpanded();
+        renderHunterTabs();
+        renderActiveHunter();
       }
     });
 
-    // Create demo campaign (temporary - for testing)
-    createDemoCampaign();
+    // Try to load existing campaign, or create demo campaign
+    await loadOrCreateCampaign();
 
     // Render session tab
     renderSessionTab();
@@ -55,7 +61,11 @@ async function init() {
 
     // Render footer hunters after session tab is rendered
     renderHuntersCollapsed();
-    renderHuntersExpanded();
+    renderHunterTabs();
+    renderActiveHunter();
+
+    // Add beforeunload handler for saving on window close
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     console.log('✓ Application initialized');
   } catch (error) {
@@ -78,6 +88,34 @@ function updateCampaignUI(campaign) {
 }
 
 /**
+ * Load existing campaign or create demo campaign
+ */
+async function loadOrCreateCampaign() {
+  try {
+    // Try to get all campaigns from IndexedDB
+    const campaigns = await getAllCampaigns();
+
+    if (campaigns && campaigns.length > 0) {
+      // Load the most recently modified campaign
+      const latestCampaign = campaigns.sort((a, b) => b.lastModified - a.lastModified)[0];
+      console.log('Loading existing campaign:', latestCampaign.name);
+
+      setState({
+        campaign: latestCampaign,
+        currentMysteryId: latestCampaign.mysteries?.[0]?.id || null
+      });
+    } else {
+      // No campaigns exist, create demo campaign
+      console.log('No existing campaigns, creating demo campaign');
+      createDemoCampaign();
+    }
+  } catch (error) {
+    console.error('Failed to load campaigns, creating demo campaign:', error);
+    createDemoCampaign();
+  }
+}
+
+/**
  * Create demo campaign (temporary)
  */
 function createDemoCampaign() {
@@ -88,26 +126,41 @@ function createDemoCampaign() {
     {
       id: 'hunter-1',
       name: 'Sam Winchester',
-      playbook: 'Professional',
+      playbook: 'The Professional',
+      stats: { charm: 1, cool: 2, sharp: 3, tough: -1, weird: 0 },
       harm: 2,
       luck: 5,
-      experience: 1
+      experience: 1,
+      gear: [],
+      conditions: [],
+      moves: [],
+      improvements: []
     },
     {
       id: 'hunter-2',
       name: 'Dean Winchester',
-      playbook: 'Wronged',
+      playbook: 'The Wronged',
+      stats: { charm: 0, cool: 2, sharp: 1, tough: 3, weird: -1 },
       harm: 3,
       luck: 6,
-      experience: 0
+      experience: 0,
+      gear: [],
+      conditions: [],
+      moves: [],
+      improvements: []
     },
     {
       id: 'hunter-3',
       name: 'Castiel',
-      playbook: 'Divine',
+      playbook: 'The Divine',
+      stats: { charm: -1, cool: 1, sharp: 0, tough: 2, weird: 3 },
       harm: 0,
       luck: 7,
-      experience: 2
+      experience: 2,
+      gear: [],
+      conditions: [],
+      moves: [],
+      improvements: []
     }
   ];
 
@@ -171,16 +224,70 @@ function createDemoCampaign() {
 
   campaign.mysteries = [mystery];
 
+  // Add sessionLog to campaign object
+  campaign.sessionLog = [
+    { timestamp: Date.now() - 3600000, text: 'Session started' },
+    { timestamp: Date.now() - 1800000, text: 'Hunters arrived in Hollow Creek' },
+    { timestamp: Date.now() - 900000, text: 'Interviewed Dave at the bar' }
+  ];
+
   setState({
     campaign,
-    currentMysteryId: mystery.id,
-    sessionLog: [
-      { timestamp: Date.now() - 3600000, text: 'Session started' },
-      { timestamp: Date.now() - 1800000, text: 'Hunters arrived in Hollow Creek' },
-      { timestamp: Date.now() - 900000, text: 'Interviewed Dave at the bar' }
-    ]
+    currentMysteryId: mystery.id
   });
   console.log('Demo campaign created with mystery');
+}
+
+/**
+ * Initialize header buttons
+ */
+function initHeaderButtons() {
+  // New Element button
+  const btnNewElement = $('#btn-new-element');
+  if (btnNewElement) {
+    btnNewElement.addEventListener('click', handleNewElement);
+  }
+
+  // Settings button
+  const btnSettings = $('#btn-settings');
+  if (btnSettings) {
+    btnSettings.addEventListener('click', handleSettings);
+  }
+}
+
+/**
+ * Handle New Element button
+ */
+function handleNewElement() {
+  import('./modules/ui/mystery-wizard.js').then(({ showMysteryWizard }) => {
+    showMysteryWizard();
+  }).catch(error => {
+    console.error('Failed to load mystery wizard:', error);
+    alert('Nepodařilo se načíst průvodce vytvořením záhady');
+  });
+}
+
+/**
+ * Handle Settings button
+ */
+function handleSettings() {
+  // TODO: Implement settings modal
+  console.log('Settings button clicked - modal to be implemented');
+  alert('Nastavení bude implementováno v další verzi');
+}
+
+/**
+ * Handle beforeunload - save campaign before closing window
+ */
+function handleBeforeUnload(e) {
+  const state = getState();
+  if (state.campaign) {
+    // Trigger auto-save immediately
+    // Note: async operations might not complete in time, but we try
+    import('./modules/state/storage.js').then(({ saveCampaign }) => {
+      saveCampaign(state.campaign);
+    });
+  }
 }
 
 /**

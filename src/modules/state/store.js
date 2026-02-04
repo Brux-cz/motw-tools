@@ -7,9 +7,12 @@ import { saveCampaign, loadCampaign } from './storage.js';
 // Initial state
 const initialState = {
   campaign: null,
-  currentMystery: null,
+  currentMysteryId: null,
   currentTab: 'session',
+  sessionLog: [],
   isFooterExpanded: false,
+  activeHunterId: null,
+  hunterUIState: {},
   settings: {
     autoSave: true,
     autoSaveDelay: 500
@@ -36,7 +39,11 @@ export function subscribe(listener) {
  * Get current state (immutable)
  */
 export function getState() {
-  return { ...state };
+  // Deep copy campaign to prevent direct mutations
+  return {
+    ...state,
+    campaign: state.campaign ? JSON.parse(JSON.stringify(state.campaign)) : null
+  };
 }
 
 /**
@@ -172,6 +179,165 @@ export function addMystery(mystery) {
 }
 
 /**
+ * Update mystery in campaign
+ */
+export function updateMystery(mysteryId, updates) {
+  if (!state.campaign) return;
+
+  const mysteries = state.campaign.mysteries.map(m =>
+    m.id === mysteryId ? { ...m, ...updates } : m
+  );
+  updateCampaign({ mysteries });
+}
+
+/**
+ * Validate mystery structure
+ */
+export function validateMystery(mystery) {
+  const errors = [];
+  const warnings = [];
+
+  // Critical: Monster must have weakness
+  if (!mystery.monster?.weakness || mystery.monster.weakness.trim().length === 0) {
+    errors.push('KRITICKÉ: Příšera musí mít definovanou slabinu!');
+  }
+
+  // Countdown must have exactly 6 phases
+  if (!mystery.countdown?.phases || mystery.countdown.phases.length !== 6) {
+    errors.push('Odpočet musí mít přesně 6 fází');
+  }
+
+  // Check if all countdown phases have descriptions
+  if (mystery.countdown?.phases) {
+    mystery.countdown.phases.forEach((phase, index) => {
+      if (!phase.description || phase.description.trim().length === 0) {
+        warnings.push(`Fáze ${index + 1} (${phase.day}) nemá popis`);
+      }
+    });
+  }
+
+  // Recommend at least 2 bystanders
+  if (!mystery.bystanders || mystery.bystanders.length < 2) {
+    warnings.push('Doporučeno minimálně 2 NPC (přihlížející)');
+  }
+
+  // Hook should not be too short
+  if (!mystery.hook || mystery.hook.trim().length < 10) {
+    warnings.push('Návnada je příliš krátká nebo chybí');
+  }
+
+  // Monster should have description
+  if (!mystery.monster?.description || mystery.monster.description.trim().length === 0) {
+    warnings.push('Příšera by měla mít popis');
+  }
+
+  return { errors, warnings, isValid: errors.length === 0 };
+}
+
+/**
+ * Advance countdown to next phase
+ */
+export function advanceCountdown(mysteryId, reason = 'Postup událostí') {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const currentPhase = mystery.countdown.currentPhase || 0;
+  const maxPhase = mystery.countdown.phases.length - 1;
+
+  if (currentPhase >= maxPhase) {
+    console.warn('Countdown is already at Midnight');
+    return;
+  }
+
+  // Initialize history if it doesn't exist
+  const history = mystery.countdown.history || [];
+  history.push({
+    timestamp: Date.now(),
+    fromPhase: currentPhase,
+    toPhase: currentPhase + 1,
+    reason
+  });
+
+  updateMystery(mysteryId, {
+    countdown: {
+      ...mystery.countdown,
+      currentPhase: currentPhase + 1,
+      history
+    }
+  });
+}
+
+/**
+ * Set countdown to specific phase
+ */
+export function setCountdownPhase(mysteryId, phase, reason = 'Ruční změna') {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const maxPhase = mystery.countdown.phases.length - 1;
+  if (phase < 0 || phase > maxPhase) {
+    console.warn(`Invalid phase: ${phase}`);
+    return;
+  }
+
+  const currentPhase = mystery.countdown.currentPhase || 0;
+
+  // Initialize history if it doesn't exist
+  const history = mystery.countdown.history || [];
+  history.push({
+    timestamp: Date.now(),
+    fromPhase: currentPhase,
+    toPhase: phase,
+    reason
+  });
+
+  updateMystery(mysteryId, {
+    countdown: {
+      ...mystery.countdown,
+      currentPhase: phase,
+      history
+    }
+  });
+}
+
+/**
+ * Add custom move to mystery
+ */
+export function addCustomMove(mysteryId, customMove) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const customMoves = mystery.customMoves || [];
+  customMoves.push({
+    ...customMove,
+    id: generateId(),
+    createdAt: Date.now()
+  });
+
+  updateMystery(mysteryId, { customMoves });
+}
+
+/**
+ * Remove custom move from mystery
+ */
+export function removeCustomMove(mysteryId, moveId) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const customMoves = (mystery.customMoves || []).filter(m => m.id !== moveId);
+
+  updateMystery(mysteryId, { customMoves });
+}
+
+/**
  * Set current mystery
  */
 export function setCurrentMystery(mysteryId) {
@@ -179,7 +345,7 @@ export function setCurrentMystery(mysteryId) {
 
   const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
   if (mystery) {
-    setState({ currentMystery: mystery });
+    setState({ currentMysteryId: mysteryId });
   }
 }
 
@@ -224,6 +390,80 @@ export function addSessionLog(entry) {
  */
 function generateId() {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Set active hunter
+ */
+export function setActiveHunter(hunterId) {
+  setState({ activeHunterId: hunterId });
+}
+
+/**
+ * Load hunter UI state from localStorage
+ */
+export function loadHunterUIState(hunterId) {
+  const { campaign } = state;
+  if (!campaign) return getDefaultHunterUIState();
+
+  const key = `motw-hunter-ui-${campaign.id}`;
+  try {
+    const allStates = JSON.parse(localStorage.getItem(key) || '{}');
+    return allStates[hunterId] || getDefaultHunterUIState();
+  } catch (error) {
+    console.error('Failed to load hunter UI state:', error);
+    return getDefaultHunterUIState();
+  }
+}
+
+/**
+ * Save hunter UI state to localStorage
+ */
+export function saveHunterUIState(hunterId, uiState) {
+  const { campaign } = state;
+  if (!campaign) return;
+
+  const key = `motw-hunter-ui-${campaign.id}`;
+  try {
+    const allStates = JSON.parse(localStorage.getItem(key) || '{}');
+    allStates[hunterId] = uiState;
+    localStorage.setItem(key, JSON.stringify(allStates));
+  } catch (error) {
+    console.error('Failed to save hunter UI state:', error);
+  }
+}
+
+/**
+ * Get default hunter UI state
+ */
+function getDefaultHunterUIState() {
+  return {
+    sectionsCollapsed: {
+      gear: false,
+      moves: true,
+      storyTags: true
+    }
+  };
+}
+
+/**
+ * Update hunter in campaign (immutable)
+ */
+export function updateHunterInCampaign(hunterId, updates) {
+  const { campaign } = state;
+  if (!campaign) return;
+
+  const updatedHunters = campaign.hunters.map(h =>
+    h.id === hunterId ? { ...h, ...updates } : h
+  );
+
+  const updatedCampaign = {
+    ...campaign,
+    hunters: updatedHunters,
+    lastModified: Date.now()
+  };
+
+  setState({ campaign: updatedCampaign });
 }
 
 /**
