@@ -79,6 +79,14 @@ export function switchTab(tabId) {
     import('./keeper/thinking-panel.js').then(({ initThinkingPanel }) => {
       initThinkingPanel();
     });
+  } else if (tabId === 'gm') {
+    import('./gm/gm-panel.js').then(({ renderGMPanel, attachGMPanelListeners }) => {
+      const container = document.getElementById('gm-tab-content');
+      if (container) {
+        container.innerHTML = renderGMPanel();
+        attachGMPanelListeners();
+      }
+    });
   }
 
   console.log('Switched to tab:', tabId);

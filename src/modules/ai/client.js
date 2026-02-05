@@ -214,3 +214,31 @@ export function calculateCost(inputTokens, outputTokens, modelId = DEFAULT_MODEL
 
   return inputCost + outputCost;
 }
+
+/**
+ * Simple helper to call AI with a single prompt
+ * @param {string} prompt - User prompt
+ * @param {Object} options - Additional options
+ * @returns {Promise<string>} AI response text
+ */
+export async function callAI(prompt, options = {}) {
+  // Get API key from settings
+  const { getState } = await import('../state/store.js');
+  const { settings } = getState();
+
+  if (!settings?.ai?.apiKey) {
+    throw new Error('API key not configured. Go to Settings to add your API key.');
+  }
+
+  const response = await sendMessage(
+    [{ role: 'user', content: prompt }],
+    {
+      apiKey: settings.ai.apiKey,
+      model: settings.ai.model || DEFAULT_MODEL,
+      temperature: options.temperature || settings.ai.temperature || 0.7,
+      maxTokens: options.max_tokens || options.maxTokens || settings.ai.maxTokens || 2000
+    }
+  );
+
+  return response.content;
+}

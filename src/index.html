@@ -64,6 +64,10 @@
           <span class="material-symbols-outlined group-hover:scale-110 transition">psychology</span>
           <span class="text-sm font-semibold uppercase tracking-wider">AI Keeper</span>
         </button>
+        <button data-tab="gm" class="sidebar-item w-full flex items-center gap-4">
+          <span class="text-2xl group-hover:scale-110 transition">🎭</span>
+          <span class="text-sm font-semibold uppercase tracking-wider">AI GM</span>
+        </button>
         <button data-tab="rules" class="sidebar-item w-full flex items-center gap-4">
           <span class="material-symbols-outlined group-hover:scale-110 transition">menu_book</span>
           <span class="text-sm font-semibold uppercase tracking-wider">Pravidla</span>
@@ -122,6 +126,13 @@
       <!-- KEEPER TAB (Hidden) -->
       <div id="tab-keeper" class="relative z-10 h-full overflow-hidden hidden">
         <!-- Content loaded by keeper/thinking-panel.js -->
+      </div>
+
+      <!-- GM TAB (Hidden) -->
+      <div id="tab-gm" class="relative z-10 h-full overflow-y-auto hidden">
+        <div id="gm-tab-content">
+          <!-- Content loaded by gm/gm-panel.js -->
+        </div>
       </div>
 
       <!-- RULES TAB (Hidden) -->
