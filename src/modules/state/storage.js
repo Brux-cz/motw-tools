@@ -5,7 +5,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'motw-db';
-const DB_VERSION = 1;
+const DB_VERSION = 3; // Incremented for aiAutonomousWork store
 
 // Store names
 const STORES = {
@@ -41,6 +41,22 @@ export async function initDB() {
           db.createObjectStore(STORES.settings, {
             keyPath: 'key'
           });
+        }
+
+        // AI Conversations store (v2)
+        if (!db.objectStoreNames.contains('aiConversations')) {
+          const aiStore = db.createObjectStore('aiConversations', { keyPath: 'id' });
+          aiStore.createIndex('mysteryId', 'mysteryId', { unique: false });
+          aiStore.createIndex('timestamp', 'lastMessageAt', { unique: false });
+        }
+
+        // AI Autonomous Work store (v3)
+        if (!db.objectStoreNames.contains('aiAutonomousWork')) {
+          const workStore = db.createObjectStore('aiAutonomousWork', { keyPath: 'id' });
+          workStore.createIndex('mysteryId', 'mysteryId', { unique: false });
+          workStore.createIndex('type', 'type', { unique: false });
+          workStore.createIndex('status', 'status', { unique: false });
+          workStore.createIndex('createdAt', 'createdAt', { unique: false });
         }
       }
     });

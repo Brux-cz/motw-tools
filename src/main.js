@@ -3,14 +3,15 @@
  */
 
 // Import modules
-import { initDB, getAllCampaigns, loadCampaign } from './modules/state/storage.js';
-import { subscribe, getState, setState, createNewCampaign } from './modules/state/store.js';
+import { initDB, getAllCampaigns, loadCampaign, loadSettings } from './modules/state/storage.js';
+import { subscribe, getState, setState, createNewCampaign, updateSettings } from './modules/state/store.js';
 import { initTabs, switchTab } from './modules/ui/tabs.js';
 import { initFooter, renderHuntersCollapsed, renderActiveHunter, renderHunterTabs } from './modules/ui/footer.js';
 import { initTimeline } from './modules/ui/timeline.js';
 import { initTooltips } from './modules/ui/tooltips.js';
 import { renderSessionTab } from './modules/tabs/session.js';
 import { $, $$ } from './utils/dom.js';
+import './modules/ui/toast.js'; // Toast notifications (global)
 
 /**
  * Initialize application
@@ -23,6 +24,13 @@ async function init() {
     await initDB();
     console.log('✓ Database initialized');
 
+    // Load settings from localStorage
+    const savedSettings = loadSettings();
+    if (savedSettings) {
+      updateSettings(savedSettings);
+      console.log('✓ Settings loaded');
+    }
+
     // Initialize UI components
     initTabs();
     initFooter();
@@ -30,6 +38,9 @@ async function init() {
 
     // Initialize header buttons
     initHeaderButtons();
+
+    // Initialize autonomous agent components
+    initAutonomousAgent();
 
     console.log('✓ UI components initialized');
 
@@ -271,9 +282,12 @@ function handleNewElement() {
  * Handle Settings button
  */
 function handleSettings() {
-  // TODO: Implement settings modal
-  console.log('Settings button clicked - modal to be implemented');
-  alert('Nastavení bude implementováno v další verzi');
+  import('./modules/ui/settings-modal.js').then(({ showSettingsModal }) => {
+    showSettingsModal();
+  }).catch(error => {
+    console.error('Failed to load settings modal:', error);
+    alert('Nepodařilo se načíst nastavení');
+  });
 }
 
 /**
@@ -288,6 +302,50 @@ function handleBeforeUnload(e) {
       saveCampaign(state.campaign);
     });
   }
+}
+
+/**
+ * Initialize autonomous agent
+ */
+function initAutonomousAgent() {
+  console.log('🤖 Initializing autonomous agent...');
+
+  // Initialize idle detection
+  import('./modules/ai/autonomous/idle-detector.js').then(({ initIdleDetection, onIdleTrigger }) => {
+    initIdleDetection();
+
+    // Set up idle trigger callback
+    onIdleTrigger(() => {
+      import('./modules/ai/autonomous/agent-core.js').then(({ runAgentCycle }) => {
+        runAgentCycle();
+      });
+    });
+
+    console.log('✓ Idle detection initialized');
+  }).catch(error => {
+    console.error('Failed to initialize idle detection:', error);
+  });
+
+  // Initialize work notifications
+  import('./modules/ui/autonomous/work-notification.js').then(({ initWorkNotifications }) => {
+    initWorkNotifications();
+    console.log('✓ Work notifications initialized');
+  }).catch(error => {
+    console.error('Failed to initialize work notifications:', error);
+  });
+
+  // Start autonomous agent if enabled
+  setTimeout(() => {
+    const state = getState();
+    if (state.campaign?.aiAutonomous?.enabled) {
+      import('./modules/ai/autonomous/agent-core.js').then(({ startAutonomousAgent }) => {
+        startAutonomousAgent();
+        console.log('✓ Autonomous agent started');
+      });
+    }
+  }, 2000); // Wait 2 seconds after init
+
+  console.log('✓ Autonomous agent components initialized');
 }
 
 /**

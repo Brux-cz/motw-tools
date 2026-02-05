@@ -4,6 +4,7 @@
 
 import { setState, getState } from '../state/store.js';
 import { renderRulesTab } from '../tabs/rules.js';
+import { renderChatTab } from '../tabs/chat.js';
 
 /**
  * Initialize tab switching
@@ -57,6 +58,16 @@ export function switchTab(tabId) {
   // Trigger tab-specific render functions
   if (tabId === 'rules') {
     renderRulesTab();
+  } else if (tabId === 'chat') {
+    renderChatTab();
+  } else if (tabId === 'story') {
+    import('./story/story-tab.js').then(({ renderStoryTab }) => {
+      renderStoryTab();
+    });
+  } else if (tabId === 'autonomous') {
+    import('./autonomous/dashboard.js').then(({ renderAutonomousDashboard }) => {
+      renderAutonomousDashboard();
+    });
   }
 
   console.log('Switched to tab:', tabId);

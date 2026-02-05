@@ -13,9 +13,22 @@ const initialState = {
   isFooterExpanded: false,
   activeHunterId: null,
   hunterUIState: {},
+  aiTyping: false,
+  currentConversationId: null,
+  lastUserActivity: Date.now(),
   settings: {
     autoSave: true,
-    autoSaveDelay: 500
+    autoSaveDelay: 500,
+    ai: {
+      provider: 'anthropic',
+      apiKey: '',
+      model: 'claude-3-5-sonnet-20241022',
+      temperature: 0.7,
+      maxTokens: 4000,
+      autoActions: true,
+      requireConfirmation: false,
+      maxHistoryMessages: 50
+    }
   }
 };
 
@@ -121,7 +134,32 @@ export function createNewCampaign(name) {
     locationArchive: [],
     sessionLog: [],
     createdAt: Date.now(),
-    lastModified: Date.now()
+    lastModified: Date.now(),
+    aiAutonomous: {
+      enabled: false,
+      idleTimeout: 180000, // 3 minutes
+      maxWorkItemsPerSession: 5,
+      creativityLevel: 'medium',
+      lastActivityTime: Date.now(),
+      lastAgentRun: null,
+      agentState: 'idle',
+      workQueue: [],
+      generatedLore: [],
+      generatedStories: [],
+      compiledNotes: [],
+      generatedEvents: [],
+      stats: {
+        totalRuns: 0,
+        totalWorkItems: 0,
+        acceptedItems: 0,
+        rejectedItems: 0,
+        totalTokensUsed: 0,
+        totalInputTokens: 0,
+        totalOutputTokens: 0,
+        estimatedCost: 0,
+        byType: {}
+      }
+    }
   };
 
   setState({ campaign });
@@ -174,7 +212,22 @@ export function updateHunter(hunterId, updates) {
 export function addMystery(mystery) {
   if (!state.campaign) return;
 
-  const mysteries = [...state.campaign.mysteries, { ...mystery, id: generateId() }];
+  const newMystery = {
+    ...mystery,
+    id: generateId(),
+    // Initialize Story Spine arrays
+    contentPool: mystery.contentPool || [],
+    storySpine: mystery.storySpine || [],
+    whispererSettings: mystery.whispererSettings || {
+      enabled: true,
+      idleTimeout: 60000,
+      categories: ['world', 'people', 'environment', 'news', 'clues'],
+      realWorldElements: true,
+      horrorLevel: 'low'
+    }
+  };
+
+  const mysteries = [...state.campaign.mysteries, newMystery];
   updateCampaign({ mysteries });
 }
 
@@ -388,8 +441,238 @@ export function addSessionLog(entry) {
 /**
  * Generate unique ID
  */
-function generateId() {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+function generateId(prefix = '') {
+  const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return prefix ? `${prefix}-${id}` : id;
+}
+
+// ============================================================================
+// STORY SPINE SYSTEM
+// ============================================================================
+
+/**
+ * Add item to Content Pool
+ */
+export function addToContentPool(mysteryId, item) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const contentPool = mystery.contentPool || [];
+  contentPool.push({
+    ...item,
+    id: item.id || generateId('pool'),
+    mysteryId,
+    createdAt: item.createdAt || Date.now(),
+    status: item.status || 'pending',
+    usedAt: null,
+    spineEntryId: null
+  });
+
+  updateMystery(mysteryId, { contentPool });
+  return item;
+}
+
+/**
+ * Update pool item
+ */
+export function updatePoolItem(mysteryId, itemId, updates) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const contentPool = (mystery.contentPool || []).map(item =>
+    item.id === itemId ? { ...item, ...updates } : item
+  );
+
+  updateMystery(mysteryId, { contentPool });
+}
+
+/**
+ * Remove item from pool
+ */
+export function removeFromPool(mysteryId, itemId) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const contentPool = (mystery.contentPool || []).filter(item => item.id !== itemId);
+
+  updateMystery(mysteryId, { contentPool });
+}
+
+/**
+ * Get pool items with optional filters
+ */
+export function getPoolItems(mysteryId, filters = {}) {
+  if (!state.campaign) return [];
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return [];
+
+  let items = mystery.contentPool || [];
+
+  // Apply filters
+  if (filters.type) {
+    items = items.filter(item => item.type === filters.type);
+  }
+  if (filters.status) {
+    items = items.filter(item => item.status === filters.status);
+  }
+  if (filters.category) {
+    items = items.filter(item => item.category === filters.category);
+  }
+
+  return items;
+}
+
+/**
+ * Add entry to Story Spine
+ */
+export function addToStorySpine(mysteryId, entry) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const storySpine = mystery.storySpine || [];
+  storySpine.push({
+    ...entry,
+    id: entry.id || generateId('spine'),
+    mysteryId,
+    timestamp: entry.timestamp || Date.now()
+  });
+
+  updateMystery(mysteryId, { storySpine });
+  return entry;
+}
+
+/**
+ * Update spine entry
+ */
+export function updateSpineEntry(mysteryId, entryId, updates) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const storySpine = (mystery.storySpine || []).map(entry =>
+    entry.id === entryId ? { ...entry, ...updates } : entry
+  );
+
+  updateMystery(mysteryId, { storySpine });
+}
+
+/**
+ * Remove entry from spine
+ */
+export function removeFromSpine(mysteryId, entryId) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const storySpine = (mystery.storySpine || []).filter(entry => entry.id !== entryId);
+
+  updateMystery(mysteryId, { storySpine });
+}
+
+/**
+ * Get story spine entries with optional session filter
+ */
+export function getStorySpine(mysteryId, session = null) {
+  if (!state.campaign) return [];
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return [];
+
+  let entries = mystery.storySpine || [];
+
+  // Filter by session if specified
+  if (session !== null) {
+    entries = entries.filter(entry => entry.session === session);
+  }
+
+  // Sort chronologically
+  return entries.sort((a, b) => a.timestamp - b.timestamp);
+}
+
+/**
+ * Move item from Content Pool to Story Spine
+ */
+export function usePoolItem(mysteryId, poolItemId, spineData) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const poolItem = (mystery.contentPool || []).find(item => item.id === poolItemId);
+  if (!poolItem) return;
+
+  // Create spine entry
+  const spineEntry = {
+    id: generateId('spine'),
+    mysteryId,
+    session: spineData.session || 'now',
+    timestamp: Date.now(),
+    category: spineData.category || poolItem.category || 'world',
+    icon: spineData.icon || '',
+    title: spineData.title || '',
+    content: poolItem.content,
+    sourcePoolId: poolItemId,
+    source: 'pool',
+    metadata: spineData.metadata || {}
+  };
+
+  // Add to spine
+  addToStorySpine(mysteryId, spineEntry);
+
+  // Mark pool item as used
+  updatePoolItem(mysteryId, poolItemId, {
+    status: 'used',
+    usedAt: Date.now(),
+    spineEntryId: spineEntry.id
+  });
+
+  return spineEntry;
+}
+
+/**
+ * Get or initialize whisperer settings for mystery
+ */
+export function getWhispererSettings(mysteryId) {
+  if (!state.campaign) return null;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return null;
+
+  return mystery.whispererSettings || {
+    enabled: true,
+    idleTimeout: 60000, // 1 min
+    categories: ['world', 'people', 'environment', 'news', 'clues'],
+    realWorldElements: true,
+    horrorLevel: 'low'
+  };
+}
+
+/**
+ * Update whisperer settings for mystery
+ */
+export function updateWhispererSettings(mysteryId, settings) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const whispererSettings = {
+    ...getWhispererSettings(mysteryId),
+    ...settings
+  };
+
+  updateMystery(mysteryId, { whispererSettings });
 }
 
 /**
@@ -464,6 +747,54 @@ export function updateHunterInCampaign(hunterId, updates) {
   };
 
   setState({ campaign: updatedCampaign });
+}
+
+/**
+ * Get settings
+ */
+export function getSettings() {
+  return state.settings || initialState.settings;
+}
+
+/**
+ * Update settings
+ */
+export function updateSettings(updates) {
+  const newSettings = { ...state.settings, ...updates };
+  setState({ settings: newSettings });
+
+  // Save to storage
+  import('./storage.js').then(({ saveSettings }) => {
+    saveSettings(newSettings);
+  });
+}
+
+/**
+ * Update last activity time
+ */
+export function updateLastActivity() {
+  setState({ lastUserActivity: Date.now() });
+}
+
+/**
+ * Get autonomous settings
+ */
+export function getAutonomousSettings() {
+  return state.campaign?.aiAutonomous || {};
+}
+
+/**
+ * Update autonomous settings
+ */
+export function updateAutonomousSettings(updates) {
+  if (!state.campaign) return;
+
+  updateCampaign({
+    aiAutonomous: {
+      ...state.campaign.aiAutonomous,
+      ...updates
+    }
+  });
 }
 
 /**
