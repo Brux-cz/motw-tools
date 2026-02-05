@@ -5,7 +5,7 @@
 /**
  * Show toast notification
  */
-export function showToast({ type = 'info', message, duration = 3000 }) {
+export function showToast({ type = 'info', message, duration = 3000, actions = null }) {
   const toast = document.createElement('div');
   toast.className = `fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg border z-50 animate-slide-in-up transition-opacity`;
 
@@ -18,13 +18,25 @@ export function showToast({ type = 'info', message, duration = 3000 }) {
 
   toast.className += ` ${colors[type] || colors.info}`;
 
+  // Build actions HTML if provided
+  const actionsHTML = actions && actions.length > 0 ? `
+    <div class="toast-actions">
+      ${actions.map((action, idx) => `
+        <button class="toast-action-btn" data-action-idx="${idx}">
+          ${action.label}
+        </button>
+      `).join('')}
+    </div>
+  ` : '';
+
   toast.innerHTML = `
     <div class="flex items-center gap-3">
-      <span class="text-sm">${message}</span>
+      <span class="text-sm flex-1">${message}</span>
       <button class="toast-close hover:opacity-70 transition">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
     </div>
+    ${actionsHTML}
   `;
 
   document.body.appendChild(toast);
@@ -33,6 +45,16 @@ export function showToast({ type = 'info', message, duration = 3000 }) {
   toast.querySelector('.toast-close')?.addEventListener('click', () => {
     removeToast(toast);
   });
+
+  // Action buttons
+  if (actions && actions.length > 0) {
+    toast.querySelectorAll('.toast-action-btn').forEach((btn, idx) => {
+      btn.addEventListener('click', () => {
+        actions[idx].onClick();
+        removeToast(toast);
+      });
+    });
+  }
 
   // Auto-remove
   setTimeout(() => {

@@ -6,6 +6,7 @@ import { getState } from '../../state/store.js';
 import { showPreview, handleAccept, handleReject } from './review-panel.js';
 import { getAgentState } from '../../ai/autonomous/agent-core.js';
 import { escapeHtml } from '../../../utils/html.js';
+import { showContentModal } from './content-modal.js';
 
 /**
  * Render autonomous dashboard
@@ -29,7 +30,10 @@ export function renderAutonomousDashboard() {
   const autonomous = campaign.aiAutonomous || {};
   const workQueue = autonomous.workQueue || [];
   const pendingWork = workQueue.filter(w => w.status === 'pending');
-  const recentAccepted = workQueue.filter(w => w.status === 'accepted').slice(-3);
+  const recentAccepted = workQueue
+    .filter(w => w.status === 'accepted')
+    .sort((a, b) => (b.reviewedAt || b.createdAt) - (a.reviewedAt || a.createdAt))
+    .slice(0, 10);
 
   container.innerHTML = `
     <div class="h-full overflow-y-auto p-6 space-y-6">
@@ -97,17 +101,30 @@ export function renderAutonomousDashboard() {
       `}
 
       <!-- Recently Accepted -->
-      ${recentAccepted.length > 0 ? `
-        <div class="space-y-3">
-          <h3 class="text-lg font-semibold flex items-center gap-2">
-            <span class="material-symbols-outlined text-green-500">check_circle</span>
-            Nedávno schváleno
-          </h3>
-          <div class="space-y-2">
+      <div class="space-y-3">
+        <h3 class="text-lg font-semibold flex items-center gap-2">
+          <span class="material-symbols-outlined text-green-500">check_circle</span>
+          Nedávno schváleno
+          ${recentAccepted.length > 0 ? `
+            <span class="px-2 py-0.5 bg-green-900/40 text-green-400 text-xs rounded-full">
+              ${recentAccepted.length}
+            </span>
+          ` : ''}
+        </h3>
+        ${recentAccepted.length > 0 ? `
+          <div class="recently-accepted-list space-y-2">
             ${recentAccepted.map(work => renderAcceptedWorkCard(work)).join('')}
           </div>
-        </div>
-      ` : ''}
+        ` : `
+          <div class="empty-state bg-neutral-800/30 border border-white/5 rounded-lg p-8 text-center">
+            <span class="material-symbols-outlined text-gray-600 text-4xl mb-3 block">history</span>
+            <p class="text-gray-500">Zatím jsi neschválil žádný AI obsah</p>
+            <p class="text-sm text-gray-600 mt-1">
+              Schválený obsah se zobrazí zde pro snadný přístup
+            </p>
+          </div>
+        `}
+      </div>
     </div>
   `;
 
@@ -322,11 +339,28 @@ function renderAcceptedWorkCard(work) {
   const timeAgo = timeSince(work.reviewedAt || work.createdAt);
 
   return `
-    <div class="bg-neutral-800/30 border border-white/5 rounded-lg p-3 flex items-center gap-3">
-      <span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>
-      <div class="flex-1 min-w-0">
-        <div class="text-sm font-medium truncate">${escapeHtml(work.title)}</div>
-        <div class="text-xs text-gray-500">${work.type} · ${timeAgo}</div>
+    <div class="accepted-card bg-green-900/20 border border-green-700/50 rounded-lg p-3">
+      <div class="flex items-start gap-3">
+        <span class="text-xl">✓</span>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-sm">${escapeHtml(work.title)}</div>
+          <div class="text-xs text-gray-400 mt-0.5">
+            ${work.type} • ${timeAgo}
+          </div>
+          ${work.goalReason ? `
+            <p class="text-xs text-gray-500 mt-1 line-clamp-2">
+              ${escapeHtml(work.goalReason.substring(0, 100))}${work.goalReason.length > 100 ? '...' : ''}
+            </p>
+          ` : ''}
+        </div>
+        <button
+          data-work-id="${work.id}"
+          data-action="show-content"
+          class="btn-show-content px-3 py-1 bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/50 rounded text-xs font-semibold transition flex items-center gap-1 flex-shrink-0"
+        >
+          <span class="material-symbols-outlined text-xs">visibility</span>
+          Zobrazit
+        </button>
       </div>
     </div>
   `;
@@ -348,6 +382,8 @@ function attachEventListeners() {
         handleAccept(workId);
       } else if (action === 'reject') {
         handleReject(workId);
+      } else if (action === 'show-content') {
+        handleShowContent(workId);
       }
     });
   });
@@ -462,6 +498,21 @@ function handleToggleAutonomous() {
 }
 
 /**
+ * Handle show content
+ */
+function handleShowContent(workId) {
+  const { campaign } = getState();
+  const workItem = campaign?.aiAutonomous?.workQueue?.find(w => w.id === workId);
+
+  if (!workItem) {
+    console.error('Work item not found:', workId);
+    return;
+  }
+
+  showContentModal(workItem);
+}
+
+/**
  * Time since helper
  */
 function timeSince(timestamp) {
@@ -471,4 +522,9 @@ function timeSince(timestamp) {
   if (seconds < 3600) return `před ${Math.floor(seconds / 60)} min`;
   if (seconds < 86400) return `před ${Math.floor(seconds / 3600)} h`;
   return `před ${Math.floor(seconds / 86400)} dny`;
+}
+
+// Make globally available for content modal
+if (typeof window !== 'undefined') {
+  window.renderAutonomousDashboard = renderAutonomousDashboard;
 }

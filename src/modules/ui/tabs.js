@@ -30,6 +30,13 @@ export function initTabs() {
 export function switchTab(tabId) {
   const { currentTab } = getState();
 
+  // P0 #5: Cleanup previous tab before switching
+  if (currentTab === 'keeper') {
+    import('./keeper/thinking-panel.js').then(({ cleanupThinkingPanel }) => {
+      cleanupThinkingPanel();
+    });
+  }
+
   // Hide current tab
   const currentTabEl = document.getElementById(`tab-${currentTab}`);
   if (currentTabEl) {
@@ -67,6 +74,10 @@ export function switchTab(tabId) {
   } else if (tabId === 'autonomous') {
     import('./autonomous/dashboard.js').then(({ renderAutonomousDashboard }) => {
       renderAutonomousDashboard();
+    });
+  } else if (tabId === 'keeper') {
+    import('./keeper/thinking-panel.js').then(({ initThinkingPanel }) => {
+      initThinkingPanel();
     });
   }
 

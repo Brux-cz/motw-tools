@@ -314,11 +314,21 @@ function initAutonomousAgent() {
   import('./modules/ai/autonomous/idle-detector.js').then(({ initIdleDetection, onIdleTrigger }) => {
     initIdleDetection();
 
-    // Set up idle trigger callback
+    // Set up idle trigger callback - use keeper as orchestrator
     onIdleTrigger(() => {
-      import('./modules/ai/autonomous/agent-core.js').then(({ runAgentCycle }) => {
-        runAgentCycle();
-      });
+      const state = getState();
+
+      // If keeper is enabled, use keeper
+      if (state.campaign?.aiKeeper?.enabled) {
+        import('./modules/ai/keeper/keeper-core.js').then(({ keeperAI }) => {
+          keeperAI.runCycle();
+        });
+      } else {
+        // Legacy: use autonomous agent directly
+        import('./modules/ai/autonomous/agent-core.js').then(({ runAgentCycle }) => {
+          runAgentCycle();
+        });
+      }
     });
 
     console.log('✓ Idle detection initialized');
@@ -332,6 +342,14 @@ function initAutonomousAgent() {
     console.log('✓ Work notifications initialized');
   }).catch(error => {
     console.error('Failed to initialize work notifications:', error);
+  });
+
+  // Initialize thinking panel
+  import('./modules/ui/keeper/thinking-panel.js').then(({ initThinkingPanel }) => {
+    initThinkingPanel();
+    console.log('✓ Thinking panel initialized');
+  }).catch(error => {
+    console.error('Failed to initialize thinking panel:', error);
   });
 
   // Start autonomous agent if enabled

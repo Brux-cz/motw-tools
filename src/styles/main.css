@@ -1096,3 +1096,397 @@ select:focus-visible {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* ============================================
+   AI Content Visibility - Modal & Badges
+   ============================================ */
+
+/* Content Modal */
+#content-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+#content-modal .modal-content {
+  background-color: rgb(23, 23, 23);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: modal-slide-in 0.2s ease-out;
+}
+
+@keyframes modal-slide-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+#content-modal .modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#content-modal .modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  color: rgb(156, 163, 175);
+  cursor: pointer;
+  border-radius: 0.375rem;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+#content-modal .modal-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgb(255, 255, 255);
+}
+
+#content-modal .modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+#content-modal .modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* AI Generated Badge */
+.badge-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* Content Type Badges */
+.category-badge,
+.type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: rgb(147, 197, 253);
+  margin-right: 0.5rem;
+}
+
+.badge-warning {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: rgb(252, 211, 77);
+}
+
+/* Content Display */
+.content-text {
+  line-height: 1.7;
+  color: rgb(209, 213, 219);
+}
+
+/* Toast Actions */
+.toast-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toast-action-btn {
+  padding: 0.375rem 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toast-action-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.toast-action-btn:active {
+  transform: translateY(0);
+}
+
+/* Recently Accepted Cards */
+.accepted-card {
+  transition: all 0.2s;
+}
+
+.accepted-card:hover {
+  background: rgba(34, 197, 94, 0.25) !important;
+  border-color: rgba(34, 197, 94, 0.6) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.btn-show-content {
+  transition: all 0.15s;
+}
+
+.btn-show-content:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-show-content:active {
+  transform: translateY(0);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+}
+
+/* Button Styles for Modal */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(59, 130, 246, 0.4);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-primary:hover {
+  background-color: rgba(59, 130, 246, 0.6);
+  border-color: rgba(59, 130, 246, 0.7);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(107, 114, 128, 0.4);
+  border: 1px solid rgba(107, 114, 128, 0.5);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(107, 114, 128, 0.6);
+  border-color: rgba(107, 114, 128, 0.7);
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(220, 38, 38, 0.4);
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-danger:hover {
+  background-color: rgba(220, 38, 38, 0.6);
+  border-color: rgba(220, 38, 38, 0.7);
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* ============================================================================
+   THINKING PANEL (AI Keeper Mind)
+   ============================================================================ */
+
+/* Thinking entry animations */
+.thinking-entry {
+  animation: thinkingFadeIn 0.3s ease-out;
+}
+
+@keyframes thinkingFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Phase colors - assessing (blue) */
+.thinking-entry .bg-blue-900\/20 {
+  background-color: rgba(30, 58, 138, 0.2);
+}
+
+.thinking-entry .border-blue-700\/30 {
+  border-color: rgba(29, 78, 216, 0.3);
+}
+
+.thinking-entry .text-blue-400 {
+  color: rgb(96, 165, 250);
+}
+
+.thinking-entry .text-blue-500 {
+  color: rgb(59, 130, 246);
+}
+
+/* Phase colors - deciding (yellow) */
+.thinking-entry .bg-yellow-900\/20 {
+  background-color: rgba(113, 63, 18, 0.2);
+}
+
+.thinking-entry .border-yellow-700\/30 {
+  border-color: rgba(161, 98, 7, 0.3);
+}
+
+.thinking-entry .text-yellow-400 {
+  color: rgb(250, 204, 21);
+}
+
+.thinking-entry .text-yellow-500 {
+  color: rgb(234, 179, 8);
+}
+
+/* Phase colors - planning (purple) */
+.thinking-entry .bg-purple-900\/20 {
+  background-color: rgba(88, 28, 135, 0.2);
+}
+
+.thinking-entry .border-purple-700\/30 {
+  border-color: rgba(126, 34, 206, 0.3);
+}
+
+.thinking-entry .text-purple-400 {
+  color: rgb(192, 132, 252);
+}
+
+.thinking-entry .text-purple-500 {
+  color: rgb(168, 85, 247);
+}
+
+/* Phase colors - executing (green) */
+.thinking-entry .bg-green-900\/20 {
+  background-color: rgba(20, 83, 45, 0.2);
+}
+
+.thinking-entry .border-green-700\/30 {
+  border-color: rgba(21, 128, 61, 0.3);
+}
+
+.thinking-entry .text-green-400 {
+  color: rgb(74, 222, 128);
+}
+
+.thinking-entry .text-green-500 {
+  color: rgb(34, 197, 94);
+}
+
+/* Phase colors - reflecting (gray) */
+.thinking-entry .bg-gray-900\/20 {
+  background-color: rgba(17, 24, 39, 0.2);
+}
+
+.thinking-entry .border-gray-700\/30 {
+  border-color: rgba(55, 65, 81, 0.3);
+}
+
+.thinking-entry .text-gray-400 {
+  color: rgb(156, 163, 175);
+}
+
+.thinking-entry .text-gray-500 {
+  color: rgb(107, 114, 128);
+}
+
+/* Success/error result colors */
+.thinking-entry .bg-red-900\/20 {
+  background-color: rgba(127, 29, 29, 0.2);
+}
+
+.thinking-entry .border-red-700\/30 {
+  border-color: rgba(185, 28, 28, 0.3);
+}
+
+.thinking-entry .text-red-400 {
+  color: rgb(248, 113, 113);
+}
+
+/* Thinking content toggle */
+.thinking-content {
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.thinking-content.hidden {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* Toggle button rotation */
+.btn-toggle-thinking .material-symbols-outlined {
+  transition: transform 0.2s ease-out;
+}
+
+.btn-toggle-thinking[data-expanded="true"] .material-symbols-outlined {
+  transform: rotate(180deg);
+}

@@ -7,6 +7,7 @@ import { sendMessage, calculateCost } from '../client.js';
 import { buildGameContext } from '../context-builder.js';
 import { decideNextGoal, getGoalType } from './decision-engine.js';
 import { getAutonomousSystemPrompt, getGoalSpecificPrompt } from './autonomous-prompts.js';
+import { logThinking } from '../keeper/thinking-logger.js';
 
 let agentRunning = false;
 let agentEnabled = false;
@@ -99,6 +100,20 @@ export async function runAgentCycle() {
     // Update state to 'assessing'
     updateAgentState('assessing');
 
+    // LOG: Assessing phase
+    logThinking({
+      phase: 'assessing',
+      observation: `Analyzing mystery: ${mystery.name}`,
+      contextSnapshot: {
+        mysteryId: mystery.id,
+        mysteryName: mystery.name,
+        countdownPhase: mystery.countdown?.currentPhase || 0,
+        huntersCount: campaign.hunters?.length || 0,
+        sessionLogLength: campaign.sessionLog?.length || 0,
+        pendingWorkItems: campaign.aiAutonomous?.workQueue?.filter(w => w.status === 'pending').length || 0
+      }
+    });
+
     // STEP 1: Decide what to do
     console.log('[Agent Cycle] Step 1: Deciding goal...');
     const decision = await decideNextGoal(
@@ -108,6 +123,23 @@ export async function runAgentCycle() {
     );
 
     console.log('[Agent Cycle] Decision:', decision);
+
+    // LOG: Deciding phase
+    logThinking({
+      phase: 'deciding',
+      observation: 'Evaluated possible actions',
+      reasoning: [decision.reason],
+      options: [{
+        action: decision.goal,
+        priority: decision.priority,
+        reason: decision.reason
+      }],
+      decision: {
+        selected: decision.goal,
+        confidence: 0.8,
+        reasoning: decision.reason
+      }
+    });
 
     // Update state to 'generating'
     updateAgentState('generating');
@@ -125,6 +157,23 @@ export async function runAgentCycle() {
 
     console.log('[Agent Cycle] System prompt length:', fullSystemPrompt.length);
     console.log('[Agent Cycle] Goal prompt length:', goalPrompt.length);
+
+    // LOG: Planning phase
+    logThinking({
+      phase: 'planning',
+      observation: 'Preparing AI generation',
+      plan: {
+        goal: decision.goal,
+        steps: [
+          'Build game context',
+          'Generate AI prompt',
+          'Call Claude API',
+          'Parse response',
+          'Create work item'
+        ],
+        expectedOutcome: `Generated ${decision.goal} for review`
+      }
+    });
 
     // STEP 3: Call Claude API
     console.log('[Agent Cycle] Step 3: Calling Claude API...');
@@ -164,6 +213,18 @@ export async function runAgentCycle() {
     // STEP 7: Update state to 'idle'
     updateAgentState('idle', Date.now());
 
+    // LOG: Executing phase
+    logThinking({
+      phase: 'executing',
+      observation: 'Work item created and queued for review',
+      result: {
+        success: true,
+        workItemId: workItem.id,
+        executedActions: workItem.actions?.length || 0,
+        requiresReview: true
+      }
+    });
+
     console.log('[Agent Cycle] === CYCLE COMPLETED SUCCESSFULLY ===');
 
     // Notify user (will be handled by UI)
@@ -171,6 +232,16 @@ export async function runAgentCycle() {
 
   } catch (error) {
     console.error('[Agent Cycle] ERROR:', error);
+
+    // LOG: Error in execution
+    logThinking({
+      phase: 'reflecting',
+      observation: 'Cycle failed with error',
+      result: {
+        success: false,
+        error: error.message
+      }
+    });
 
     // Update state back to idle
     updateAgentState('idle');

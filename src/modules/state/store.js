@@ -110,7 +110,49 @@ export async function loadCampaignIntoState(campaignId) {
   try {
     const campaign = await loadCampaign(campaignId);
     if (campaign) {
+      let needsSave = false;
+
+      // P0 #2: Migration - Add AI Keeper fields if missing
+      if (!campaign.aiKeeper) {
+        campaign.aiKeeper = {
+          enabled: true,
+          autonomyLevel: 'medium',
+          whitelist: [],
+          blacklist: [],
+          maxActionsPerHour: 10,
+          cooldownBetweenActions: 60000,
+          lastActionTime: null,
+          actionsInLastHour: []
+        };
+        needsSave = true;
+        console.log('🔄 Migration: Added aiKeeper settings');
+      }
+
+      if (!campaign.aiKeeperLog) {
+        campaign.aiKeeperLog = [];
+        needsSave = true;
+        console.log('🔄 Migration: Added aiKeeperLog array');
+      }
+
+      // Migrace: Vypnout whisperer pro existující mysteries
+      if (campaign.mysteries) {
+        campaign.mysteries.forEach(mystery => {
+          if (mystery.whispererSettings && mystery.whispererSettings.enabled === true) {
+            mystery.whispererSettings.enabled = false;
+            needsSave = true;
+            console.log('🔄 Migration: Disabled whisperer for mystery:', mystery.name);
+          }
+        });
+      }
+
       setState({ campaign });
+
+      // Uložit migrované změny
+      if (needsSave) {
+        await saveCampaign(campaign);
+        console.log('🔄 Migration: Campaign saved with migrations applied');
+      }
+
       return campaign;
     }
     throw new Error('Campaign not found');
@@ -159,7 +201,18 @@ export function createNewCampaign(name) {
         estimatedCost: 0,
         byType: {}
       }
-    }
+    },
+    aiKeeper: {
+      enabled: true,
+      autonomyLevel: 'medium', // low, medium, high, full
+      whitelist: [], // Actions that can auto-execute even on lower autonomy level
+      blacklist: [], // Actions that never auto-execute
+      maxActionsPerHour: 10,
+      cooldownBetweenActions: 60000, // 1 minute
+      lastActionTime: null,
+      actionsInLastHour: []
+    },
+    aiKeeperLog: [] // Thinking log entries
   };
 
   setState({ campaign });
@@ -219,7 +272,7 @@ export function addMystery(mystery) {
     contentPool: mystery.contentPool || [],
     storySpine: mystery.storySpine || [],
     whispererSettings: mystery.whispererSettings || {
-      enabled: true,
+      enabled: false, // Whisperer vypnutý jako výchozí
       idleTimeout: 30000, // 30 seconds
       categories: ['world', 'people', 'environment', 'news', 'clues'],
       realWorldElements: true,
@@ -650,7 +703,7 @@ export function getWhispererSettings(mysteryId) {
   if (!mystery) return null;
 
   return mystery.whispererSettings || {
-    enabled: true,
+    enabled: false, // Whisperer vypnutý jako výchozí
     idleTimeout: 30000, // 30 seconds
     categories: ['world', 'people', 'environment', 'news', 'clues'],
     realWorldElements: true,

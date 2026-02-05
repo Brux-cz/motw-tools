@@ -108,8 +108,36 @@ export function isUserIdle() {
 export function shouldTriggerAgent() {
   const { campaign } = getState();
 
-  // Check if autonomous mode is enabled
-  if (!campaign?.aiAutonomous?.enabled) {
+  // Check if AI Keeper is enabled (new unified system)
+  const keeperEnabled = campaign?.aiKeeper?.enabled;
+  const autonomousEnabled = campaign?.aiAutonomous?.enabled;
+
+  // P2 #13: If keeper is enabled, check both keeper AND autonomous settings
+  if (keeperEnabled) {
+    // Keeper must be enabled AND autonomous must be enabled
+    if (!autonomousEnabled) {
+      return false; // P2 #13: Don't ignore autonomous.enabled!
+    }
+
+    // Check if keeper is already running
+    // For now, just check idle time
+    if (!isUserIdle()) {
+      return false;
+    }
+
+    // Check keeper cooldown
+    const lastActionTime = campaign?.aiKeeper?.lastActionTime || 0;
+    const cooldown = campaign?.aiKeeper?.cooldownBetweenActions || 60000;
+
+    if (Date.now() - lastActionTime < cooldown) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // Legacy: Check if autonomous mode is enabled
+  if (!autonomousEnabled) {
     return false;
   }
 

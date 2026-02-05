@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3001;
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
     ? process.env.ALLOWED_ORIGINS?.split(',') || []
-    : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3004', 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'],
   optionsSuccessStatus: 200
 };
 
@@ -37,7 +37,8 @@ app.post('/api/anthropic/messages', async (req, res) => {
   const allowedModels = [
     'claude-3-5-sonnet-20241022',
     'claude-3-5-sonnet-20240620',
-    'claude-3-haiku-20240307'
+    'claude-3-haiku-20240307',
+    'claude-sonnet-4-5-20250929'
   ];
 
   if (!allowedModels.includes(req.body.model)) {

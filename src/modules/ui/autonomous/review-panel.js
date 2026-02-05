@@ -7,6 +7,8 @@ import { showModal, hideModal } from '../modals.js';
 import { executeActions } from '../../ai/autonomous/autonomous-actions.js';
 import { escapeHtml } from '../../../utils/html.js';
 import { renderAutonomousDashboard } from './dashboard.js';
+import { showContentModal } from './content-modal.js';
+import { showToast } from '../toast.js';
 
 /**
  * Show preview modal for work item
@@ -40,6 +42,11 @@ export function showPreview(workId) {
           <h3 class="text-xl font-bold">${escapeHtml(workItem.title)}</h3>
           <div class="flex items-center gap-3 mt-1 text-sm text-gray-400">
             <span class="font-semibold text-purple-400">${typeLabels[workItem.type] || workItem.type}</span>
+            ${workItem.autoExecuted ? `
+              <span class="px-2 py-0.5 bg-green-900/40 text-green-400 text-xs rounded-full font-semibold">
+                Auto-executed
+              </span>
+            ` : ''}
             <span>·</span>
             <span>${formatDate(workItem.createdAt)}</span>
             <span>·</span>
@@ -150,6 +157,15 @@ export async function handleAccept(workId) {
         : w
     );
 
+    // Cleanup: keep only last 20 accepted items, all pending/processing
+    const cleanedQueue = [
+      ...updatedQueue.filter(w => w.status !== 'accepted'),
+      ...updatedQueue
+        .filter(w => w.status === 'accepted')
+        .sort((a, b) => (b.reviewedAt || b.createdAt) - (a.reviewedAt || a.createdAt))
+        .slice(0, 20)
+    ];
+
     // Update stats
     const stats = campaign.aiAutonomous.stats || {};
     stats.acceptedItems = (stats.acceptedItems || 0) + 1;
@@ -161,7 +177,7 @@ export async function handleAccept(workId) {
     updateCampaign({
       aiAutonomous: {
         ...campaign.aiAutonomous,
-        workQueue: updatedQueue,
+        workQueue: cleanedQueue,
         stats
       }
     });
@@ -175,8 +191,18 @@ export async function handleAccept(workId) {
 
     console.log('[Review Panel] Work item accepted successfully');
 
-    // Show success toast
-    showToast(`✓ "${workItem.title}" přijato a přidáno do záhady`, 'success');
+    // Show success toast with action to view content
+    showToast({
+      type: 'success',
+      message: `✓ "${workItem.title}" přijato`,
+      duration: 5000,
+      actions: [
+        {
+          label: '📖 Zobrazit',
+          onClick: () => showContentModal(workItem)
+        }
+      ]
+    });
 
     // Re-render dashboard
     renderAutonomousDashboard();
@@ -234,7 +260,10 @@ export function handleReject(workId) {
   console.log('[Review Panel] Work item rejected');
 
   // Show toast
-  showToast(`"${workItem.title}" zamítnuto`, 'info');
+  showToast({
+    type: 'info',
+    message: `"${workItem.title}" zamítnuto`
+  });
 
   // Re-render dashboard
   renderAutonomousDashboard();
@@ -275,27 +304,4 @@ function formatDate(timestamp) {
     hour: '2-digit',
     minute: '2-digit'
   });
-}
-
-/**
- * Show toast notification
- */
-function showToast(message, type = 'info') {
-  const colors = {
-    success: 'bg-green-900/90 border-green-700',
-    error: 'bg-red-900/90 border-red-700',
-    info: 'bg-blue-900/90 border-blue-700'
-  };
-
-  const toast = document.createElement('div');
-  toast.className = `fixed bottom-6 right-6 ${colors[type]} border px-4 py-3 rounded-lg text-sm font-semibold z-50 animate-fade-in shadow-xl`;
-  toast.textContent = message;
-
-  document.body.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
 }
