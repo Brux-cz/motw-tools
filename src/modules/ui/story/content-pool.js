@@ -5,6 +5,7 @@
 import { getState } from '../../state/store.js';
 import { removeFromPool, updatePoolItem } from '../../state/store.js';
 import { showAddToSpineModal, showAddToPoolModal } from './modals.js';
+import { generateRandomWhisper } from '../../ai/whisperer/whisperer-engine.js';
 
 /**
  * Render content pool
@@ -39,10 +40,16 @@ export function renderContentPool(mysteryId) {
           <span class="material-symbols-outlined text-blue-500">inventory_2</span>
           Content Pool
         </h2>
-        <button id="btn-add-pool-manual" class="bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/50 px-3 py-1.5 rounded text-sm transition">
-          <span class="material-symbols-outlined text-sm align-middle">add</span>
-          Přidat
-        </button>
+        <div class="flex gap-2">
+          <button id="btn-generate-whisper" class="bg-purple-900/40 hover:bg-purple-800/60 border border-purple-700/50 px-3 py-1.5 rounded text-sm transition" title="Vygeneruj whisper hned">
+            <span class="material-symbols-outlined text-sm align-middle">auto_awesome</span>
+            Generate
+          </button>
+          <button id="btn-add-pool-manual" class="bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/50 px-3 py-1.5 rounded text-sm transition">
+            <span class="material-symbols-outlined text-sm align-middle">add</span>
+            Přidat
+          </button>
+        </div>
       </div>
 
       ${renderWhispersSection(grouped.whispers)}
@@ -200,6 +207,11 @@ export function attachPoolEventListeners(mysteryId) {
   document.getElementById('btn-add-pool-manual')?.addEventListener('click', () => {
     handleAddPoolManually(mysteryId);
   });
+
+  // Generate whisper button
+  document.getElementById('btn-generate-whisper')?.addEventListener('click', async () => {
+    await handleGenerateWhisperNow(mysteryId);
+  });
 }
 
 /**
@@ -270,6 +282,43 @@ function handleRejectPoolItem(mysteryId, poolItemId) {
  */
 function handleAddPoolManually(mysteryId) {
   showAddToPoolModal(mysteryId);
+}
+
+/**
+ * Handle generate whisper now
+ */
+async function handleGenerateWhisperNow(mysteryId) {
+  const button = document.getElementById('btn-generate-whisper');
+  if (!button) return;
+
+  // Disable button during generation
+  button.disabled = true;
+  button.innerHTML = '<span class="material-symbols-outlined text-sm align-middle animate-spin">progress_activity</span> Generuji...';
+
+  try {
+    await generateRandomWhisper(mysteryId);
+
+    // Show success feedback
+    button.innerHTML = '<span class="material-symbols-outlined text-sm align-middle">check</span> Hotovo!';
+
+    // Reset button after 2s
+    setTimeout(() => {
+      button.disabled = false;
+      button.innerHTML = '<span class="material-symbols-outlined text-sm align-middle">auto_awesome</span> Generate';
+    }, 2000);
+
+  } catch (error) {
+    console.error('Failed to generate whisper:', error);
+
+    // Show error feedback
+    button.innerHTML = '<span class="material-symbols-outlined text-sm align-middle">error</span> Chyba';
+
+    // Reset button after 2s
+    setTimeout(() => {
+      button.disabled = false;
+      button.innerHTML = '<span class="material-symbols-outlined text-sm align-middle">auto_awesome</span> Generate';
+    }, 2000);
+  }
 }
 
 /**

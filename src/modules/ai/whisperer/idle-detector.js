@@ -36,10 +36,10 @@ export function startWhisperer(mysteryId) {
     return;
   }
 
-  const timeout = whispererSettings.idleTimeout || 60000; // Default 1 min
+  const timeout = whispererSettings.idleTimeout || 30000; // Default 30s
 
-  // Track user activity
-  const activityEvents = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+  // Track user activity (bez mousemove - pohyb myši neresetuje timer)
+  const activityEvents = ['keydown', 'click', 'scroll', 'touchstart'];
 
   const updateActivity = () => {
     lastActivity = Date.now();

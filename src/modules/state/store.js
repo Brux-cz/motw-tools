@@ -137,7 +137,7 @@ export function createNewCampaign(name) {
     lastModified: Date.now(),
     aiAutonomous: {
       enabled: false,
-      idleTimeout: 180000, // 3 minutes
+      idleTimeout: 60000, // 1 minute
       maxWorkItemsPerSession: 5,
       creativityLevel: 'medium',
       lastActivityTime: Date.now(),
@@ -220,7 +220,7 @@ export function addMystery(mystery) {
     storySpine: mystery.storySpine || [],
     whispererSettings: mystery.whispererSettings || {
       enabled: true,
-      idleTimeout: 60000,
+      idleTimeout: 30000, // 30 seconds
       categories: ['world', 'people', 'environment', 'news', 'clues'],
       realWorldElements: true,
       horrorLevel: 'low'
@@ -651,7 +651,7 @@ export function getWhispererSettings(mysteryId) {
 
   return mystery.whispererSettings || {
     enabled: true,
-    idleTimeout: 60000, // 1 min
+    idleTimeout: 30000, // 30 seconds
     categories: ['world', 'people', 'environment', 'news', 'clues'],
     realWorldElements: true,
     horrorLevel: 'low'

@@ -15,8 +15,8 @@ let onIdleTriggerCallback = null;
 export function initIdleDetection() {
   console.log('[Autonomous] Initializing idle detection');
 
-  // Track user activity
-  const activityEvents = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+  // Track user activity (bez mousemove - pohyb myši neresetuje timer)
+  const activityEvents = ['keydown', 'click', 'scroll', 'touchstart'];
 
   activityEvents.forEach(event => {
     document.addEventListener(event, trackActivity, { passive: true });
@@ -93,7 +93,7 @@ function checkAndTrigger() {
  */
 export function isUserIdle() {
   const { campaign } = getState();
-  const idleTimeout = campaign?.aiAutonomous?.idleTimeout || 180000; // Default 3 min
+  const idleTimeout = campaign?.aiAutonomous?.idleTimeout || 60000; // Default 1 min
   const idleTime = Date.now() - lastActivityTime;
 
   return idleTime > idleTimeout;
