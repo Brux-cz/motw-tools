@@ -12,56 +12,12 @@ let currentMysteryId = null;
 
 /**
  * Start whisperer idle detection
+ * NOTE: Whisperer is currently disabled globally per user preference
  */
 export function startWhisperer(mysteryId) {
-  console.log('🔮 Starting whisperer for mystery:', mysteryId);
-
-  // Stop existing whisperer if running
-  stopWhisperer();
-
-  currentMysteryId = mysteryId;
-
-  const { campaign } = getState();
-  const mystery = campaign?.mysteries.find(m => m.id === mysteryId);
-
-  if (!mystery) {
-    console.warn('Mystery not found');
-    return;
-  }
-
-  const whispererSettings = mystery.whispererSettings || {};
-
-  if (whispererSettings.enabled === false) {
-    console.log('Whisperer disabled for this mystery');
-    return;
-  }
-
-  const timeout = whispererSettings.idleTimeout || 30000; // Default 30s
-
-  // Track user activity (bez mousemove - pohyb myši neresetuje timer)
-  const activityEvents = ['keydown', 'click', 'scroll', 'touchstart'];
-
-  const updateActivity = () => {
-    lastActivity = Date.now();
-  };
-
-  activityEvents.forEach(event => {
-    document.addEventListener(event, updateActivity, { passive: true });
-    activityListeners.push({ event, handler: updateActivity });
-  });
-
-  // Check idle periodically
-  whispererInterval = setInterval(() => {
-    const idle = Date.now() - lastActivity;
-
-    if (idle >= timeout) {
-      console.log('🌙 User idle, triggering whisper');
-      triggerWhisper(mysteryId);
-      lastActivity = Date.now(); // Reset to avoid spam
-    }
-  }, 10000); // Check every 10s
-
-  console.log('✅ Whisperer started (timeout:', timeout, 'ms)');
+  // WHISPERER VYPNUT - uživatel nechce automatické generování
+  console.log('🔮 Whisperer is disabled globally');
+  return;
 }
 
 /**

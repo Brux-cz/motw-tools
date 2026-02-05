@@ -51,13 +51,21 @@ export async function sendMessage(messages, options = {}) {
   }
 
   try {
+    // In development, proxy handles API key from server-side .env
+    // In production, client must provide API key (needs backend implementation)
+    const headers = {
+      'Content-Type': 'application/json',
+      'anthropic-version': API_VERSION
+    };
+
+    // Only send API key in production (when using direct API)
+    if (!isDevelopment) {
+      headers['x-api-key'] = apiKey;
+    }
+
     const response = await fetch(ANTHROPIC_API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': API_VERSION
-      },
+      headers,
       body: JSON.stringify(requestBody)
     });
 

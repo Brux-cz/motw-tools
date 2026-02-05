@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "idb": "^8.0.3",
     "node-fetch": "^2.7.0"

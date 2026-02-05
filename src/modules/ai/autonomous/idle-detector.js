@@ -51,10 +51,13 @@ export function trackActivity() {
 
   // Notify store (for persistence)
   try {
-    const { updateLastActivity } = require('../../state/store.js');
-    if (updateLastActivity) {
-      updateLastActivity();
-    }
+    import('../../state/store.js').then(({ updateLastActivity }) => {
+      if (updateLastActivity) {
+        updateLastActivity();
+      }
+    }).catch(() => {
+      // Store function may not be available yet
+    });
   } catch (error) {
     // Store function may not be available yet
   }
