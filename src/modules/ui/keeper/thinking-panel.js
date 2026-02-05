@@ -7,6 +7,8 @@ import { getThinkingLog, getThinkingStats, exportThinkingLog, clearThinkingLog }
 import { escapeHtml } from '../../../utils/html.js';
 
 let subscriptionId = null;
+let lastRenderedCount = 0;
+let lastRenderedMystery = null;
 
 /**
  * Initialize thinking panel
@@ -14,10 +16,23 @@ let subscriptionId = null;
 export function initThinkingPanel() {
   // Subscribe to state changes
   subscriptionId = subscribe((state, oldState) => {
-    // Re-render if thinking log changed OR mystery changed
-    if (state.campaign?.aiKeeperLog !== oldState.campaign?.aiKeeperLog ||
-        state.currentMysteryId !== oldState.currentMysteryId) {
+    const currentMysteryId = state.currentMysteryId;
+    const currentLog = state.campaign?.aiKeeperLog || [];
+    const oldLog = oldState.campaign?.aiKeeperLog || [];
+
+    // Full rebuild scenarios:
+    const mysteryChanged = currentMysteryId !== oldState.currentMysteryId;
+    const logCleared = currentLog.length < oldLog.length;
+
+    // Incremental update scenario:
+    const newEntriesAdded = currentLog.length > oldLog.length && !mysteryChanged;
+
+    if (newEntriesAdded) {
+      renderNewThinkingEntries();
+    } else if (mysteryChanged || logCleared || currentLog !== oldLog) {
       renderThinkingPanel();
+      lastRenderedCount = currentLog.length;
+      lastRenderedMystery = currentMysteryId;
     }
   });
 
@@ -33,6 +48,8 @@ export function cleanupThinkingPanel() {
     subscriptionId();
     subscriptionId = null;
   }
+  lastRenderedCount = 0;
+  lastRenderedMystery = null;
 }
 
 /**
@@ -141,24 +158,77 @@ export function renderThinkingPanel() {
 }
 
 /**
+ * Render only new thinking entries (incremental update)
+ */
+function renderNewThinkingEntries() {
+  const { currentMysteryId } = getState();
+  if (!currentMysteryId) return;
+
+  const thinkingLog = getThinkingLog(currentMysteryId);
+  const entriesContainer = document.getElementById('thinking-entries');
+
+  if (!entriesContainer) {
+    // Container doesn't exist yet - do full render
+    renderThinkingPanel();
+    lastRenderedCount = thinkingLog.length;
+    return;
+  }
+
+  // Render only new entries
+  const newEntries = thinkingLog.slice(lastRenderedCount);
+
+  newEntries.forEach(entry => {
+    const entryHTML = renderThinkingEntry(entry);
+    entriesContainer.insertAdjacentHTML('beforeend', entryHTML);
+  });
+
+  // Update statistics separately
+  const stats = getThinkingStats(currentMysteryId);
+  updateStatistics(stats);
+
+  lastRenderedCount = thinkingLog.length;
+}
+
+/**
+ * Update only statistics section (no full rebuild)
+ */
+function updateStatistics(stats) {
+  const statsContainer = document.querySelector('.statistics-grid');
+  if (!statsContainer) return;
+
+  // Update count, success rate, confidence
+  const totalEl = statsContainer.querySelector('.stat-total');
+  const successEl = statsContainer.querySelector('.stat-success');
+  const confidenceEl = statsContainer.querySelector('.stat-confidence');
+
+  if (totalEl) totalEl.textContent = stats.total || 0;
+  if (successEl) successEl.textContent = stats.successRate
+    ? `${Math.round(stats.successRate * 100)}%`
+    : '-';
+  if (confidenceEl) confidenceEl.textContent = stats.avgConfidence
+    ? `${Math.round(stats.avgConfidence * 100)}%`
+    : '-';
+}
+
+/**
  * Render thinking statistics
  */
 function renderThinkingStats(stats) {
   return `
-    <div class="grid grid-cols-4 gap-4">
+    <div class="statistics-grid grid grid-cols-4 gap-4">
       <div class="bg-neutral-800/50 border border-white/10 rounded-lg p-4">
         <div class="text-xs text-gray-400 uppercase tracking-wide mb-1">Celkem</div>
-        <div class="text-2xl font-bold text-blue-400">${stats.total || 0}</div>
+        <div class="stat-total text-2xl font-bold text-blue-400">${stats.total || 0}</div>
       </div>
       <div class="bg-neutral-800/50 border border-white/10 rounded-lg p-4">
         <div class="text-xs text-gray-400 uppercase tracking-wide mb-1">Úspěšnost</div>
-        <div class="text-2xl font-bold text-green-400">
+        <div class="stat-success text-2xl font-bold text-green-400">
           ${stats.successRate ? `${Math.round(stats.successRate * 100)}%` : '-'}
         </div>
       </div>
       <div class="bg-neutral-800/50 border border-white/10 rounded-lg p-4">
         <div class="text-xs text-gray-400 uppercase tracking-wide mb-1">Jistota</div>
-        <div class="text-2xl font-bold text-yellow-400">
+        <div class="stat-confidence text-2xl font-bold text-yellow-400">
           ${stats.avgConfidence ? `${Math.round(stats.avgConfidence * 100)}%` : '-'}
         </div>
       </div>

@@ -7,7 +7,7 @@ import { sendMessage, calculateCost } from '../client.js';
 import { buildGameContext } from '../context-builder.js';
 import { decideNextGoal, getGoalType } from './decision-engine.js';
 import { getAutonomousSystemPrompt, getGoalSpecificPrompt } from './autonomous-prompts.js';
-import { logThinking } from '../keeper/thinking-logger.js';
+import { logAIThinking, onDelegateToAgent } from '../ai-event-bus.js';
 
 let agentRunning = false;
 let agentEnabled = false;
@@ -101,7 +101,7 @@ export async function runAgentCycle() {
     updateAgentState('assessing');
 
     // LOG: Assessing phase
-    logThinking({
+    logAIThinking({
       phase: 'assessing',
       observation: `Analyzing mystery: ${mystery.name}`,
       contextSnapshot: {
@@ -125,7 +125,7 @@ export async function runAgentCycle() {
     console.log('[Agent Cycle] Decision:', decision);
 
     // LOG: Deciding phase
-    logThinking({
+    logAIThinking({
       phase: 'deciding',
       observation: 'Evaluated possible actions',
       reasoning: [decision.reason],
@@ -159,7 +159,7 @@ export async function runAgentCycle() {
     console.log('[Agent Cycle] Goal prompt length:', goalPrompt.length);
 
     // LOG: Planning phase
-    logThinking({
+    logAIThinking({
       phase: 'planning',
       observation: 'Preparing AI generation',
       plan: {
@@ -214,7 +214,7 @@ export async function runAgentCycle() {
     updateAgentState('idle', Date.now());
 
     // LOG: Executing phase
-    logThinking({
+    logAIThinking({
       phase: 'executing',
       observation: 'Work item created and queued for review',
       result: {
@@ -234,7 +234,7 @@ export async function runAgentCycle() {
     console.error('[Agent Cycle] ERROR:', error);
 
     // LOG: Error in execution
-    logThinking({
+    logAIThinking({
       phase: 'reflecting',
       observation: 'Cycle failed with error',
       result: {
@@ -463,3 +463,11 @@ function notifyError(error) {
 function generateId() {
   return `work-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
+
+/**
+ * Initialize event listeners for keeper delegations
+ */
+onDelegateToAgent(async (context) => {
+  console.log('[Agent Core] Received keeper delegation:', context.reason);
+  await runAgentCycle();
+});

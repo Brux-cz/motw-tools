@@ -25,6 +25,7 @@ import {
   acquireActionLock,
   releaseActionLock
 } from './safety-checker.js';
+import { delegateToAgent } from '../ai-event-bus.js';
 
 /**
  * Keeper AI class
@@ -336,9 +337,13 @@ class KeeperAI {
 
     // Delegate based on method
     if (plan.method === EXECUTION_METHODS.AUTONOMOUS) {
-      // Use autonomous agent
-      const { runAgentCycle } = await import('../autonomous/agent-core.js');
-      await runAgentCycle();
+      // Use autonomous agent via event bus (no circular dependency!)
+      delegateToAgent({
+        decision,
+        plan,
+        mysteryId: getState().currentMysteryId,
+        reason: 'Keeper delegation'
+      });
 
       logThinking({
         phase: 'executing',
@@ -378,9 +383,13 @@ class KeeperAI {
     console.log('[Keeper] Creating work item for review:', decision.action);
     console.log('[Keeper] Reason:', reason);
 
-    // Delegate to autonomous agent to create work item
-    const { runAgentCycle } = await import('../autonomous/agent-core.js');
-    await runAgentCycle();
+    // Delegate to autonomous agent to create work item via event bus
+    delegateToAgent({
+      decision,
+      plan,
+      mysteryId: getState().currentMysteryId,
+      reason
+    });
 
     logThinking({
       phase: 'executing',

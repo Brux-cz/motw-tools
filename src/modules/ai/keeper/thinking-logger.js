@@ -10,6 +10,7 @@
  */
 
 import { getState } from '../../state/store.js';
+import { onAIThinking } from '../ai-event-bus.js';
 
 /**
  * Log thinking entry
@@ -225,3 +226,11 @@ function generateId(prefix = '') {
   const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   return prefix ? `${prefix}-${id}` : id;
 }
+
+/**
+ * Initialize event listeners for AI thinking events
+ * Called from agent-core when it emits thinking logs
+ */
+onAIThinking((thinkingData) => {
+  logThinking(thinkingData);
+});
