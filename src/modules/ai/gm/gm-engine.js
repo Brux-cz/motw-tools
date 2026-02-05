@@ -36,9 +36,26 @@ class GMEngine {
       narrativeStyle: 'balanced', // 'minimal', 'balanced', 'verbose'
       npcAutonomy: 'high', // 'low', 'medium', 'high'
       ambientEventFrequency: 60000, // ms between ambient events
-      combatPacing: 'realistic' // 'cinematic', 'realistic'
+      combatPacing: 'realistic', // 'cinematic', 'realistic'
+
+      // Novel Mode settings
+      novelMode: {
+        enabled: false, // Default OFF - users opt-in
+        narrativeLength: 'medium', // 'short', 'medium', 'long'
+        literaryQuality: 'balanced', // 'balanced', 'high', 'poetic'
+        memoryDepth: 'session', // 'recent', 'session', 'full'
+        storyPlanning: true, // Enable forward planning
+        autoAdvanceActs: true // Auto-detect act transitions
+      }
     };
     this.lastAmbientEvent = 0;
+    this.lastPlanningCheck = 0;
+
+    // Activity tracking for adaptive rate limiting
+    this.activityTracking = {
+      recentPlayerActions: [],
+      highActivityThreshold: 3  // 3 akce za minutu = vysoká aktivita
+    };
   }
 
   /**
@@ -102,6 +119,11 @@ class GMEngine {
 
     this.currentScene = initializeScene(location, hunters, []);
 
+    // Initialize Novel Mode systems if enabled
+    if (this.settings.novelMode?.enabled && currentMysteryId) {
+      this.initializeNovelModeSystems(currentMysteryId);
+    }
+
     // Generate opening scene description
     const sceneDesc = await generateSceneDescription(location, 'mysterious', 5);
     this.addToSessionLog({
@@ -109,6 +131,80 @@ class GMEngine {
       message: sceneDesc,
       timestamp: Date.now()
     });
+  }
+
+  /**
+   * Initialize Novel Mode systems (narrative memory, story arc, etc.)
+   */
+  initializeNovelModeSystems(mysteryId) {
+    console.log('[GM Engine] Initializing Novel Mode systems...');
+
+    // Import and initialize systems
+    import('./narrative-memory.js').then(({ addToNarrativeMemory }) => {
+      // Initialize with opening beat
+      addToNarrativeMemory(mysteryId, {
+        type: 'story_start',
+        summary: 'Mystery begins',
+        significance: 'high'
+      });
+    });
+
+    import('./story-arc-manager.js').then(({ initializeStoryArc }) => {
+      initializeStoryArc(mysteryId);
+    });
+
+    console.log('[GM Engine] Novel Mode systems initialized');
+  }
+
+  /**
+   * Get adaptive ambient event interval based on activity
+   * @returns {number} Interval in ms
+   */
+  getAdaptiveAmbientInterval() {
+    const now = Date.now();
+
+    // Clean old actions (starší než 1 min)
+    this.activityTracking.recentPlayerActions =
+      this.activityTracking.recentPlayerActions.filter(t => now - t < 60000);
+
+    const actionsInLastMinute = this.activityTracking.recentPlayerActions.length;
+
+    if (actionsInLastMinute >= 3) {
+      return 180000;  // 3 minuty při vysoké aktivitě
+    } else if (actionsInLastMinute >= 1) {
+      return 120000;  // 2 minuty při střední aktivitě
+    } else {
+      return 60000;   // 1 minuta při nízké aktivitě
+    }
+  }
+
+  /**
+   * Detect if action result is a story spike
+   * @param {Object} result - Move result
+   * @param {Object} parsedAction - Parsed action
+   * @returns {boolean} True if story spike
+   */
+  detectStorySpike(result, parsedAction) {
+    // Critical failure (6 nebo méně)
+    if (result.outcome === 'failure' && result.total <= 6) {
+      return true;
+    }
+
+    // Monster combat moves
+    if (['kick_some_ass', 'protect_someone', 'act_under_pressure'].includes(parsedAction.move)) {
+      if (result.outcome === 'failure') {
+        return true;
+      }
+    }
+
+    // Keywords indicating high stakes
+    const highStakesKeywords = ['death', 'kill', 'attack', 'monster', 'harm', 'smrt', 'zabít', 'útok'];
+    const actionText = parsedAction.raw.toLowerCase();
+    if (highStakesKeywords.some(kw => actionText.includes(kw))) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -167,8 +263,14 @@ class GMEngine {
   async handlePlayerAction({ hunterId, actionText }) {
     console.log(`[GM Engine] Processing action: ${actionText}`);
 
+    // Record player action for activity tracking
+    this.activityTracking.recentPlayerActions.push(Date.now());
+
+    const { recordPlayerAction } = require('./scene-manager.js');
+    recordPlayerAction();
+
     // Add player action to log
-    const { campaign } = getState();
+    const { campaign, currentMysteryId } = getState();
     const hunter = campaign.hunters.find(h => h.id === hunterId);
     this.addToSessionLog({
       type: 'player',
@@ -211,8 +313,27 @@ class GMEngine {
       // 6. Increase tension on failures
       if (result.outcome === 'failure') {
         increaseTension(1);
+
+        // Detect story spike
+        if (this.detectStorySpike(result, parsed)) {
+          const { triggerStorySpike } = require('./scene-manager.js');
+          triggerStorySpike(180000); // 3 min pause
+          console.log('[Story Spike] Triggered by critical failure');
+        }
       } else if (result.outcome === 'success') {
         decreaseTension(0.5);
+      }
+
+      // 7. Novel Mode: Record to narrative memory and story arc
+      if (this.settings.novelMode?.enabled && currentMysteryId) {
+        this.recordNovelModeEvent(currentMysteryId, {
+          type: parsed.move || 'action',
+          summary: narrative.substring(0, 200),
+          significance: result.outcome === 'failure' ? 'medium' : 'low',
+          roll: result,
+          relatedNPCs: [],
+          relatedLocations: [this.currentScene?.location?.name].filter(Boolean)
+        }, parsed, result);
       }
     } else {
       // Just narrative response (no move)
@@ -320,7 +441,18 @@ class GMEngine {
    */
   async checkAmbientEvents() {
     const now = Date.now();
-    if (now - this.lastAmbientEvent < this.settings.ambientEventFrequency) {
+
+    // Import pause check
+    const { shouldPauseAmbientEvents } = require('./scene-manager.js');
+
+    // Check if should pause
+    if (shouldPauseAmbientEvents()) {
+      return;
+    }
+
+    // Use adaptive interval
+    const adaptiveInterval = this.getAdaptiveAmbientInterval();
+    if (now - this.lastAmbientEvent < adaptiveInterval) {
       return;
     }
 
@@ -376,6 +508,91 @@ class GMEngine {
         });
       }
     }
+  }
+
+  /**
+   * Record Novel Mode event (memory + story arc)
+   */
+  recordNovelModeEvent(mysteryId, eventData, parsedAction, result) {
+    // Add to narrative memory
+    import('./narrative-memory.js').then(({ addToNarrativeMemory }) => {
+      addToNarrativeMemory(mysteryId, eventData);
+    });
+
+    // Detect and record story beat
+    import('./story-arc-manager.js').then(({ recordStoryBeat, detectBeatType }) => {
+      const scene = this.currentScene;
+      const beatType = detectBeatType({
+        move: parsedAction.move,
+        outcome: result.outcome,
+        tension: scene?.tension || 5,
+        isMonsterEncounter: false, // TODO: Detect monster encounters
+        isNPCIntroduction: false,
+        isClueDiscovery: parsedAction.move === 'investigate_a_mystery'
+      });
+
+      recordStoryBeat(mysteryId, {
+        type: beatType,
+        name: `${parsedAction.move || 'Action'}: ${result.outcome}`,
+        description: eventData.summary,
+        outcomes: [result.outcome]
+      });
+    });
+
+    // Check for story planning triggers
+    this.checkPlanningTriggers(mysteryId);
+
+    // Check for planned beat triggers
+    import('./story-planner.js').then(({ checkBeatTriggers, executePlannedBeat }) => {
+      const triggeredBeats = checkBeatTriggers(mysteryId, {
+        actionText: parsedAction.raw,
+        location: scene?.location?.name
+      });
+
+      triggeredBeats.forEach(async (beat) => {
+        const execution = await executePlannedBeat(mysteryId, beat.id);
+        if (execution) {
+          this.addToSessionLog({
+            type: 'planned_beat',
+            message: execution.narrative,
+            beat: execution.beat,
+            timestamp: Date.now()
+          });
+        }
+      });
+    });
+  }
+
+  /**
+   * Check if story planning should trigger
+   */
+  checkPlanningTriggers(mysteryId) {
+    const now = Date.now();
+
+    // Run planning max once per minute
+    if (now - this.lastPlanningCheck < 60000) {
+      return;
+    }
+
+    if (!this.settings.novelMode?.storyPlanning) {
+      return;
+    }
+
+    import('./story-arc-manager.js').then(({ getBeatsSinceLastPlan }) => {
+      const beatsSinceLastPlan = getBeatsSinceLastPlan(mysteryId);
+
+      // Trigger planning every 3 beats
+      if (beatsSinceLastPlan >= 3) {
+        console.log('[GM Engine] Triggering story planning...');
+        this.lastPlanningCheck = now;
+
+        import('./story-planner.js').then(({ generateStoryPlan }) => {
+          generateStoryPlan(mysteryId).catch(err => {
+            console.error('[GM Engine] Story planning error:', err);
+          });
+        });
+      }
+    });
   }
 
   /**

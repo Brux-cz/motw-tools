@@ -10,7 +10,11 @@ let currentScene = {
   tension: 5,
   turnOrder: [],
   currentTurn: 0,
-  timestamp: null
+  timestamp: null,
+  // Activity tracking for adaptive rate limiting
+  lastPlayerAction: null,
+  storySpikeActive: false,
+  storySpikeUntil: null
 };
 
 /**
@@ -47,7 +51,10 @@ export function initializeScene(location, hunters = [], npcs = []) {
     tension: 5,
     turnOrder: [...hunters, ...npcs],
     currentTurn: 0,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    lastPlayerAction: null,
+    storySpikeActive: false,
+    storySpikeUntil: null
   };
   return getCurrentScene();
 }
@@ -157,6 +164,70 @@ export function resetScene() {
     tension: 5,
     turnOrder: [],
     currentTurn: 0,
-    timestamp: null
+    timestamp: null,
+    lastPlayerAction: null,
+    storySpikeActive: false,
+    storySpikeUntil: null
   };
+}
+
+/**
+ * Record player action timestamp
+ */
+export function recordPlayerAction() {
+  currentScene.lastPlayerAction = Date.now();
+}
+
+/**
+ * Trigger story spike (pauses ambient events)
+ * @param {number} duration - Duration in ms (default 3 min)
+ */
+export function triggerStorySpike(duration = 180000) {
+  currentScene.storySpikeActive = true;
+  currentScene.storySpikeUntil = Date.now() + duration;
+  console.log('[Story Spike] Activated for', duration / 1000, 'seconds');
+}
+
+/**
+ * Clear story spike
+ */
+export function clearStorySpike() {
+  currentScene.storySpikeActive = false;
+  currentScene.storySpikeUntil = null;
+  console.log('[Story Spike] Cleared');
+}
+
+/**
+ * Check if ambient events should be paused
+ * @returns {boolean} True if should pause
+ */
+export function shouldPauseAmbientEvents() {
+  const scene = currentScene;
+
+  // Pause during story spike
+  if (scene.storySpikeActive && Date.now() < scene.storySpikeUntil) {
+    return true;
+  }
+
+  // Auto-clear expired story spike
+  if (scene.storySpikeActive && Date.now() >= scene.storySpikeUntil) {
+    clearStorySpike();
+  }
+
+  // Pause at high tension (8+)
+  if (scene.tension >= 8) {
+    return true;
+  }
+
+  // Pause shortly after player action (60s)
+  if (scene.lastPlayerAction && Date.now() - scene.lastPlayerAction < 60000) {
+    return true;
+  }
+
+  // Pause during combat (threats present)
+  if (scene.threats.length > 0) {
+    return true;
+  }
+
+  return false;
 }
