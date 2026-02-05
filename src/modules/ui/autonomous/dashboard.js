@@ -232,7 +232,7 @@ function renderAgentStatus(autonomous) {
         </div>
         <div class="flex justify-between mt-2">
           <span>Idle timeout:</span>
-          <span>${(autonomous.idleTimeout || 180000) / 60000} min</span>
+          <span>${(autonomous.idleTimeout || 60000) / 60000} min</span>
         </div>
       </div>
     </div>
@@ -281,7 +281,7 @@ function renderWorkItemCard(work) {
           </div>
           <h4 class="text-base font-semibold mb-2">${escapeHtml(work.title)}</h4>
           <p class="text-sm text-gray-400 line-clamp-2 mb-3">
-            ${escapeHtml(work.content.substring(0, 150))}${work.content.length > 150 ? '...' : ''}
+            ${work.goalReason ? escapeHtml(work.goalReason) : 'AI vygenerovalo tento obsah pro rozšíření záhady'}
           </p>
           <div class="flex items-center gap-2">
             <button
