@@ -65,6 +65,10 @@ export function switchTab(tabId) {
         attachGMPanelListeners();
       }
     });
+  } else if (tabId === 'prompt-lab') {
+    import('../tabs/prompt-lab.js').then(({ renderPromptLabTab }) => {
+      renderPromptLabTab(document.getElementById('prompt-lab-content'));
+    });
   }
 
   console.log('Switched to tab:', tabId);

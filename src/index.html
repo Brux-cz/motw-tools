@@ -56,6 +56,10 @@
           <span class="material-symbols-outlined group-hover:scale-110 transition">menu_book</span>
           <span class="text-sm font-semibold uppercase tracking-wider">Pravidla</span>
         </button>
+        <button data-tab="prompt-lab" class="sidebar-item w-full flex items-center gap-4">
+          <span class="material-symbols-outlined group-hover:scale-110 transition">science</span>
+          <span class="text-sm font-semibold uppercase tracking-wider">Lab</span>
+        </button>
       </nav>
       <div class="p-6 border-t border-white/5">
         <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Systém</div>
@@ -105,6 +109,11 @@
           <span class="material-symbols-outlined text-6xl mb-4 block">menu_book</span>
           <p>Pravidla tab - bude implementováno</p>
         </div>
+      </div>
+
+      <!-- PROMPT LAB TAB (Hidden) -->
+      <div id="tab-prompt-lab" class="relative z-10 p-6 h-full overflow-y-auto hidden">
+        <div id="prompt-lab-content"></div>
       </div>
     </main>
 
