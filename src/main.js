@@ -267,11 +267,11 @@ function initHeaderButtons() {
  * Handle New Element button
  */
 function handleNewElement() {
-  import('./modules/ui/mystery-wizard.js').then(({ showMysteryWizard }) => {
-    showMysteryWizard();
+  import('./modules/ui/mystery-editor.js').then(({ showMysteryEditor }) => {
+    showMysteryEditor();
   }).catch(error => {
-    console.error('Failed to load mystery wizard:', error);
-    alert('Nepodařilo se načíst průvodce vytvořením záhady');
+    console.error('Failed to load mystery editor:', error);
+    alert('Nepodařilo se načíst editor záhady');
   });
 }
 

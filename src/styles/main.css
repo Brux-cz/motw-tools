@@ -1490,3 +1490,15 @@ select:focus-visible {
 .btn-toggle-thinking[data-expanded="true"] .material-symbols-outlined {
   transform: rotate(180deg);
 }
+
+/* ===== MYSTERY EDITOR LOCK STYLES ===== */
+
+input[readonly],
+textarea[readonly] {
+  cursor: default;
+}
+
+select[disabled] {
+  cursor: default;
+  opacity: 0.75;
+}
