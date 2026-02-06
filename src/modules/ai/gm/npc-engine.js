@@ -24,25 +24,21 @@ export async function generateNPCResponse(npcId, context) {
     return null;
   }
 
-  // Build prompt
-  const prompt = `Jako ${npc.name} (${npc.type}, motivace: ${npc.motivation}), reaguj na: ${context.playerAction}
+  // Build system prompt for NPC character
+  const systemPrompt = `Jsi ${npc.name}, ${npc.type} v Monster of the Week.
+Tvoje motivace: ${npc.motivation}
+Tvůj popis: ${npc.description || 'Žádný popis'}
 
-Tvoje popis: ${npc.description || 'Žádný popis'}
+Odpovídáš stručně (1-3 věty), v charakteru. Česky.
+Použij uvozovky pro přímou řeč. Pokud je to vhodné, ukaž emoce nebo gesta.`;
 
-Kontext situace:
-${context.situation || 'Běžná interakce'}
+  const prompt = `${context.recentHistory ? `Kontext:\n${context.recentHistory}\n\n` : ''}Hráč říká/dělá: ${context.playerAction}
 
-Pravidla:
-- Zůstaň v charakteru
-- Motivace určuje tvou reakci: ${npc.motivation}
-- Buď stručný (1-3 věty dialogu)
-- Použij uvozovky pro přímou řeč
-- Pokud je to vhodné, ukaž emoce nebo gesta
-
-Odpověz POUZE dialogem NPC (bez dodatečných poznámek):`;
+Jak reaguješ?`;
 
   try {
     const response = await callAI(prompt, {
+      systemPrompt,
       temperature: 0.8,
       max_tokens: 200
     });
@@ -74,16 +70,21 @@ export async function determineNPCBehavior(npcId, situation) {
   }
 
   // Build prompt for behavior decision
+  const historyBlock = situation.recentHistory
+    ? `Dosavadní průběh session:\n${situation.recentHistory}\n\n`
+    : '';
+
   const prompt = `Jako Keeper, urči co udělá ${npc.name} (${npc.type}, motivace: ${npc.motivation}) v této situaci:
 
-${situation.description}
+${historyBlock}${situation.description}
 
 Popis NPC: ${npc.description || 'Žádný popis'}
 Napětí scény: ${situation.tension || 5}/10
 
 Pravidla:
 - NPC jedná podle své motivace: ${npc.motivation}
-- Buď konkrétní (co přesně dělá)
+- NEOPAKUJ co NPC už udělal — viz dosavadní průběh session
+- Buď konkrétní a unikátní — každá akce musí být jiná než předchozí
 - Jedna věta nebo krátký popis
 
 Odpověz POUZE akcí NPC:`;
@@ -183,17 +184,19 @@ export function shouldNPCIntervene(npcId, situation) {
     return true; // Always react if mentioned
   }
 
-  // Type-specific behavior
+  // Type-specific behavior (case-insensitive, CZ/EN)
+  const npcType = (npc.type || '').toLowerCase();
   const interventionChance = {
-    'witness': 0.3,
-    'victim': 0.7,
-    'busybody': 0.8,
-    'helper': 0.6,
-    'official': 0.5,
-    'gossip': 0.7,
-    'innocent': 0.4
+    'witness': 0.3, 'svědek': 0.3,
+    'victim': 0.7, 'oběť': 0.7,
+    'busybody': 0.8, 'všetečka': 0.8,
+    'helper': 0.6, 'pomocník': 0.6,
+    'official': 0.5, 'úředník': 0.5,
+    'gossip': 0.7, 'drbna': 0.7, 'klevetník': 0.7,
+    'innocent': 0.4, 'nevinný': 0.4,
+    'suspect': 0.5, 'podezřelý': 0.5
   };
 
-  const chance = interventionChance[npc.type] || 0.3;
+  const chance = interventionChance[npcType] || 0.3;
   return Math.random() < chance;
 }

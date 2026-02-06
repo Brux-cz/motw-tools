@@ -41,6 +41,8 @@ class GMEngine {
       combatPacing: 'realistic' // 'cinematic', 'realistic'
     };
     this.lastAmbientEvent = 0;
+    this.lastNPCBehavior = 0;
+    this.npcBehaviorInProgress = false;
 
     // Activity tracking for adaptive rate limiting
     this.activityTracking = {
@@ -107,16 +109,111 @@ class GMEngine {
 
     const location = mystery?.locations?.[0] || { name: 'Unknown Location' };
     const hunters = campaign.hunters?.map(h => h.id) || [];
+    const npcs = mystery?.bystanders?.map(b => b.id) || [];
 
-    this.currentScene = initializeScene(location, hunters, []);
+    this.currentScene = initializeScene(location, hunters, npcs);
 
-    // Generate opening scene description
-    const sceneDesc = await generateSceneDescription(location, 'mysterious', 5);
+    // Generate opening scene description with mystery context
+    const mysteryContext = this.buildMysteryContext();
+    const sceneDesc = await generateSceneDescription(location, 'mysterious', 5, { mysteryContext });
     this.addToSessionLog({
       type: 'scene',
       message: sceneDesc,
       timestamp: Date.now()
     });
+  }
+
+  /**
+   * Build full mystery context string for AI prompts
+   * @returns {string} Formatted mystery context
+   */
+  buildMysteryContext() {
+    const { campaign, currentMysteryId } = getState();
+    const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
+
+    if (!mystery) return '';
+
+    const parts = [];
+
+    // Basic mystery info
+    parts.push(`ZÁHADA: ${mystery.name || 'Nepojmenovaná záhada'}`);
+    if (mystery.concept) parts.push(`KONCEPT: ${mystery.concept}`);
+    if (mystery.hook) parts.push(`NÁVNADA: ${mystery.hook}`);
+
+    // Monster
+    if (mystery.monster) {
+      const m = mystery.monster;
+      parts.push('');
+      parts.push(`PŘÍŠERA: ${m.name || 'Neznámá'} (${m.type || 'neznámý typ'})`);
+      if (m.motivation) parts.push(`- Motivace: ${m.motivation}`);
+      if (m.description) parts.push(`- Popis: ${m.description}`);
+      if (m.powers?.length) parts.push(`- Schopnosti: ${m.powers.join(', ')}`);
+      if (m.weakness) parts.push(`- Slabina: ${m.weakness}`);
+      if (m.harm != null) parts.push(`- Výdrž: ${m.harm}${m.armor ? `, Zbroj: ${m.armor}` : ''}`);
+    }
+
+    // Bystanders
+    if (mystery.bystanders?.length) {
+      parts.push('');
+      parts.push('PŘIHLÍŽEJÍCÍ:');
+      for (const b of mystery.bystanders) {
+        parts.push(`- ${b.name} (${b.type || 'bystander'}) — ${b.description || b.motivation || 'bez popisu'}`);
+      }
+    }
+
+    // Locations
+    if (mystery.locations?.length) {
+      parts.push('');
+      parts.push('LOKACE:');
+      for (const loc of mystery.locations) {
+        parts.push(`- ${loc.name} (${loc.type || 'lokace'}) — ${loc.description || 'bez popisu'}`);
+      }
+    }
+
+    // Countdown
+    if (mystery.countdown?.steps?.length) {
+      const cd = mystery.countdown;
+      const currentStep = cd.currentStep || 0;
+      const phaseNames = ['Den', 'Příšeří', 'Západ', 'Soumrak', 'Noc', 'Půlnoc'];
+      parts.push('');
+      parts.push(`ODPOČET (fáze ${currentStep + 1}/${cd.steps.length}):`);
+      cd.steps.forEach((step, i) => {
+        const marker = i < currentStep ? ' ✓' : i === currentStep ? ' [AKTUÁLNÍ]' : '';
+        const phaseName = phaseNames[i] || `Krok ${i + 1}`;
+        parts.push(`${i + 1}. ${phaseName}: ${step}${marker}`);
+      });
+    }
+
+    return parts.join('\n');
+  }
+
+  /**
+   * Build recent session history for AI context
+   * @param {number} maxEntries - Max log entries to include
+   * @returns {string} Formatted history
+   */
+  buildRecentHistory(maxEntries = 15) {
+    const recent = this.sessionLog.slice(-maxEntries);
+    if (recent.length === 0) return '';
+
+    return recent.map(entry => {
+      switch (entry.type) {
+        case 'player':
+          return `[${entry.hunter}]: ${entry.message}`;
+        case 'gm':
+          return `[Keeper]: ${entry.message}`;
+        case 'npc':
+          return `[${entry.npc}]: ${entry.message}`;
+        case 'scene':
+          return `[Scéna]: ${entry.message}`;
+        case 'ambient':
+          return `[Atmosféra]: ${entry.message}`;
+        case 'consequence':
+          return `[Důsledek]: ${entry.message}`;
+        default:
+          return `[Systém]: ${entry.message}`;
+      }
+    }).join('\n');
   }
 
   /**
@@ -242,6 +339,11 @@ class GMEngine {
     // 1. Parse action
     const parsed = parsePlayerAction(actionText);
 
+    // Build context for AI calls
+    const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
+    const mysteryContext = this.buildMysteryContext();
+    const recentHistory = this.buildRecentHistory(15);
+
     // 2. Determine if move is triggered
     if (parsed.move) {
       console.log(`[GM Engine] Move detected: ${parsed.move}`);
@@ -254,8 +356,8 @@ class GMEngine {
         return;
       }
 
-      // 3. Narrate outcome
-      const narrative = await narrateAction(parsed, result);
+      // 3. Narrate outcome with context
+      const narrative = await narrateAction(parsed, result, { mysteryContext, recentHistory });
 
       // 4. Apply consequences if auto-apply enabled
       if (this.settings.autoApplyMechanics) {
@@ -286,11 +388,13 @@ class GMEngine {
     } else {
       // Just narrative response (no move)
       const scene = getCurrentScene();
-      const mystery = campaign.mysteries.find(m => m.id === getState().currentMysteryId);
 
       const response = await generateGMResponse(actionText, {
         scene,
-        mystery
+        mystery,
+        mysteryContext,
+        recentHistory,
+        hunterName: hunter?.name
       });
 
       this.addToSessionLog({
@@ -366,9 +470,11 @@ class GMEngine {
       });
 
       if (shouldReact) {
+        const recentHistory = this.buildRecentHistory(10);
         const response = await generateNPCResponse(npcId, {
           playerAction: actionText,
-          situation: 'Player action in scene'
+          situation: 'Player action in scene',
+          recentHistory
         });
 
         if (response) {
@@ -409,8 +515,13 @@ class GMEngine {
       return;
     }
 
-    // Generate ambient event
-    const event = await generateAmbientEvent(scene, mystery);
+    // Set timestamp BEFORE async call to prevent concurrent generations
+    this.lastAmbientEvent = now;
+
+    // Generate ambient event with mystery context + history to avoid repetition
+    const mysteryContext = this.buildMysteryContext();
+    const recentHistory = this.buildRecentHistory(10);
+    const event = await generateAmbientEvent(scene, mystery, { mysteryContext, recentHistory });
 
     if (event) {
       this.addToSessionLog({
@@ -418,8 +529,6 @@ class GMEngine {
         message: event,
         timestamp: Date.now()
       });
-
-      this.lastAmbientEvent = now;
     }
   }
 
@@ -427,30 +536,48 @@ class GMEngine {
    * Process NPC autonomous behaviors
    */
   async processNPCBehaviors() {
-    const scene = getCurrentScene();
-    const { campaign, currentMysteryId } = getState();
-    const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
+    const now = Date.now();
 
-    if (!mystery || !scene.npcsPresent?.length) {
-      return;
-    }
+    // Concurrency guard — only one NPC behavior at a time
+    if (this.npcBehaviorInProgress) return;
 
-    // Randomly pick an NPC to act (low frequency)
-    if (Math.random() > 0.95) { // 5% chance per loop iteration
-      const npcId = scene.npcsPresent[Math.floor(Math.random() * scene.npcsPresent.length)];
+    // Global cooldown 30s between autonomous NPC actions
+    if (now - this.lastNPCBehavior < 30000) return;
 
-      const behavior = await determineNPCBehavior(npcId, {
-        description: 'Current scene',
-        tension: scene.tension
-      });
+    // 5% chance per loop iteration
+    if (Math.random() > 0.95) {
+      const scene = getCurrentScene();
+      const { campaign, currentMysteryId } = getState();
+      const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
 
-      if (behavior) {
-        this.addToSessionLog({
-          type: 'npc',
-          npc: behavior.npcName,
-          message: behavior.action,
-          timestamp: Date.now()
+      if (!mystery || !scene.npcsPresent?.length) {
+        return;
+      }
+
+      // Set guards BEFORE async call to prevent concurrent generations
+      this.npcBehaviorInProgress = true;
+      this.lastNPCBehavior = now;
+
+      try {
+        const npcId = scene.npcsPresent[Math.floor(Math.random() * scene.npcsPresent.length)];
+        const recentHistory = this.buildRecentHistory(10);
+
+        const behavior = await determineNPCBehavior(npcId, {
+          description: 'Current scene',
+          tension: scene.tension,
+          recentHistory
         });
+
+        if (behavior) {
+          this.addToSessionLog({
+            type: 'npc',
+            npc: behavior.npcName,
+            message: behavior.action,
+            timestamp: Date.now()
+          });
+        }
+      } finally {
+        this.npcBehaviorInProgress = false;
       }
     }
   }
