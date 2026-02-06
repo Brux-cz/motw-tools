@@ -3,7 +3,7 @@
  */
 
 import { showModal, hideModal } from './modals.js';
-import { getSettings, updateSettings, getState, getWhispererSettings, updateWhispererSettings } from '../state/store.js';
+import { getSettings, updateSettings, getState } from '../state/store.js';
 import { testApiKey, getAvailableModels } from '../ai/client.js';
 import { escapeHtml } from '../../utils/html.js';
 
@@ -13,14 +13,6 @@ import { escapeHtml } from '../../utils/html.js';
  */
 export function showSettingsModal(initialTab = 'general') {
   const settings = getSettings();
-  const { campaign } = getState();
-  const autonomous = campaign?.aiAutonomous || {};
-  const currentMysteryId = campaign?.currentMysteryId;
-  const whispererSettings = currentMysteryId ? getWhispererSettings(currentMysteryId) : {
-    enabled: false,
-    idleTimeout: 30000,
-    categories: ['world', 'people', 'environment', 'news', 'clues']
-  };
 
   const content = `
     <div class="settings-container">
@@ -40,23 +32,7 @@ export function showSettingsModal(initialTab = 'general') {
             initialTab === 'ai' ? 'text-white border-b-2 border-red-700' : 'text-gray-400 hover:text-gray-200'
           }"
         >
-          AI Keeper
-        </button>
-        <button
-          id="settings-tab-autonomous"
-          class="settings-tab pb-2 px-1 text-sm font-semibold transition ${
-            initialTab === 'autonomous' ? 'text-white border-b-2 border-red-700' : 'text-gray-400 hover:text-gray-200'
-          }"
-        >
-          Autonomní AI
-        </button>
-        <button
-          id="settings-tab-whisperer"
-          class="settings-tab pb-2 px-1 text-sm font-semibold transition ${
-            initialTab === 'whisperer' ? 'text-white border-b-2 border-red-700' : 'text-gray-400 hover:text-gray-200'
-          }"
-        >
-          Příběh
+          AI
         </button>
       </div>
 
@@ -198,352 +174,6 @@ export function showSettingsModal(initialTab = 'general') {
             </p>
           </div>
 
-          <!-- Auto Actions -->
-          <div>
-            <div class="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="setting-auto-actions"
-                ${settings.ai?.autoActions !== false ? 'checked' : ''}
-                class="w-4 h-4 bg-neutral-800 border border-white/20 rounded"
-              />
-              <span class="text-sm text-gray-300">Automaticky vykonávat AI akce</span>
-            </div>
-            <p class="text-xs text-gray-500 mt-1 ml-7">
-              Pokud vypnuto, AI může jen navrhovat akce (bude implementováno)
-            </p>
-          </div>
-
-          <!-- Keeper Autonomy Section -->
-          <div class="mt-8 pt-6 border-t border-white/10">
-            <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <span class="material-symbols-outlined text-blue-400">psychology</span>
-              AI Keeper Autonomy
-            </h3>
-
-            <!-- Enable Keeper -->
-            <div class="mb-4">
-              <div class="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="setting-keeper-enabled"
-                  ${campaign?.aiKeeper?.enabled !== false ? 'checked' : ''}
-                  class="w-4 h-4 bg-neutral-800 border border-white/20 rounded"
-                />
-                <span class="text-sm text-gray-300 font-semibold">Povolit AI Keeper</span>
-              </div>
-              <p class="text-xs text-gray-500 mt-1 ml-7">
-                AI Keeper koordinuje všechny AI subsystémy a rozhoduje co dělat
-              </p>
-            </div>
-
-            <!-- Autonomy Level -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-300 mb-2">
-                Autonomy Level: <span id="autonomy-level-label">${campaign?.aiKeeper?.autonomyLevel || 'medium'}</span>
-              </label>
-              <input
-                type="range"
-                id="setting-autonomy-level"
-                min="0"
-                max="3"
-                step="1"
-                value="${['low', 'medium', 'high', 'full'].indexOf(campaign?.aiKeeper?.autonomyLevel || 'medium')}"
-                class="w-full"
-              />
-              <div class="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Low</span>
-                <span>Medium</span>
-                <span>High</span>
-                <span>Full</span>
-              </div>
-              <p class="text-xs text-gray-500 mt-2">
-                <strong>Low:</strong> Vše vyžaduje schválení<br>
-                <strong>Medium:</strong> Bezpečné akce automaticky, kritické vyžadují review<br>
-                <strong>High:</strong> Většina akcí automaticky, jen velmi kritické vyžadují review<br>
-                <strong>Full:</strong> AI má plnou kontrolu (experimental)
-              </p>
-            </div>
-
-            <!-- Max Actions Per Hour -->
-            <div class="mt-4">
-              <label class="block text-sm font-semibold text-gray-300 mb-2">
-                Max akcí za hodinu
-              </label>
-              <input
-                type="number"
-                id="setting-max-actions-hour"
-                value="${campaign?.aiKeeper?.maxActionsPerHour || 10}"
-                min="1"
-                max="50"
-                class="w-full bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
-              />
-              <p class="text-xs text-gray-500 mt-1">
-                Frequency limit pro bezpečnost (1-50)
-              </p>
-            </div>
-
-            <!-- Cooldown Between Actions -->
-            <div class="mt-4">
-              <label class="block text-sm font-semibold text-gray-300 mb-2">
-                Cooldown mezi akcemi (sekundy)
-              </label>
-              <input
-                type="number"
-                id="setting-cooldown"
-                value="${(campaign?.aiKeeper?.cooldownBetweenActions || 60000) / 1000}"
-                min="10"
-                max="300"
-                step="10"
-                class="w-full bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
-              />
-              <p class="text-xs text-gray-500 mt-1">
-                Minimální doba mezi akcemi (10-300s)
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Autonomous Tab -->
-      <div id="settings-autonomous" class="${initialTab === 'autonomous' ? '' : 'hidden'}">
-        <div class="space-y-4">
-          <!-- Enable Autonomous -->
-          <div>
-            <div class="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="setting-autonomous-enabled"
-                ${autonomous.enabled ? 'checked' : ''}
-                class="w-4 h-4 bg-neutral-800 border border-white/20 rounded"
-              />
-              <span class="text-sm text-gray-300 font-semibold">Povolit autonomní režim</span>
-            </div>
-            <p class="text-xs text-gray-500 mt-1 ml-7">
-              AI bude vytvářet obsah na pozadí když nejsi aktivní
-            </p>
-          </div>
-
-          <!-- Idle Timeout -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-300 mb-2">
-              Idle timeout (minuty)
-            </label>
-            <input
-              type="range"
-              id="setting-idle-timeout"
-              min="1"
-              max="10"
-              step="1"
-              value="${(autonomous.idleTimeout || 180000) / 60000}"
-              class="w-full"
-            />
-            <div class="flex justify-between text-xs text-gray-500 mt-1">
-              <span>1 min</span>
-              <span id="idle-timeout-value">${(autonomous.idleTimeout || 180000) / 60000} min</span>
-              <span>10 min</span>
-            </div>
-            <p class="text-xs text-gray-500 mt-1">
-              Jak dlouho musíš být neaktivní než se spustí agent
-            </p>
-          </div>
-
-          <!-- Max Work Items -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-300 mb-2">
-              Max AI práce na session
-            </label>
-            <input
-              type="number"
-              id="setting-max-work-items"
-              value="${autonomous.maxWorkItemsPerSession || 5}"
-              min="1"
-              max="10"
-              step="1"
-              class="w-full bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
-            />
-            <p class="text-xs text-gray-500 mt-1">
-              Maximální počet nevyřízených AI prací (1-10)
-            </p>
-          </div>
-
-          <!-- Creativity Level -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-300 mb-2">
-              Úroveň kreativity
-            </label>
-            <select
-              id="setting-creativity-level"
-              class="w-full bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
-            >
-              <option value="low" ${autonomous.creativityLevel === 'low' ? 'selected' : ''}>
-                Nízká - Konzervativní, bezpečná
-              </option>
-              <option value="medium" ${!autonomous.creativityLevel || autonomous.creativityLevel === 'medium' ? 'selected' : ''}>
-                Střední - Vyvážená (doporučeno)
-              </option>
-              <option value="high" ${autonomous.creativityLevel === 'high' ? 'selected' : ''}>
-                Vysoká - Odvážná, překvapivá
-              </option>
-            </select>
-            <p class="text-xs text-gray-500 mt-1">
-              Jak kreativní a překvapivá má být AI
-            </p>
-          </div>
-
-          <!-- Info Box -->
-          <div class="bg-blue-900/20 border border-blue-700/30 rounded-lg p-4">
-            <div class="flex items-start gap-2">
-              <span class="material-symbols-outlined text-blue-400 text-sm mt-0.5">info</span>
-              <div class="text-xs text-gray-300">
-                <strong class="text-blue-400">Jak to funguje:</strong>
-                <ul class="mt-2 space-y-1 list-disc list-inside">
-                  <li>AI běží na pozadí když nejsi aktivní</li>
-                  <li>Vytváří lore, příběhy, poznámky a události</li>
-                  <li>Všechno je ve formě návrhů - musíš schválit</li>
-                  <li>Nic se nemění v hře bez tvého svolení</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Whisperer Tab -->
-      <div id="settings-whisperer" class="${initialTab === 'whisperer' ? '' : 'hidden'}">
-        <div class="space-y-4">
-          <!-- Enable Whisperer -->
-          <div>
-            <div class="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="setting-whisperer-enabled"
-                ${whispererSettings.enabled ? 'checked' : ''}
-                class="w-4 h-4 bg-neutral-800 border border-white/20 rounded"
-              />
-              <span class="text-sm text-gray-300 font-semibold">Povolit automatické whispery</span>
-            </div>
-            <p class="text-xs text-gray-500 mt-1 ml-7">
-              Whisperer automaticky generuje krátké návrhy a inspirace pro příběh
-              po určité době nečinnosti.
-            </p>
-          </div>
-
-          <!-- Idle Timeout -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-300 mb-2">
-              Čas nečinnosti (sekundy): <span id="whisperer-timeout-value">${whispererSettings.idleTimeout / 1000}</span>
-            </label>
-            <input
-              type="range"
-              id="setting-whisperer-timeout"
-              min="10"
-              max="300"
-              step="10"
-              value="${whispererSettings.idleTimeout / 1000}"
-              ${!whispererSettings.enabled ? 'disabled' : ''}
-              class="w-full"
-            />
-            <div class="flex justify-between text-xs text-gray-500 mt-1">
-              <span>10 s</span>
-              <span>300 s</span>
-            </div>
-          </div>
-
-          <!-- Categories -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-300 mb-3">
-              Kategorie whisperů
-            </label>
-
-            <div class="space-y-2">
-              <div class="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="setting-whisperer-cat-world"
-                  ${whispererSettings.categories.includes('world') ? 'checked' : ''}
-                  ${!whispererSettings.enabled ? 'disabled' : ''}
-                  class="w-4 h-4 bg-neutral-800 border border-white/20 rounded"
-                />
-                <div>
-                  <div class="text-sm text-gray-300">Svět</div>
-                  <div class="text-xs text-gray-500">Ambientní události ve světě</div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="setting-whisperer-cat-people"
-                  ${whispererSettings.categories.includes('people') ? 'checked' : ''}
-                  ${!whispererSettings.enabled ? 'disabled' : ''}
-                  class="w-4 h-4 bg-neutral-800 border border-white/20 rounded"
-                />
-                <div>
-                  <div class="text-sm text-gray-300">Lidé</div>
-                  <div class="text-xs text-gray-500">Aktivity NPC a postav</div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="setting-whisperer-cat-environment"
-                  ${whispererSettings.categories.includes('environment') ? 'checked' : ''}
-                  ${!whispererSettings.enabled ? 'disabled' : ''}
-                  class="w-4 h-4 bg-neutral-800 border border-white/20 rounded"
-                />
-                <div>
-                  <div class="text-sm text-gray-300">Prostředí</div>
-                  <div class="text-xs text-gray-500">Počasí, smyslové detaily</div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="setting-whisperer-cat-news"
-                  ${whispererSettings.categories.includes('news') ? 'checked' : ''}
-                  ${!whispererSettings.enabled ? 'disabled' : ''}
-                  class="w-4 h-4 bg-neutral-800 border border-white/20 rounded"
-                />
-                <div>
-                  <div class="text-sm text-gray-300">Zprávy</div>
-                  <div class="text-xs text-gray-500">Rádio, TV, sociální média</div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="setting-whisperer-cat-clues"
-                  ${whispererSettings.categories.includes('clues') ? 'checked' : ''}
-                  ${!whispererSettings.enabled ? 'disabled' : ''}
-                  class="w-4 h-4 bg-neutral-800 border border-white/20 rounded"
-                />
-                <div>
-                  <div class="text-sm text-gray-300">Náznaky</div>
-                  <div class="text-xs text-gray-500">Jemné stopy a vodítka</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Info Box -->
-          <div class="bg-purple-900/20 border border-purple-700/30 rounded-lg p-4">
-            <div class="flex items-start gap-2">
-              <span class="material-symbols-outlined text-purple-400 text-sm mt-0.5">auto_awesome</span>
-              <div class="text-xs text-gray-300">
-                <strong class="text-purple-400">Jak to funguje:</strong>
-                <ul class="mt-2 space-y-1 list-disc list-inside">
-                  <li>Po zadané době nečinnosti se vygeneruje krátký whisper (2-3 věty)</li>
-                  <li>Whisper se automaticky přidá do Content Pool</li>
-                  <li>Můžeš ho schválit a přidat do příběhu nebo ignorovat</li>
-                  <li>Whispery jsou jemné návrhy a inspirace, ne radikální změny</li>
-                </ul>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -571,53 +201,12 @@ export function showSettingsModal(initialTab = 'general') {
     // Initialize tab switching
     initTabSwitching();
 
-    // Initialize idle timeout slider
-    const idleTimeoutSlider = document.getElementById('setting-idle-timeout');
-    const idleTimeoutValue = document.getElementById('idle-timeout-value');
-    if (idleTimeoutSlider && idleTimeoutValue) {
-      idleTimeoutSlider.addEventListener('input', () => {
-        idleTimeoutValue.textContent = idleTimeoutSlider.value + ' min';
-      });
-    }
-
     // Initialize temperature slider
     const temperatureSlider = document.getElementById('setting-temperature');
     const temperatureValue = document.getElementById('temperature-value');
     if (temperatureSlider && temperatureValue) {
       temperatureSlider.addEventListener('input', () => {
         temperatureValue.textContent = parseFloat(temperatureSlider.value).toFixed(1);
-      });
-    }
-
-    // Initialize autonomy level slider
-    const autonomyLevelSlider = document.getElementById('setting-autonomy-level');
-    const autonomyLevelLabel = document.getElementById('autonomy-level-label');
-    if (autonomyLevelSlider && autonomyLevelLabel) {
-      autonomyLevelSlider.addEventListener('input', () => {
-        const levels = ['low', 'medium', 'high', 'full'];
-        autonomyLevelLabel.textContent = levels[parseInt(autonomyLevelSlider.value)];
-      });
-    }
-
-    // Initialize whisperer timeout slider
-    const whispererTimeoutSlider = document.getElementById('setting-whisperer-timeout');
-    const whispererTimeoutValue = document.getElementById('whisperer-timeout-value');
-    if (whispererTimeoutSlider && whispererTimeoutValue) {
-      whispererTimeoutSlider.addEventListener('input', () => {
-        whispererTimeoutValue.textContent = whispererTimeoutSlider.value;
-      });
-    }
-
-    // Whisperer enabled toggle - enable/disable other controls
-    const whispererEnabled = document.getElementById('setting-whisperer-enabled');
-    if (whispererEnabled) {
-      whispererEnabled.addEventListener('change', (e) => {
-        const timeoutSlider = document.getElementById('setting-whisperer-timeout');
-        const categoryInputs = document.querySelectorAll('[id^="setting-whisperer-cat-"]');
-
-        const isEnabled = e.target.checked;
-        if (timeoutSlider) timeoutSlider.disabled = !isEnabled;
-        categoryInputs.forEach(input => input.disabled = !isEnabled);
       });
     }
 
@@ -653,27 +242,8 @@ function initTabSwitching() {
     ai: {
       btn: document.getElementById('settings-tab-ai'),
       content: document.getElementById('settings-ai')
-    },
-    autonomous: {
-      btn: document.getElementById('settings-tab-autonomous'),
-      content: document.getElementById('settings-autonomous')
-    },
-    whisperer: {
-      btn: document.getElementById('settings-tab-whisperer'),
-      content: document.getElementById('settings-whisperer')
     }
   };
-
-  // Verify all elements exist
-  const allElementsExist = Object.values(tabs).every(tab => tab.btn && tab.content);
-  if (!allElementsExist) {
-    console.error('Settings tabs: Not all tab elements found in DOM');
-    console.log('Tab elements:', {
-      general: { btn: !!tabs.general.btn, content: !!tabs.general.content },
-      ai: { btn: !!tabs.ai.btn, content: !!tabs.ai.content },
-      autonomous: { btn: !!tabs.autonomous.btn, content: !!tabs.autonomous.content }
-    });
-  }
 
   Object.entries(tabs).forEach(([tabName, tab]) => {
     if (tab.btn && tab.content) {
@@ -776,7 +346,6 @@ function handleSaveSettings() {
   const temperature = parseFloat(document.getElementById('setting-temperature')?.value || '0.7');
   const maxTokens = parseInt(document.getElementById('setting-max-tokens')?.value || '4000');
   const maxHistoryMessages = parseInt(document.getElementById('setting-max-history')?.value || '50');
-  const autoActions = document.getElementById('setting-auto-actions')?.checked;
 
   const newSettings = {
     autoSave,
@@ -788,73 +357,12 @@ function handleSaveSettings() {
       temperature,
       maxTokens,
       maxHistoryMessages,
-      autoActions: autoActions !== false,
+      autoActions: true,
       requireConfirmation: false
     }
   };
 
   updateSettings(newSettings);
-
-  // Keeper settings (saved separately to campaign)
-  const keeperEnabled = document.getElementById('setting-keeper-enabled')?.checked !== false;
-  const autonomyLevelIndex = parseInt(document.getElementById('setting-autonomy-level')?.value || '1');
-  const autonomyLevel = ['low', 'medium', 'high', 'full'][autonomyLevelIndex];
-  const maxActionsPerHour = parseInt(document.getElementById('setting-max-actions-hour')?.value || '10');
-  const cooldownBetweenActions = parseInt(document.getElementById('setting-cooldown')?.value || '60') * 1000;
-
-  import('../state/store.js').then(({ updateCampaign, getState }) => {
-    const { campaign } = getState();
-    if (campaign) {
-      updateCampaign({
-        aiKeeper: {
-          ...campaign.aiKeeper,
-          enabled: keeperEnabled,
-          autonomyLevel,
-          maxActionsPerHour,
-          cooldownBetweenActions
-        }
-      });
-    }
-  });
-
-  // Autonomous settings (saved separately to campaign)
-  const autonomousEnabled = document.getElementById('setting-autonomous-enabled')?.checked;
-  const idleTimeout = parseInt(document.getElementById('setting-idle-timeout')?.value || '3') * 60000;
-  const maxWorkItems = parseInt(document.getElementById('setting-max-work-items')?.value || '5');
-  const creativityLevel = document.getElementById('setting-creativity-level')?.value || 'medium';
-
-  import('../state/store.js').then(({ updateAutonomousSettings }) => {
-    updateAutonomousSettings({
-      enabled: autonomousEnabled,
-      idleTimeout,
-      maxWorkItemsPerSession: maxWorkItems,
-      creativityLevel
-    });
-  });
-
-  // Whisperer settings (saved separately to mystery)
-  const whispererEnabled = document.getElementById('setting-whisperer-enabled')?.checked || false;
-  const whispererTimeout = parseInt(document.getElementById('setting-whisperer-timeout')?.value || '30') * 1000;
-
-  const whispererCategories = [];
-  ['world', 'people', 'environment', 'news', 'clues'].forEach(cat => {
-    const checkbox = document.getElementById(`setting-whisperer-cat-${cat}`);
-    if (checkbox?.checked) {
-      whispererCategories.push(cat);
-    }
-  });
-
-  import('../state/store.js').then(({ updateWhispererSettings, getState }) => {
-    const { campaign } = getState();
-    const currentMysteryId = campaign?.currentMysteryId;
-    if (currentMysteryId) {
-      updateWhispererSettings(currentMysteryId, {
-        enabled: whispererEnabled,
-        idleTimeout: whispererTimeout,
-        categories: whispererCategories
-      });
-    }
-  });
 
   hideModal();
 

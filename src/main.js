@@ -39,9 +39,6 @@ async function init() {
     // Initialize header buttons
     initHeaderButtons();
 
-    // Initialize autonomous agent components
-    initAutonomousAgent();
-
     console.log('✓ UI components initialized');
 
     // Subscribe to state changes
@@ -302,68 +299,6 @@ function handleBeforeUnload(e) {
       saveCampaign(state.campaign);
     });
   }
-}
-
-/**
- * Initialize autonomous agent
- */
-function initAutonomousAgent() {
-  console.log('🤖 Initializing autonomous agent...');
-
-  // Initialize idle detection
-  import('./modules/ai/autonomous/idle-detector.js').then(({ initIdleDetection, onIdleTrigger }) => {
-    initIdleDetection();
-
-    // Set up idle trigger callback - use keeper as orchestrator
-    onIdleTrigger(() => {
-      const state = getState();
-
-      // If keeper is enabled, use keeper
-      if (state.campaign?.aiKeeper?.enabled) {
-        import('./modules/ai/keeper/keeper-core.js').then(({ keeperAI }) => {
-          keeperAI.runCycle();
-        });
-      } else {
-        // Legacy: use autonomous agent directly
-        import('./modules/ai/autonomous/agent-core.js').then(({ runAgentCycle }) => {
-          runAgentCycle();
-        });
-      }
-    });
-
-    console.log('✓ Idle detection initialized');
-  }).catch(error => {
-    console.error('Failed to initialize idle detection:', error);
-  });
-
-  // Initialize work notifications
-  import('./modules/ui/autonomous/work-notification.js').then(({ initWorkNotifications }) => {
-    initWorkNotifications();
-    console.log('✓ Work notifications initialized');
-  }).catch(error => {
-    console.error('Failed to initialize work notifications:', error);
-  });
-
-  // Initialize thinking panel
-  import('./modules/ui/keeper/thinking-panel.js').then(({ initThinkingPanel }) => {
-    initThinkingPanel();
-    console.log('✓ Thinking panel initialized');
-  }).catch(error => {
-    console.error('Failed to initialize thinking panel:', error);
-  });
-
-  // Start autonomous agent if enabled
-  setTimeout(() => {
-    const state = getState();
-    if (state.campaign?.aiAutonomous?.enabled) {
-      import('./modules/ai/autonomous/agent-core.js').then(({ startAutonomousAgent }) => {
-        startAutonomousAgent();
-        console.log('✓ Autonomous agent started');
-      });
-    }
-  }, 2000); // Wait 2 seconds after init
-
-  console.log('✓ Autonomous agent components initialized');
 }
 
 /**

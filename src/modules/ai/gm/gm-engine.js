@@ -3,7 +3,6 @@
  * Main engine for running AI GM mode
  */
 import { getState } from '../../state/store.js';
-import { logThinking } from '../keeper/thinking-logger.js';
 import { parsePlayerAction } from './player-input-parser.js';
 import { resolveMove, applyHarm, applyCondition } from './mechanics-engine.js';
 import { generateNPCResponse, shouldNPCIntervene, determineNPCBehavior } from './npc-engine.js';
@@ -39,20 +38,9 @@ class GMEngine {
       narrativeStyle: 'balanced', // 'minimal', 'balanced', 'verbose'
       npcAutonomy: 'high', // 'low', 'medium', 'high'
       ambientEventFrequency: 60000, // ms between ambient events
-      combatPacing: 'realistic', // 'cinematic', 'realistic'
-
-      // Novel Mode settings
-      novelMode: {
-        enabled: false, // Default OFF - users opt-in
-        narrativeLength: 'medium', // 'short', 'medium', 'long'
-        literaryQuality: 'balanced', // 'balanced', 'high', 'poetic'
-        memoryDepth: 'session', // 'recent', 'session', 'full'
-        storyPlanning: true, // Enable forward planning
-        autoAdvanceActs: true // Auto-detect act transitions
-      }
+      combatPacing: 'realistic' // 'cinematic', 'realistic'
     };
     this.lastAmbientEvent = 0;
-    this.lastPlanningCheck = 0;
 
     // Activity tracking for adaptive rate limiting
     this.activityTracking = {
@@ -122,11 +110,6 @@ class GMEngine {
 
     this.currentScene = initializeScene(location, hunters, []);
 
-    // Initialize Novel Mode systems if enabled
-    if (this.settings.novelMode?.enabled && currentMysteryId) {
-      this.initializeNovelModeSystems(currentMysteryId);
-    }
-
     // Generate opening scene description
     const sceneDesc = await generateSceneDescription(location, 'mysterious', 5);
     this.addToSessionLog({
@@ -134,29 +117,6 @@ class GMEngine {
       message: sceneDesc,
       timestamp: Date.now()
     });
-  }
-
-  /**
-   * Initialize Novel Mode systems (narrative memory, story arc, etc.)
-   */
-  initializeNovelModeSystems(mysteryId) {
-    console.log('[GM Engine] Initializing Novel Mode systems...');
-
-    // Import and initialize systems
-    import('./narrative-memory.js').then(({ addToNarrativeMemory }) => {
-      // Initialize with opening beat
-      addToNarrativeMemory(mysteryId, {
-        type: 'story_start',
-        summary: 'Mystery begins',
-        significance: 'high'
-      });
-    });
-
-    import('./story-arc-manager.js').then(({ initializeStoryArc }) => {
-      initializeStoryArc(mysteryId);
-    });
-
-    console.log('[GM Engine] Novel Mode systems initialized');
   }
 
   /**
@@ -255,7 +215,6 @@ class GMEngine {
         }
       } catch (error) {
         console.error('[GM Engine] Error in process loop:', error);
-        logThinking('GM Engine Error', error.message);
       }
     }, 1000); // Run every second
   }
@@ -324,17 +283,6 @@ class GMEngine {
         decreaseTension(0.5);
       }
 
-      // 7. Novel Mode: Record to narrative memory and story arc
-      if (this.settings.novelMode?.enabled && currentMysteryId) {
-        this.recordNovelModeEvent(currentMysteryId, {
-          type: parsed.move || 'action',
-          summary: narrative.substring(0, 200),
-          significance: result.outcome === 'failure' ? 'medium' : 'low',
-          roll: result,
-          relatedNPCs: [],
-          relatedLocations: [this.currentScene?.location?.name].filter(Boolean)
-        }, parsed, result);
-      }
     } else {
       // Just narrative response (no move)
       const scene = getCurrentScene();
@@ -505,92 +453,6 @@ class GMEngine {
         });
       }
     }
-  }
-
-  /**
-   * Record Novel Mode event (memory + story arc)
-   */
-  recordNovelModeEvent(mysteryId, eventData, parsedAction, result) {
-    const scene = this.currentScene;
-
-    // Add to narrative memory
-    import('./narrative-memory.js').then(({ addToNarrativeMemory }) => {
-      addToNarrativeMemory(mysteryId, eventData);
-    });
-
-    // Detect and record story beat
-    import('./story-arc-manager.js').then(({ recordStoryBeat, detectBeatType }) => {
-      const beatType = detectBeatType({
-        move: parsedAction.move,
-        outcome: result.outcome,
-        tension: scene?.tension || 5,
-        isMonsterEncounter: false, // TODO: Detect monster encounters
-        isNPCIntroduction: false,
-        isClueDiscovery: parsedAction.move === 'investigate_a_mystery'
-      });
-
-      recordStoryBeat(mysteryId, {
-        type: beatType,
-        name: `${parsedAction.move || 'Action'}: ${result.outcome}`,
-        description: eventData.summary,
-        outcomes: [result.outcome]
-      });
-    });
-
-    // Check for story planning triggers
-    this.checkPlanningTriggers(mysteryId);
-
-    // Check for planned beat triggers
-    import('./story-planner.js').then(({ checkBeatTriggers, executePlannedBeat }) => {
-      const triggeredBeats = checkBeatTriggers(mysteryId, {
-        actionText: parsedAction.raw,
-        location: scene?.location?.name
-      });
-
-      triggeredBeats.forEach(async (beat) => {
-        const execution = await executePlannedBeat(mysteryId, beat.id);
-        if (execution) {
-          this.addToSessionLog({
-            type: 'planned_beat',
-            message: execution.narrative,
-            beat: execution.beat,
-            timestamp: Date.now()
-          });
-        }
-      });
-    });
-  }
-
-  /**
-   * Check if story planning should trigger
-   */
-  checkPlanningTriggers(mysteryId) {
-    const now = Date.now();
-
-    // Run planning max once per minute
-    if (now - this.lastPlanningCheck < 60000) {
-      return;
-    }
-
-    if (!this.settings.novelMode?.storyPlanning) {
-      return;
-    }
-
-    import('./story-arc-manager.js').then(({ getBeatsSinceLastPlan }) => {
-      const beatsSinceLastPlan = getBeatsSinceLastPlan(mysteryId);
-
-      // Trigger planning every 3 beats
-      if (beatsSinceLastPlan >= 3) {
-        console.log('[GM Engine] Triggering story planning...');
-        this.lastPlanningCheck = now;
-
-        import('./story-planner.js').then(({ generateStoryPlan }) => {
-          generateStoryPlan(mysteryId).catch(err => {
-            console.error('[GM Engine] Story planning error:', err);
-          });
-        });
-      }
-    });
   }
 
   /**

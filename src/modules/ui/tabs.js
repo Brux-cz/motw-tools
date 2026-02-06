@@ -4,7 +4,6 @@
 
 import { setState, getState } from '../state/store.js';
 import { renderRulesTab } from '../tabs/rules.js';
-import { renderChatTab } from '../tabs/chat.js';
 
 /**
  * Initialize tab switching
@@ -29,13 +28,6 @@ export function initTabs() {
  */
 export function switchTab(tabId) {
   const { currentTab } = getState();
-
-  // P0 #5: Cleanup previous tab before switching
-  if (currentTab === 'keeper') {
-    import('./keeper/thinking-panel.js').then(({ cleanupThinkingPanel }) => {
-      cleanupThinkingPanel();
-    });
-  }
 
   // Hide current tab
   const currentTabEl = document.getElementById(`tab-${currentTab}`);
@@ -65,20 +57,6 @@ export function switchTab(tabId) {
   // Trigger tab-specific render functions
   if (tabId === 'rules') {
     renderRulesTab();
-  } else if (tabId === 'chat') {
-    renderChatTab();
-  } else if (tabId === 'story') {
-    import('./story/story-tab.js').then(({ renderStoryTab }) => {
-      renderStoryTab();
-    });
-  } else if (tabId === 'autonomous') {
-    import('./autonomous/dashboard.js').then(({ renderAutonomousDashboard }) => {
-      renderAutonomousDashboard();
-    });
-  } else if (tabId === 'keeper') {
-    import('./keeper/thinking-panel.js').then(({ initThinkingPanel }) => {
-      initThinkingPanel();
-    });
   } else if (tabId === 'gm') {
     import('./gm/gm-panel.js').then(({ renderGMPanel, attachGMPanelListeners }) => {
       const container = document.getElementById('gm-tab-content');

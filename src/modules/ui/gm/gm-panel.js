@@ -421,9 +421,10 @@ export function attachGMPanelListeners() {
   if (clearLogBtn) {
     clearLogBtn.addEventListener('click', () => {
       if (confirm('Clear session log?')) {
-        const { gmEngine } = require('../../ai/gm/gm-engine.js');
-        gmEngine.clearSessionLog();
-        refreshGMPanel();
+        import('../../ai/gm/gm-engine.js').then(({ gmEngine }) => {
+          gmEngine.clearSessionLog();
+          refreshGMPanel();
+        });
       }
     });
   }

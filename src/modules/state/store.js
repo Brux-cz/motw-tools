@@ -110,49 +110,7 @@ export async function loadCampaignIntoState(campaignId) {
   try {
     const campaign = await loadCampaign(campaignId);
     if (campaign) {
-      let needsSave = false;
-
-      // P0 #2: Migration - Add AI Keeper fields if missing
-      if (!campaign.aiKeeper) {
-        campaign.aiKeeper = {
-          enabled: true,
-          autonomyLevel: 'medium',
-          whitelist: [],
-          blacklist: [],
-          maxActionsPerHour: 10,
-          cooldownBetweenActions: 60000,
-          lastActionTime: null,
-          actionsInLastHour: []
-        };
-        needsSave = true;
-        console.log('🔄 Migration: Added aiKeeper settings');
-      }
-
-      if (!campaign.aiKeeperLog) {
-        campaign.aiKeeperLog = [];
-        needsSave = true;
-        console.log('🔄 Migration: Added aiKeeperLog array');
-      }
-
-      // Migrace: Vypnout whisperer pro existující mysteries
-      if (campaign.mysteries) {
-        campaign.mysteries.forEach(mystery => {
-          if (mystery.whispererSettings && mystery.whispererSettings.enabled === true) {
-            mystery.whispererSettings.enabled = false;
-            needsSave = true;
-            console.log('🔄 Migration: Disabled whisperer for mystery:', mystery.name);
-          }
-        });
-      }
-
       setState({ campaign });
-
-      // Uložit migrované změny
-      if (needsSave) {
-        await saveCampaign(campaign);
-        console.log('🔄 Migration: Campaign saved with migrations applied');
-      }
-
       return campaign;
     }
     throw new Error('Campaign not found');
@@ -176,43 +134,7 @@ export function createNewCampaign(name) {
     locationArchive: [],
     sessionLog: [],
     createdAt: Date.now(),
-    lastModified: Date.now(),
-    aiAutonomous: {
-      enabled: false,
-      idleTimeout: 60000, // 1 minute
-      maxWorkItemsPerSession: 5,
-      creativityLevel: 'medium',
-      lastActivityTime: Date.now(),
-      lastAgentRun: null,
-      agentState: 'idle',
-      workQueue: [],
-      generatedLore: [],
-      generatedStories: [],
-      compiledNotes: [],
-      generatedEvents: [],
-      stats: {
-        totalRuns: 0,
-        totalWorkItems: 0,
-        acceptedItems: 0,
-        rejectedItems: 0,
-        totalTokensUsed: 0,
-        totalInputTokens: 0,
-        totalOutputTokens: 0,
-        estimatedCost: 0,
-        byType: {}
-      }
-    },
-    aiKeeper: {
-      enabled: true,
-      autonomyLevel: 'medium', // low, medium, high, full
-      whitelist: [], // Actions that can auto-execute even on lower autonomy level
-      blacklist: [], // Actions that never auto-execute
-      maxActionsPerHour: 10,
-      cooldownBetweenActions: 60000, // 1 minute
-      lastActionTime: null,
-      actionsInLastHour: []
-    },
-    aiKeeperLog: [] // Thinking log entries
+    lastModified: Date.now()
   };
 
   setState({ campaign });
@@ -267,17 +189,7 @@ export function addMystery(mystery) {
 
   const newMystery = {
     ...mystery,
-    id: generateId(),
-    // Initialize Story Spine arrays
-    contentPool: mystery.contentPool || [],
-    storySpine: mystery.storySpine || [],
-    whispererSettings: mystery.whispererSettings || {
-      enabled: false, // Whisperer vypnutý jako výchozí
-      idleTimeout: 30000, // 30 seconds
-      categories: ['world', 'people', 'environment', 'news', 'clues'],
-      realWorldElements: true,
-      horrorLevel: 'low'
-    }
+    id: generateId()
   };
 
   const mysteries = [...state.campaign.mysteries, newMystery];
@@ -499,235 +411,6 @@ function generateId(prefix = '') {
   return prefix ? `${prefix}-${id}` : id;
 }
 
-// ============================================================================
-// STORY SPINE SYSTEM
-// ============================================================================
-
-/**
- * Add item to Content Pool
- */
-export function addToContentPool(mysteryId, item) {
-  if (!state.campaign) return;
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return;
-
-  const contentPool = mystery.contentPool || [];
-  contentPool.push({
-    ...item,
-    id: item.id || generateId('pool'),
-    mysteryId,
-    createdAt: item.createdAt || Date.now(),
-    status: item.status || 'pending',
-    usedAt: null,
-    spineEntryId: null
-  });
-
-  updateMystery(mysteryId, { contentPool });
-  return item;
-}
-
-/**
- * Update pool item
- */
-export function updatePoolItem(mysteryId, itemId, updates) {
-  if (!state.campaign) return;
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return;
-
-  const contentPool = (mystery.contentPool || []).map(item =>
-    item.id === itemId ? { ...item, ...updates } : item
-  );
-
-  updateMystery(mysteryId, { contentPool });
-}
-
-/**
- * Remove item from pool
- */
-export function removeFromPool(mysteryId, itemId) {
-  if (!state.campaign) return;
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return;
-
-  const contentPool = (mystery.contentPool || []).filter(item => item.id !== itemId);
-
-  updateMystery(mysteryId, { contentPool });
-}
-
-/**
- * Get pool items with optional filters
- */
-export function getPoolItems(mysteryId, filters = {}) {
-  if (!state.campaign) return [];
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return [];
-
-  let items = mystery.contentPool || [];
-
-  // Apply filters
-  if (filters.type) {
-    items = items.filter(item => item.type === filters.type);
-  }
-  if (filters.status) {
-    items = items.filter(item => item.status === filters.status);
-  }
-  if (filters.category) {
-    items = items.filter(item => item.category === filters.category);
-  }
-
-  return items;
-}
-
-/**
- * Add entry to Story Spine
- */
-export function addToStorySpine(mysteryId, entry) {
-  if (!state.campaign) return;
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return;
-
-  const storySpine = mystery.storySpine || [];
-  storySpine.push({
-    ...entry,
-    id: entry.id || generateId('spine'),
-    mysteryId,
-    timestamp: entry.timestamp || Date.now()
-  });
-
-  updateMystery(mysteryId, { storySpine });
-  return entry;
-}
-
-/**
- * Update spine entry
- */
-export function updateSpineEntry(mysteryId, entryId, updates) {
-  if (!state.campaign) return;
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return;
-
-  const storySpine = (mystery.storySpine || []).map(entry =>
-    entry.id === entryId ? { ...entry, ...updates } : entry
-  );
-
-  updateMystery(mysteryId, { storySpine });
-}
-
-/**
- * Remove entry from spine
- */
-export function removeFromSpine(mysteryId, entryId) {
-  if (!state.campaign) return;
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return;
-
-  const storySpine = (mystery.storySpine || []).filter(entry => entry.id !== entryId);
-
-  updateMystery(mysteryId, { storySpine });
-}
-
-/**
- * Get story spine entries with optional session filter
- */
-export function getStorySpine(mysteryId, session = null) {
-  if (!state.campaign) return [];
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return [];
-
-  let entries = mystery.storySpine || [];
-
-  // Filter by session if specified
-  if (session !== null) {
-    entries = entries.filter(entry => entry.session === session);
-  }
-
-  // Sort chronologically
-  return entries.sort((a, b) => a.timestamp - b.timestamp);
-}
-
-/**
- * Move item from Content Pool to Story Spine
- */
-export function usePoolItem(mysteryId, poolItemId, spineData) {
-  if (!state.campaign) return;
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return;
-
-  const poolItem = (mystery.contentPool || []).find(item => item.id === poolItemId);
-  if (!poolItem) return;
-
-  // Create spine entry
-  const spineEntry = {
-    id: generateId('spine'),
-    mysteryId,
-    session: spineData.session || 'now',
-    timestamp: Date.now(),
-    category: spineData.category || poolItem.category || 'world',
-    icon: spineData.icon || '',
-    title: spineData.title || '',
-    content: poolItem.content,
-    sourcePoolId: poolItemId,
-    source: 'pool',
-    metadata: spineData.metadata || {}
-  };
-
-  // Add to spine
-  addToStorySpine(mysteryId, spineEntry);
-
-  // Mark pool item as used
-  updatePoolItem(mysteryId, poolItemId, {
-    status: 'used',
-    usedAt: Date.now(),
-    spineEntryId: spineEntry.id
-  });
-
-  return spineEntry;
-}
-
-/**
- * Get or initialize whisperer settings for mystery
- */
-export function getWhispererSettings(mysteryId) {
-  if (!state.campaign) return null;
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return null;
-
-  return mystery.whispererSettings || {
-    enabled: false, // Whisperer vypnutý jako výchozí
-    idleTimeout: 30000, // 30 seconds
-    categories: ['world', 'people', 'environment', 'news', 'clues'],
-    realWorldElements: true,
-    horrorLevel: 'low'
-  };
-}
-
-/**
- * Update whisperer settings for mystery
- */
-export function updateWhispererSettings(mysteryId, settings) {
-  if (!state.campaign) return;
-
-  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
-  if (!mystery) return;
-
-  const whispererSettings = {
-    ...getWhispererSettings(mysteryId),
-    ...settings
-  };
-
-  updateMystery(mysteryId, { whispererSettings });
-}
-
 /**
  * Set active hunter
  */
@@ -827,27 +510,6 @@ export function updateSettings(updates) {
  */
 export function updateLastActivity() {
   setState({ lastUserActivity: Date.now() });
-}
-
-/**
- * Get autonomous settings
- */
-export function getAutonomousSettings() {
-  return state.campaign?.aiAutonomous || {};
-}
-
-/**
- * Update autonomous settings
- */
-export function updateAutonomousSettings(updates) {
-  if (!state.campaign) return;
-
-  updateCampaign({
-    aiAutonomous: {
-      ...state.campaign.aiAutonomous,
-      ...updates
-    }
-  });
 }
 
 /**
