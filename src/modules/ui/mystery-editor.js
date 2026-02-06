@@ -211,13 +211,11 @@ Odpověz POUZE validním JSON objektem (bez markdown, bez vysvětlení) v tomto 
 }
 
 function buildSectionPrompt(section) {
+  // Only include locked fields as context — unlocked fields should not influence generation
   const lockedSummary = getLockedFieldsSummary();
-  const context = `Kontext záhady:
-- Název: ${mysteryData.name || '(neurčen)'}
-- Koncept: ${mysteryData.concept || '(neurčen)'}
-- Návnada: ${mysteryData.hook || '(neurčena)'}
-- Příšera: ${mysteryData.monster?.name || '(neurčena)'} (${mysteryData.monster?.type || '?'})
-${lockedSummary ? `\n${lockedSummary}` : ''}`;
+  const context = lockedSummary
+    ? `Kontext záhady (pouze zamčená pole, ostatní ignoruj):\n${lockedSummary}`
+    : 'Generuj zcela nový, originální obsah bez vazby na ostatní pole.';
 
   const prompts = {
     monster: `${context}
@@ -242,7 +240,6 @@ Odpověz POUZE validním JSON:
 { "locations": [{ "name": "...", "type": "typ_en", "description": "..." }] }`,
 
     countdown: `${context}
-- Slabina: ${mysteryData.monster?.weakness || '(neurčena)'}
 
 Vygeneruj odpočet (countdown) - 6 fází eskalace. Popisy česky, konkrétní.
 
@@ -263,14 +260,11 @@ Odpověz POUZE validním JSON:
 // ─── Per-field AI prompt & regeneration ─────────────────────────
 
 function buildFieldPrompt(fieldPath) {
+  // Only include locked fields as context — unlocked fields should not influence generation
   const lockedSummary = getLockedFieldsSummary();
-  const context = `Kontext záhady:
-- Název: ${mysteryData.name || '(neurčen)'}
-- Koncept: ${mysteryData.concept || '(neurčen)'}
-- Návnada: ${mysteryData.hook || '(neurčena)'}
-- Příšera: ${mysteryData.monster?.name || '(neurčena)'} (${mysteryData.monster?.type || '?'})
-- Slabina: ${mysteryData.monster?.weakness || '(neurčena)'}
-${lockedSummary ? `\n${lockedSummary}` : ''}`;
+  const context = lockedSummary
+    ? `Kontext záhady (pouze zamčená pole, ostatní ignoruj):\n${lockedSummary}`
+    : 'Generuj zcela nový, originální obsah bez vazby na ostatní pole.';
 
   const fieldPrompts = {
     'name': `${context}\n\nVymysli nový název záhady. Odpověz POUZE JSON: { "value": "..." }`,
@@ -397,7 +391,7 @@ async function regenerateField(fieldPath) {
     const response = await callAI(prompt, { maxTokens: 500, temperature: 0.8 });
     const data = parseAIJSON(response);
     applyFieldData(fieldPath, data);
-    renderEditor();
+    renderEditor(false);
     window.showToast?.({ type: 'success', message: 'Pole pregenerovano.' });
   } catch (error) {
     console.error(`Field regeneration failed (${fieldPath}):`, error);
@@ -628,8 +622,8 @@ function flushInputValues() {
 
 // ─── Rendering ──────────────────────────────────────────────────
 
-function renderEditor() {
-  flushInputValues();
+function renderEditor(flush = true) {
+  if (flush) flushInputValues();
   const aiAvailable = hasAICapability();
   const validation = validateMystery(mysteryData);
   const validBystanders = threatsData.bystanderTypes.filter(t => !t.type.startsWith('**'));
