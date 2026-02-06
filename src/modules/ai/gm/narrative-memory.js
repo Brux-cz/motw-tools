@@ -4,7 +4,7 @@
  * Compresses old events to stay within token budget
  */
 
-import { getState } from '../../state/store.js';
+import { getState, updateMystery } from '../../state/store.js';
 import { callAI } from '../client.js';
 
 // Token budget configuration
@@ -140,7 +140,6 @@ export function addToNarrativeMemory(mysteryId, event) {
   }
 
   // Update mystery in store
-  const { updateMystery } = require('../../state/store.js');
   updateMystery(mysteryId, { narrativeMemory: memory });
 
   return memory;

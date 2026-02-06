@@ -13,7 +13,10 @@ import {
   initializeScene,
   increaseTension,
   decreaseTension,
-  nextTurn
+  nextTurn,
+  recordPlayerAction,
+  triggerStorySpike,
+  shouldPauseAmbientEvents
 } from './scene-manager.js';
 import {
   narrateAction,
@@ -265,8 +268,6 @@ class GMEngine {
 
     // Record player action for activity tracking
     this.activityTracking.recentPlayerActions.push(Date.now());
-
-    const { recordPlayerAction } = require('./scene-manager.js');
     recordPlayerAction();
 
     // Add player action to log
@@ -316,7 +317,6 @@ class GMEngine {
 
         // Detect story spike
         if (this.detectStorySpike(result, parsed)) {
-          const { triggerStorySpike } = require('./scene-manager.js');
           triggerStorySpike(180000); // 3 min pause
           console.log('[Story Spike] Triggered by critical failure');
         }
@@ -442,9 +442,6 @@ class GMEngine {
   async checkAmbientEvents() {
     const now = Date.now();
 
-    // Import pause check
-    const { shouldPauseAmbientEvents } = require('./scene-manager.js');
-
     // Check if should pause
     if (shouldPauseAmbientEvents()) {
       return;
@@ -514,6 +511,8 @@ class GMEngine {
    * Record Novel Mode event (memory + story arc)
    */
   recordNovelModeEvent(mysteryId, eventData, parsedAction, result) {
+    const scene = this.currentScene;
+
     // Add to narrative memory
     import('./narrative-memory.js').then(({ addToNarrativeMemory }) => {
       addToNarrativeMemory(mysteryId, eventData);
@@ -521,7 +520,6 @@ class GMEngine {
 
     // Detect and record story beat
     import('./story-arc-manager.js').then(({ recordStoryBeat, detectBeatType }) => {
-      const scene = this.currentScene;
       const beatType = detectBeatType({
         move: parsedAction.move,
         outcome: result.outcome,

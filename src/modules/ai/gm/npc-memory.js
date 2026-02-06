@@ -3,7 +3,7 @@
  * Tracks NPC relationships, knowledge, and secrets for continuity
  */
 
-import { getState } from '../../state/store.js';
+import { getState, updateMystery } from '../../state/store.js';
 
 /**
  * Update NPC relationship with hunter
@@ -89,7 +89,6 @@ export function updateNPCRelationship(npcId, hunterId, interaction) {
   relationship.lastInteraction = Date.now();
 
   // Update mystery
-  const { updateMystery } = require('../../state/store.js');
   updateMystery(currentMysteryId, { npcMemory: mystery.npcMemory });
 
   console.log(`[NPC Memory] Updated ${npcId} relationship with ${hunterId}: trust=${relationship.trust.toFixed(2)}, state=${relationship.emotionalState}`);
@@ -327,7 +326,6 @@ export function addNPCKnowledge(npcId, knowledge, source = 'unknown') {
   });
 
   // Update mystery
-  const { updateMystery } = require('../../state/store.js');
   updateMystery(currentMysteryId, { npcMemory: mystery.npcMemory });
 
   console.log(`[NPC Memory] Added knowledge to ${npcId}: ${knowledge}`);
@@ -374,7 +372,6 @@ export function addNPCSecret(npcId, secret) {
   npcMemory.secrets.push(secretEntry);
 
   // Update mystery
-  const { updateMystery } = require('../../state/store.js');
   updateMystery(currentMysteryId, { npcMemory: mystery.npcMemory });
 
   console.log(`[NPC Memory] Added secret to ${npcId}`);

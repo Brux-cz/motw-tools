@@ -17,6 +17,7 @@ import {
 } from './narrative-styles.js';
 import { getMoveOutcomes } from './mechanics-engine.js';
 import { getState } from '../../state/store.js';
+import { getCurrentScene } from './scene-manager.js';
 
 /**
  * Narrate action result in Novel Mode (literary, 2-3 paragraphs)
@@ -53,7 +54,7 @@ export async function narrateActionNovel(parsedAction, result, novelSettings = {
   const actContext = getCurrentActContext(currentMysteryId);
 
   // Get scene for tension
-  const scene = require('./scene-manager.js').getCurrentScene();
+  const scene = getCurrentScene();
   const tension = scene?.tension || 5;
   const countdownPhase = mystery.countdown?.currentPhase || 0;
 
