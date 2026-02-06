@@ -714,15 +714,18 @@ function renderFieldCard(fieldDef) {
 
       <!-- Current value -->
       <div class="px-3 py-2 border-b border-slate-700/30">
+        <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Aktualni hodnota pole</div>
         ${type === 'textarea' ? html`
           <textarea rows="2"
             class="w-full bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-sm resize-y ${locked ? 'opacity-60' : ''}"
+            placeholder="Hodnota tohoto pole zahady (ne prompt)"
             ${locked ? 'readonly' : ''}
             onchange="window.promptLab.updateValue('${path}', this.value)"
           >${esc(value)}</textarea>
         ` : html`
           <input type="text" value="${esc(value)}"
             class="w-full bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-sm ${locked ? 'opacity-60' : ''}"
+            placeholder="Hodnota tohoto pole zahady (ne prompt)"
             ${locked ? 'readonly' : ''}
             onchange="window.promptLab.updateValue('${path}', this.value)"
           />
@@ -736,9 +739,10 @@ function renderFieldCard(fieldDef) {
           Sablona promptu ${tip('Instrukce pro AI — co ma vygenerovat. Muzes prepsat vlastnim textem. Prazdne = pouzije se defaultni prompt.')}
         </summary>
         <div class="px-3 pb-2">
+          <div class="text-[10px] text-purple-400/70 mb-1">SEM PISTE VLASTNI PROMPT — instrukci co ma AI vygenerovat:</div>
           <textarea rows="4"
-            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono resize-y text-slate-300"
-            placeholder="(default prompt)"
+            class="w-full bg-slate-900 border border-purple-800/50 rounded px-2 py-1 text-xs font-mono resize-y text-slate-300"
+            placeholder="Prazdne = pouzije se defaultni prompt. Napis vlastni instrukci, napr: 'Vymysli navnadu ve stylu 80s hororu. Odpovez POUZE JSON: { &quot;value&quot;: &quot;...&quot; }'"
             onchange="window.promptLab.updatePrompt('${path}', this.value)"
           >${esc(promptOverrides[path] || '')}</textarea>
           <div class="flex gap-2 mt-1">
