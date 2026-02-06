@@ -612,7 +612,18 @@ function deletePreset() {
   window.showToast?.({ type: 'info', message: 'Preset smazan.' });
 }
 
-// ─── Import mystery from campaign ──────────────────────────────
+// ─── Reset / Import ────────────────────────────────────────────
+
+function resetLab() {
+  labData = createEmptyMystery();
+  lockedFields = new Set();
+  promptOverrides = {};
+  testResults = {};
+  fullTestResult = null;
+  openPromptEditor = null;
+  renderContent();
+  window.showToast?.({ type: 'info', message: 'Lab vymazan. Prazdna zahada.' });
+}
 
 function importMystery() {
   const { campaign } = getState();
@@ -640,6 +651,12 @@ function importMystery() {
 
 // ─── Rendering ─────────────────────────────────────────────────
 
+function tip(text) {
+  return html`<span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-700 text-slate-400 hover:text-slate-200 hover:bg-slate-600 cursor-help transition-colors ml-1" title="${text}">
+    <span class="material-symbols-outlined" style="font-size:12px">help</span>
+  </span>`;
+}
+
 function esc(text) {
   if (!text) return '';
   const div = document.createElement('div');
@@ -653,6 +670,7 @@ function renderContextPreview() {
     return html`
       <div class="bg-slate-800/50 border border-slate-700 rounded p-3 text-sm text-slate-500 italic">
         Zadna pole nejsou zamcena. Zamknete pole pro vytvoreni kontextu.
+        ${tip('Zamcena pole se pridaji jako kontext na zacatek KAZDEHO promptu. AI pak musi generovat obsah koherentni s temito hodnotami.')}
       </div>`;
   }
   return html`
@@ -681,14 +699,15 @@ function renderFieldCard(fieldDef) {
       <div class="flex items-center gap-2 px-3 py-2 bg-slate-800/80 border-b border-slate-700/50">
         <button onclick="window.promptLab.toggleLock('${path}')"
           class="inline-flex items-center justify-center w-6 h-6 rounded transition-colors ${locked ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'}"
-          title="${locked ? 'Odemknout' : 'Zamknout'}">
+          title="${locked ? 'Odemknout — pole se prestane pouzivat jako kontext pro AI' : 'Zamknout — hodnota bude soucasti kontextu pro vsechny AI prompty'}">
           <span class="material-symbols-outlined" style="font-size:16px">${locked ? 'lock' : 'lock_open'}</span>
         </button>
         <span class="text-sm font-semibold flex-1">${esc(label)}</span>
-        ${hasOverride ? html`<span class="text-[10px] bg-purple-900/60 text-purple-300 px-1.5 py-0.5 rounded">upraveny</span>` : ''}
+        ${hasOverride ? html`<span class="text-[10px] bg-purple-900/60 text-purple-300 px-1.5 py-0.5 rounded" title="Tento prompt byl rucne upraven. Klikni na 'Sablona promptu' pro zobrazeni.">upraveny</span>` : ''}
         <button onclick="window.promptLab.testField('${path}')"
           class="px-2 py-0.5 bg-purple-600 hover:bg-purple-700 rounded text-xs font-bold transition-colors disabled:opacity-50"
-          ${isTesting ? 'disabled' : ''}>
+          ${isTesting ? 'disabled' : ''}
+          title="Posle finalni prompt (kontext + instrukce) do AI a zobrazi odpoved. Vysledek si pak muzes aplikovat do pole.">
           ${isTesting ? html`<span class="animate-spin inline-block">⟳</span>` : '✨'} Test
         </button>
       </div>
@@ -714,7 +733,7 @@ function renderFieldCard(fieldDef) {
       <details class="border-b border-slate-700/30" ${isPromptOpen ? 'open' : ''}>
         <summary class="px-3 py-1.5 text-xs text-slate-400 cursor-pointer hover:text-slate-300 select-none"
           onclick="window.promptLab._trackPromptToggle('${path}', this.parentElement)">
-          Sablona promptu
+          Sablona promptu ${tip('Instrukce pro AI — co ma vygenerovat. Muzes prepsat vlastnim textem. Prazdne = pouzije se defaultni prompt.')}
         </summary>
         <div class="px-3 pb-2">
           <textarea rows="4"
@@ -734,7 +753,7 @@ function renderFieldCard(fieldDef) {
       <!-- Assembled prompt preview (collapsible) -->
       <details class="border-b border-slate-700/30">
         <summary class="px-3 py-1.5 text-xs text-slate-500 cursor-pointer hover:text-slate-400 select-none">
-          Finalni prompt pro AI
+          Finalni prompt pro AI ${tip('Presne to, co se posle do AI: kontext ze zamcenych poli + instrukce. Toto nelze editovat primo — uprav sablonu nebo zamkni/odemkni pole.')}
         </summary>
         <div class="px-3 pb-2">
           <pre class="text-[11px] bg-slate-950 rounded p-2 whitespace-pre-wrap font-mono text-slate-400 max-h-48 overflow-y-auto">${esc(promptInfo.assembled)}</pre>
@@ -749,7 +768,8 @@ function renderFieldCard(fieldDef) {
             <div class="flex gap-1">
               ${!result.error ? html`
                 <button onclick="window.promptLab.applyResult('${path}')"
-                  class="text-[10px] px-1.5 py-0.5 bg-emerald-800 hover:bg-emerald-700 rounded text-emerald-200 transition-colors">
+                  class="text-[10px] px-1.5 py-0.5 bg-emerald-800 hover:bg-emerald-700 rounded text-emerald-200 transition-colors"
+                  title="Prepise aktualni hodnotu pole vysledkem z AI testu.">
                   Pouzit hodnotu
                 </button>
               ` : ''}
@@ -919,15 +939,18 @@ function renderContent() {
           <span class="material-symbols-outlined text-purple-400 text-2xl">science</span>
           <h2 class="text-xl font-bold">Prompt Lab</h2>
           <span class="text-[10px] bg-amber-900/60 text-amber-300 px-1.5 py-0.5 rounded font-bold">experimentalni</span>
+          ${tip('Sandbox pro testovani AI promptu. Zmeny zde NEOVLIVNI mystery editor — je to izolована kopie dat.')}
         </div>
         <div class="flex items-center gap-2 flex-wrap">
           <select id="lab-preset-select" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs"
-            onchange="if(this.value) window.promptLab.loadPreset(this.value)">
+            onchange="if(this.value) window.promptLab.loadPreset(this.value)"
+            title="Ulozene kombinace zamcenych poli + upravenych promptu. Nacte se jednim kliknutim.">
             <option value="">Presety...</option>
             ${presets.map(p => html`<option value="${p.id}">${esc(p.name)}</option>`).join('')}
           </select>
           <button onclick="window.promptLab.savePreset()"
-            class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition-colors">
+            class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition-colors"
+            title="Ulozi aktualni zamcena pole, jejich hodnoty a upravene prompty jako preset.">
             Ulozit preset
           </button>
           ${presets.length > 0 ? html`
@@ -936,15 +959,23 @@ function renderContent() {
               Smazat
             </button>
           ` : ''}
+          <button onclick="window.promptLab.resetLab()"
+            class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition-colors flex items-center gap-1"
+            title="Vymaze vse a zacne s prazdnou zahadou. Zamky, prompty i vysledky se smazou.">
+            <span class="material-symbols-outlined" style="font-size:14px">add</span>
+            Nova
+          </button>
           <button onclick="window.promptLab.importMystery()"
-            class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition-colors flex items-center gap-1">
+            class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition-colors flex items-center gap-1"
+            title="Nacte aktivni zahadu z kampane jako pracovni kopii. Puvodni zahada se nezmeni.">
             <span class="material-symbols-outlined" style="font-size:14px">download</span>
             Import zahady
           </button>
           ${hasAI ? html`
             <button onclick="window.promptLab.testFullMystery()"
               class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-xs font-bold transition-colors flex items-center gap-1 disabled:opacity-50"
-              ${isTestingFull ? 'disabled' : ''}>
+              ${isTestingFull ? 'disabled' : ''}
+              title="Posle jeden velky prompt do AI a vygeneruje celou zahadu najednou. Spusti kontroly koherence (slabina, odpocet, NPC, zamcena pole).">
               ✨ Test cele zahady
             </button>
           ` : html`
@@ -1031,6 +1062,7 @@ if (typeof window !== 'undefined') {
     savePreset,
     loadPreset,
     deletePreset,
+    resetLab,
     importMystery,
     setSection(section) {
       activeSection = section;
