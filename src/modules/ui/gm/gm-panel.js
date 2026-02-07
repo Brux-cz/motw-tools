@@ -2,7 +2,7 @@
  * GM Panel UI
  * Main interface for AI Game Master mode + Auto-Play
  */
-import { getState } from '../../state/store.js';
+import { getState, updateCampaign } from '../../state/store.js';
 import {
   startGMMode,
   stopGMMode,
@@ -154,6 +154,9 @@ function renderStoppedLayout(settings) {
         </div>
       </div>
 
+      <!-- Saved Stories -->
+      ${renderSavedStories()}
+
       <!-- Settings (open by default) -->
       <div class="bg-neutral-800 p-4 rounded">
         <h3 class="font-semibold mb-4">⚙️ Settings</h3>
@@ -218,6 +221,37 @@ function renderAutoPlayBottom() {
   return `
     <div class="px-4 py-3 bg-neutral-800 border-t border-neutral-700 text-center text-sm text-violet-400">
       🤖 AI hraje za lovce automaticky...
+    </div>
+  `;
+}
+
+/**
+ * Render saved stories section
+ */
+function renderSavedStories() {
+  const { campaign } = getState();
+  const stories = campaign?.stories || [];
+
+  return `
+    <div class="bg-neutral-800 p-4 rounded">
+      <h3 class="font-semibold mb-4">📚 Uložené příběhy</h3>
+      ${stories.length === 0
+        ? '<p class="text-sm text-neutral-500 italic">Zatím žádné příběhy.</p>'
+        : `<div class="space-y-2">
+            ${stories.map(s => {
+              const date = new Date(s.createdAt).toLocaleDateString('cs-CZ');
+              return `
+                <div class="flex items-center justify-between bg-neutral-700/50 px-3 py-2 rounded hover:bg-neutral-700 transition-colors">
+                  <button class="btn-open-story flex-1 text-left" data-story-id="${s.id}">
+                    <span class="font-semibold text-sm">${escapeHtml(s.title)}</span>
+                    <span class="text-xs text-neutral-400 ml-2">${escapeHtml(s.mysteryName)} · ${date}</span>
+                  </button>
+                  <button class="btn-delete-story p-1 text-neutral-500 hover:text-red-400 transition-colors" data-story-id="${s.id}" title="Smazat příběh">🗑️</button>
+                </div>
+              `;
+            }).join('')}
+          </div>`
+      }
     </div>
   `;
 }
@@ -669,6 +703,32 @@ export function attachGMPanelListeners() {
     });
   }
 
+  // --- Saved stories ---
+
+  // Open saved story
+  document.querySelectorAll('.btn-open-story').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const storyId = btn.getAttribute('data-story-id');
+      const { campaign } = getState();
+      const story = (campaign?.stories || []).find(s => s.id === storyId);
+      if (story) {
+        showStoryModal(story.markdown, { readOnly: true });
+      }
+    });
+  });
+
+  // Delete saved story
+  document.querySelectorAll('.btn-delete-story').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('Smazat tento příběh?')) return;
+      const storyId = btn.getAttribute('data-story-id');
+      const { campaign } = getState();
+      const stories = (campaign?.stories || []).filter(s => s.id !== storyId);
+      updateCampaign({ stories });
+      refreshGMPanel();
+    });
+  });
+
   // --- Event listeners for auto-play events ---
   // Remove old listeners before adding to prevent duplicates on re-attach
   window.removeEventListener('gm-session-update', handleSessionUpdate);
@@ -724,11 +784,16 @@ function refreshAutoPlayButtons() {
 
 /**
  * Show story in modal
+ * @param {string} story - Markdown story text
+ * @param {Object} [options] - Options
+ * @param {boolean} [options.readOnly] - If true, hide save button
  */
-function showStoryModal(story) {
+function showStoryModal(story, options = {}) {
   // Remove existing modal
   const existing = document.getElementById('story-modal');
   if (existing) existing.remove();
+
+  const showSave = !options.readOnly;
 
   const modal = document.createElement('div');
   modal.id = 'story-modal';
@@ -738,6 +803,7 @@ function showStoryModal(story) {
       <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-700">
         <h2 class="text-xl font-bold">📖 Příběh</h2>
         <div class="flex gap-2">
+          ${showSave ? '<button id="btn-save-story" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-semibold">💾 Uložit</button>' : ''}
           <button id="btn-copy-story" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-semibold">📋 Kopírovat</button>
           <button id="btn-close-story" class="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 rounded text-sm">Zavřít</button>
         </div>
@@ -768,6 +834,38 @@ function showStoryModal(story) {
       setTimeout(() => { btn.textContent = '📋 Kopírovat'; }, 2000);
     });
   });
+
+  // Save story
+  if (showSave) {
+    document.getElementById('btn-save-story').addEventListener('click', () => {
+      const { campaign, currentMysteryId } = getState();
+      if (!campaign) return;
+
+      const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
+      const titleMatch = story.match(/^#\s+(.+)$/m);
+      const title = titleMatch ? titleMatch[1].trim() : 'Bez názvu';
+      const log = getGMSessionLog();
+
+      const storyObj = {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        title,
+        markdown: story,
+        mysteryName: mystery?.name || '',
+        createdAt: Date.now(),
+        rounds: autoPlayState?.currentRound || log.length,
+        hunters: (campaign.hunters || []).map(h => h.name)
+      };
+
+      const stories = [...(campaign.stories || []), storyObj];
+      updateCampaign({ stories });
+
+      const btn = document.getElementById('btn-save-story');
+      btn.textContent = '✓ Uloženo';
+      btn.disabled = true;
+      btn.classList.replace('bg-blue-600', 'bg-neutral-600');
+      btn.classList.replace('hover:bg-blue-700', 'hover:bg-neutral-600');
+    });
+  }
 }
 
 /**

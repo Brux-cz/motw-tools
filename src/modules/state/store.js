@@ -132,6 +132,7 @@ export function createNewCampaign(name) {
     mysteries: [],
     npcArchive: [],
     locationArchive: [],
+    stories: [],
     sessionLog: [],
     createdAt: Date.now(),
     lastModified: Date.now()
