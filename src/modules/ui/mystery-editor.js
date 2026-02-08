@@ -20,6 +20,27 @@ let validationDebounceTimer = null;
 let isGenerating = false;
 let lockedFields = new Set();
 
+// ─── Lab preset integration ─────────────────────────────────────
+const PRESETS_KEY = 'motw-prompt-presets';
+const ACTIVE_PRESET_KEY = 'motw-active-preset';
+let activePresetId = null;
+
+function loadLabPresets() {
+  try {
+    return JSON.parse(localStorage.getItem(PRESETS_KEY)) || [];
+  } catch { return []; }
+}
+
+function getActivePreset() {
+  if (!activePresetId) return null;
+  return loadLabPresets().find(p => p.id === activePresetId) || null;
+}
+
+function getPresetOverride(fieldPath) {
+  const preset = getActivePreset();
+  return preset?.promptOverrides?.[fieldPath] || '';
+}
+
 // ─── Lock helpers ───────────────────────────────────────────────
 
 function isLocked(fieldPath) {
@@ -161,13 +182,24 @@ function buildFullMysteryPrompt() {
   const hook = mysteryData.hook || '';
   const lockedSummary = getLockedFieldsSummary();
 
+  // Preset overrides
+  let presetBlock = '';
+  const preset = getActivePreset();
+  if (preset?.promptOverrides) {
+    const entries = Object.entries(preset.promptOverrides).filter(([,v]) => v);
+    if (entries.length > 0) {
+      presetBlock = '\n\nDOPLŇUJÍCÍ INSTRUKCE (preset "' + preset.name + '"):\n' +
+        entries.map(([f, t]) => `- ${f}: ${t}`).join('\n') + '\n';
+    }
+  }
+
   return `Jsi expert na tvorbu záhad pro stolní RPG Monster of the Week (MOTW).
 
 Na základě těchto vstupů vytvoř kompletní záhadu:
 - Název: ${name || '(vymysli vlastní)'}
 - Koncept: ${concept}
 - Návnada: ${hook}
-${lockedSummary ? `\n${lockedSummary}\n` : ''}
+${lockedSummary ? `\n${lockedSummary}\n` : ''}${presetBlock}
 Pravidla:
 - Všechny popisy a jména NPC piš ČESKY
 - Příšera MUSÍ mít slabinu (weakness) - konkrétní a zajímavou
@@ -254,7 +286,20 @@ Odpověz POUZE validním JSON:
 ] }`
   };
 
-  return prompts[section] || '';
+  let prompt = prompts[section] || '';
+  const preset = getActivePreset();
+  if (preset?.promptOverrides && prompt) {
+    const entries = Object.entries(preset.promptOverrides).filter(([,v]) => v);
+    if (entries.length > 0) {
+      const presetBlock = '\n\nDOPLŇUJÍCÍ INSTRUKCE (preset "' + preset.name + '"):\n' +
+        entries.map(([f, t]) => `- ${f}: ${t}`).join('\n');
+      prompt = prompt.replace(
+        /Odpověz POUZE validním JSON/,
+        presetBlock + '\n\nOdpověz POUZE validním JSON'
+      );
+    }
+  }
+  return prompt;
 }
 
 // ─── Per-field AI prompt & regeneration ─────────────────────────
@@ -293,7 +338,10 @@ function buildFieldPrompt(fieldPath) {
     const id = fieldPath.split('.')[1];
     const existing = mysteryData.bystanders.find(b => b.id === id);
     const validTypes = threatsData.bystanderTypes.filter(t => !t.type.startsWith('**')).map(t => t.type_en).join(', ');
-    return `${context}\n\n${existing ? `Nahraď přihlížejícího "${existing.name}".` : 'Vytvoř nového přihlížejícího.'} České jméno. Typ musí být jeden z: ${validTypes}\nOdpověz POUZE JSON: { "value": { "name": "...", "type": "typ_en", "description": "..." } }`;
+    const instruction = `${existing ? `Nahraď přihlížejícího "${existing.name}".` : 'Vytvoř nového přihlížejícího.'} České jméno. Typ musí být jeden z: ${validTypes}`;
+    const override = getPresetOverride(fieldPath);
+    const overridePart = override ? `\n\nDOPLŇUJÍCÍ INSTRUKCE (z presetu):\n${override}` : '';
+    return `${context}\n\n${instruction}${overridePart}\nOdpověz POUZE JSON: { "value": { "name": "...", "type": "typ_en", "description": "..." } }`;
   }
 
   // Location by ID
@@ -301,10 +349,21 @@ function buildFieldPrompt(fieldPath) {
     const id = fieldPath.split('.')[1];
     const existing = mysteryData.locations.find(l => l.id === id);
     const validTypes = threatsData.locationTypes.map(t => t.type_en).join(', ');
-    return `${context}\n\n${existing ? `Nahraď lokaci "${existing.name}".` : 'Vytvoř novou lokaci.'} Typ musí být jeden z: ${validTypes}\nOdpověz POUZE JSON: { "value": { "name": "...", "type": "typ_en", "description": "..." } }`;
+    const instruction = `${existing ? `Nahraď lokaci "${existing.name}".` : 'Vytvoř novou lokaci.'} Typ musí být jeden z: ${validTypes}`;
+    const override = getPresetOverride(fieldPath);
+    const overridePart = override ? `\n\nDOPLŇUJÍCÍ INSTRUKCE (z presetu):\n${override}` : '';
+    return `${context}\n\n${instruction}${overridePart}\nOdpověz POUZE JSON: { "value": { "name": "...", "type": "typ_en", "description": "..." } }`;
   }
 
-  return fieldPrompts[fieldPath] || '';
+  let prompt = fieldPrompts[fieldPath] || '';
+  const override = getPresetOverride(fieldPath);
+  if (override && prompt) {
+    prompt = prompt.replace(
+      /Odpověz POUZE JSON/,
+      'DOPLŇUJÍCÍ INSTRUKCE (z presetu):\n' + override + '\n\nOdpověz POUZE JSON'
+    );
+  }
+  return prompt;
 }
 
 function applyFieldData(fieldPath, data) {
@@ -653,6 +712,20 @@ function renderEditor(flush = true) {
                 `).join('')}
               </select>
             ` : ''}
+            ${(() => {
+              const labPresets = loadLabPresets();
+              return labPresets.length > 0 ? html`
+                <select
+                  class="bg-slate-700 border border-slate-600 rounded px-3 py-1.5 text-sm"
+                  onchange="window.mysteryEditor.selectPreset(this.value)"
+                >
+                  <option value="">Bez presetu</option>
+                  ${labPresets.map(p => html`
+                    <option value="${p.id}" ${activePresetId === p.id ? 'selected' : ''}>${p.name}</option>
+                  `).join('')}
+                </select>
+              ` : '';
+            })()}
             ${aiAvailable ? html`
               <button
                 onclick="window.mysteryEditor.generateFullMystery()"
@@ -663,6 +736,15 @@ function renderEditor(flush = true) {
               </button>
             ` : ''}
           </div>
+          ${activePresetId ? (() => {
+            const preset = getActivePreset();
+            return preset ? html`
+              <div class="mt-2 text-xs text-purple-300 bg-purple-900/30 border border-purple-800/40 rounded px-3 py-1.5 flex items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size:14px">science</span>
+                Aktivni preset: "${preset.name}" — instrukce se pridaji ke vsem AI promptum
+              </div>
+            ` : '';
+          })() : ''}
         </div>
 
         <!-- SCROLLABLE CONTENT -->
@@ -1154,6 +1236,7 @@ export async function showMysteryEditor() {
   mysteryData = createEmptyMystery();
   lockedFields = new Set();
   isGenerating = false;
+  activePresetId = localStorage.getItem(ACTIVE_PRESET_KEY) || null;
   renderEditor();
 }
 
@@ -1457,6 +1540,15 @@ if (typeof window !== 'undefined') {
     generateFullMystery,
     generateSection,
     toggleLock,
-    regenerateField
+    regenerateField,
+    selectPreset(id) {
+      activePresetId = id || null;
+      if (activePresetId) {
+        localStorage.setItem(ACTIVE_PRESET_KEY, activePresetId);
+      } else {
+        localStorage.removeItem(ACTIVE_PRESET_KEY);
+      }
+      renderEditor();
+    }
   };
 }

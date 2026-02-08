@@ -221,16 +221,16 @@ function getDefaultFieldInstruction(fieldPath) {
     : 'Generuj zcela novy, originalni obsah bez vazby na ostatni pole.';
 
   const prompts = {
-    'name': `Vymysli novy nazev zahady pro Monster of the Week. Odpovez POUZE JSON: { "value": "..." }`,
-    'concept': `Vymysli novy koncept zahady (strucne, 1-2 vety). Odpovez POUZE JSON: { "value": "..." }`,
-    'hook': `Vymysli novou navnadu (hook) - co pritahne lovce? Odpovez POUZE JSON: { "value": "..." }`,
-    'monster.name': `Vymysli nove ceske jmeno pro priseru. Odpovez POUZE JSON: { "value": "..." }`,
-    'monster.type': `Zvol nejvhodnejsi typ prisery z: ${threatsData.monsterTypes.map(t => t.type_en).join(', ')}\nOdpovez POUZE JSON: { "value": "typ_en" }`,
-    'monster.description': `Napis novy popis prisery (2-3 vety cesky). Odpovez POUZE JSON: { "value": "..." }`,
-    'monster.weakness': `Vymysli novou konkretni a zajimavou slabinu prisery. Odpovez POUZE JSON: { "value": "..." }`,
-    'monster.powers': `Vymysli 2-3 schopnosti prisery (cesky). Odpovez POUZE JSON: { "value": ["schopnost1", "schopnost2"] }`,
-    'monster.attack': `Vymysli utok prisery. Odpovez POUZE JSON: { "value": { "description": "popis utoku", "harm": 3, "range": "close" } }`,
-    'monster.stats': `Urci vhodnou vydrz (5-20) a zbroj (0-4) prisery. Odpovez POUZE JSON: { "value": { "harm": 10, "armor": 1 } }`
+    'name': `Vymysli novy nazev zahady pro Monster of the Week.`,
+    'concept': `Vymysli novy koncept zahady (strucne, 1-2 vety).`,
+    'hook': `Vymysli novou navnadu (hook) - co pritahne lovce?`,
+    'monster.name': `Vymysli nove ceske jmeno pro priseru.`,
+    'monster.type': `Zvol nejvhodnejsi typ prisery z: ${threatsData.monsterTypes.map(t => t.type_en).join(', ')}`,
+    'monster.description': `Napis novy popis prisery (2-3 vety cesky).`,
+    'monster.weakness': `Vymysli novou konkretni a zajimavou slabinu prisery.`,
+    'monster.powers': `Vymysli 2-3 schopnosti prisery (cesky).`,
+    'monster.attack': `Vymysli utok prisery.`,
+    'monster.stats': `Urci vhodnou vydrz (5-20) a zbroj (0-4) prisery.`
   };
 
   // Countdown phases
@@ -238,7 +238,7 @@ function getDefaultFieldInstruction(fieldPath) {
     const existingPhases = labData?.countdown?.phases
       ?.map((p, idx) => idx !== i ? `  ${idx + 1}. ${PHASE_NAMES[idx]}: ${p.description || '(prazdne)'}` : null)
       .filter(Boolean).join('\n') || '';
-    prompts[`countdown.${i}`] = `Ostatni faze odpoctu:\n${existingPhases}\n\nVygeneruj popis pro fazi ${i + 1} (${PHASE_NAMES[i]}). Cesky, konkretne. Odpovez POUZE JSON: { "value": "..." }`;
+    prompts[`countdown.${i}`] = `Ostatni faze odpoctu:\n${existingPhases}\n\nVygeneruj popis pro fazi ${i + 1} (${PHASE_NAMES[i]}). Cesky, konkretne.`;
   }
 
   // Bystander by ID
@@ -246,7 +246,7 @@ function getDefaultFieldInstruction(fieldPath) {
     const id = fieldPath.split('.')[1];
     const existing = labData?.bystanders?.find(b => b.id === id);
     const validTypes = threatsData.bystanderTypes.filter(t => !t.type.startsWith('**')).map(t => t.type_en).join(', ');
-    return `${existing ? `Nahrad prihližejiciho "${existing.name}".` : 'Vytvor noveho prihližejiciho.'} Ceske jmeno. Typ musi byt jeden z: ${validTypes}\nOdpovez POUZE JSON: { "value": { "name": "...", "type": "typ_en", "description": "..." } }`;
+    return `${existing ? `Nahrad prihližejiciho "${existing.name}".` : 'Vytvor noveho prihližejiciho.'} Ceske jmeno. Typ musi byt jeden z: ${validTypes}`;
   }
 
   // Location by ID
@@ -254,25 +254,47 @@ function getDefaultFieldInstruction(fieldPath) {
     const id = fieldPath.split('.')[1];
     const existing = labData?.locations?.find(l => l.id === id);
     const validTypes = threatsData.locationTypes.map(t => t.type_en).join(', ');
-    return `${existing ? `Nahrad lokaci "${existing.name}".` : 'Vytvor novou lokaci.'} Typ musi byt jeden z: ${validTypes}\nOdpovez POUZE JSON: { "value": { "name": "...", "type": "typ_en", "description": "..." } }`;
+    return `${existing ? `Nahrad lokaci "${existing.name}".` : 'Vytvor novou lokaci.'} Typ musi byt jeden z: ${validTypes}`;
   }
 
-  return prompts[fieldPath] || `Vygeneruj hodnotu pro pole "${fieldPath}". Odpovez POUZE JSON: { "value": "..." }`;
+  return prompts[fieldPath] || `Vygeneruj hodnotu pro pole "${fieldPath}".`;
 }
 
-function getFieldInstruction(fieldPath) {
-  return promptOverrides[fieldPath] || getDefaultFieldInstruction(fieldPath);
+function getJsonSuffix(fieldPath) {
+  if (fieldPath === 'monster.powers')
+    return 'Odpovez POUZE JSON: { "value": ["schopnost1", "schopnost2"] }';
+  if (fieldPath === 'monster.attack')
+    return 'Odpovez POUZE JSON: { "value": { "description": "popis utoku", "harm": 3, "range": "close" } }';
+  if (fieldPath === 'monster.stats')
+    return 'Odpovez POUZE JSON: { "value": { "harm": 10, "armor": 1 } }';
+  if (fieldPath.startsWith('bystander.'))
+    return 'Odpovez POUZE JSON: { "value": { "name": "...", "type": "typ_en", "description": "..." } }';
+  if (fieldPath.startsWith('location.'))
+    return 'Odpovez POUZE JSON: { "value": { "name": "...", "type": "typ_en", "description": "..." } }';
+  return 'Odpovez POUZE JSON: { "value": "..." }';
 }
 
 function getPromptForField(fieldPath) {
   const lockedSummary = getLockedFieldsSummary();
   const context = lockedSummary
-    ? `Kontext zahady (pouze zamcena pole):\n${lockedSummary}\n\n`
+    ? `Kontext zahady (pouze zamcena pole):\n${lockedSummary}`
     : '';
-  const instruction = getFieldInstruction(fieldPath);
+  const defaultInstruction = getDefaultFieldInstruction(fieldPath);
+  const userOverride = promptOverrides[fieldPath] || '';
+  const jsonSuffix = getJsonSuffix(fieldPath);
+
+  // Build assembled prompt
+  const parts = [context, defaultInstruction];
+  if (userOverride) parts.push('DOPLNUJICI INSTRUKCE OD UZIVATELE:\n' + userOverride);
+  parts.push(jsonSuffix);
+  const assembled = parts.filter(Boolean).join('\n\n');
+
   return {
-    template: instruction,
-    assembled: context + instruction
+    defaultInstruction,
+    userOverride,
+    jsonSuffix,
+    context,
+    assembled
   };
 }
 
@@ -732,37 +754,33 @@ function renderFieldCard(fieldDef) {
         `}
       </div>
 
-      <!-- Prompt template (collapsible) -->
-      <details class="border-b border-slate-700/30" ${isPromptOpen ? 'open' : ''}>
-        <summary class="px-3 py-1.5 text-xs text-slate-400 cursor-pointer hover:text-slate-300 select-none"
-          onclick="window.promptLab._trackPromptToggle('${path}', this.parentElement)">
-          Sablona promptu ${tip('Instrukce pro AI — co ma vygenerovat. Muzes prepsat vlastnim textem. Prazdne = pouzije se defaultni prompt.')}
-        </summary>
-        <div class="px-3 pb-2">
-          <div class="text-[10px] text-purple-400/70 mb-1">SEM PISTE VLASTNI PROMPT — instrukci co ma AI vygenerovat:</div>
-          <textarea rows="4"
-            class="w-full bg-slate-900 border border-purple-800/50 rounded px-2 py-1 text-xs font-mono resize-y text-slate-300"
-            placeholder="Prazdne = pouzije se defaultni prompt. Napis vlastni instrukci, napr: 'Vymysli navnadu ve stylu 80s hororu. Odpovez POUZE JSON: { &quot;value&quot;: &quot;...&quot; }'"
-            onchange="window.promptLab.updatePrompt('${path}', this.value)"
-          >${esc(promptOverrides[path] || '')}</textarea>
-          <div class="flex gap-2 mt-1">
-            <button onclick="window.promptLab.resetPrompt('${path}')"
-              class="text-[10px] text-slate-500 hover:text-slate-300 transition-colors">
-              Resetovat na default
-            </button>
+      <!-- Override instructions (always visible, compact) -->
+      <div class="px-3 py-2 border-b border-slate-700/30">
+        <div class="flex items-center justify-between mb-1">
+          <div class="text-[10px] text-purple-400/70 uppercase tracking-wider flex items-center gap-1">
+            Doplnujici instrukce ${tip('Text se PRIDA k defaultni instrukci (ne nahradi). Napr. styl, ton, omezeni. Prazdne = pouzije se jen default.')}
           </div>
+          ${hasOverride ? html`<button onclick="window.promptLab.resetPrompt('${path}')"
+            class="text-[10px] text-slate-500 hover:text-red-400 transition-colors">Resetovat</button>` : ''}
         </div>
-      </details>
+        <textarea rows="2"
+          class="w-full bg-slate-900 border border-purple-800/50 rounded px-2 py-1 text-xs font-mono resize-y text-slate-300"
+          placeholder="Napr: 've stylu 80s hororu' nebo 'ironicke a vtipne'"
+          onchange="window.promptLab.updatePrompt('${path}', this.value)"
+        >${esc(promptOverrides[path] || '')}</textarea>
+      </div>
 
-      <!-- Assembled prompt preview (collapsible) -->
-      <details class="border-b border-slate-700/30">
-        <summary class="px-3 py-1.5 text-xs text-slate-500 cursor-pointer hover:text-slate-400 select-none">
-          Finalni prompt pro AI ${tip('Presne to, co se posle do AI: kontext ze zamcenych poli + instrukce. Toto nelze editovat primo — uprav sablonu nebo zamkni/odemkni pole.')}
-        </summary>
-        <div class="px-3 pb-2">
-          <pre class="text-[11px] bg-slate-950 rounded p-2 whitespace-pre-wrap font-mono text-slate-400 max-h-48 overflow-y-auto">${esc(promptInfo.assembled)}</pre>
-        </div>
-      </details>
+      <!-- Final prompt toggle -->
+      <div class="border-b border-slate-700/30">
+        <button onclick="window.promptLab.toggleFinalPrompt('${path}')"
+          class="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-400 transition-colors select-none flex items-center gap-1">
+          <span class="text-[10px]">${isPromptOpen ? '▾' : '▸'}</span> Finalni prompt ${tip('Presne to, co se posle do AI: kontext ze zamcenych poli + defaultni instrukce + vase doplnujici instrukce + automaticky JSON format.')}
+        </button>
+        ${isPromptOpen ? html`
+          <div class="px-3 pb-2">
+            <pre class="text-[11px] bg-slate-950 rounded p-2 whitespace-pre-wrap font-mono max-h-48 overflow-y-auto">${promptInfo.context ? html`<span class="text-emerald-400/70" title="Kontext — zamcena pole">${esc(promptInfo.context)}</span>\n\n` : ''}<span class="text-slate-400" title="Defaultni instrukce">${esc(promptInfo.defaultInstruction)}</span>${promptInfo.userOverride ? html`\n\n<span class="text-purple-400/80 border-t border-dashed border-purple-800/40 block mt-1 pt-1" title="Doplnujici instrukce od uzivatele">DOPLNUJICI INSTRUKCE OD UZIVATELE:\n${esc(promptInfo.userOverride)}</span>` : ''}\n\n<span class="text-amber-400/70 border-t border-dashed border-amber-800/40 block mt-1 pt-1" title="Automaticky pridany JSON format">${esc(promptInfo.jsonSuffix)}</span></pre>
+          </div>
+        ` : ''}</div>
 
       <!-- Test result -->
       ${result ? html`
@@ -1072,11 +1090,9 @@ if (typeof window !== 'undefined') {
       activeSection = section;
       renderContent();
     },
-    _trackPromptToggle(fieldPath, detailsEl) {
-      // Track which prompt editor is open (fires before toggle)
-      setTimeout(() => {
-        openPromptEditor = detailsEl?.open ? null : fieldPath;
-      }, 0);
+    toggleFinalPrompt(fieldPath) {
+      openPromptEditor = openPromptEditor === fieldPath ? null : fieldPath;
+      refreshFieldCard(fieldPath);
     }
   };
 }
