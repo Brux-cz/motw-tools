@@ -386,13 +386,22 @@ async function testField(fieldPath) {
 }
 
 async function testFullMystery() {
-  const { callAI } = await import('../ai/client.js');
-  const { assembled } = getPromptForFullMystery();
-
-  isTestingFull = true;
-  renderFullTestSection();
+  let assembled = '';
+  const btn = document.querySelector('[onclick*="testFullMystery"]');
 
   try {
+    const { callAI } = await import('../ai/client.js');
+    ({ assembled } = getPromptForFullMystery());
+
+    isTestingFull = true;
+    renderFullTestSection();
+
+    // Button loading state
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="animate-spin inline-block">⟳</span> Generuji...';
+    }
+
     const response = await callAI(assembled, { maxTokens: 4000, temperature: 0.8 });
     const parsed = parseAIJSON(response);
     const coherence = runCoherenceChecks(parsed);
@@ -405,7 +414,7 @@ async function testFullMystery() {
     };
   } catch (error) {
     fullTestResult = {
-      prompt: assembled,
+      prompt: assembled || '',
       response: null,
       error: error.message,
       timestamp: Date.now()
@@ -413,6 +422,15 @@ async function testFullMystery() {
   } finally {
     isTestingFull = false;
     renderFullTestSection();
+
+    // Restore button
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '✨ Test cele zahady';
+    }
+
+    // Scroll to result
+    document.getElementById('lab-full-test-section')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
 
@@ -1009,6 +1027,11 @@ function renderContent() {
       <!-- Context preview -->
       ${renderContextPreview()}
 
+      <!-- Full test result (above cards so it's visible after click) -->
+      <div id="lab-full-test-section">
+        ${renderFullTestResult()}
+      </div>
+
       <!-- Section filter -->
       <div class="flex gap-1 flex-wrap">
         ${[{ key: 'all', label: 'Vsechny' }, ...Object.entries(SECTION_DEFS).map(([key, def]) => ({ key, label: def.label }))].map(s => html`
@@ -1026,10 +1049,6 @@ function renderContent() {
         ${filteredFields.map(f => renderFieldCard(f)).join('')}
       </div>
 
-      <!-- Full test result -->
-      <div id="lab-full-test-section">
-        ${renderFullTestResult()}
-      </div>
     </div>`;
 }
 
