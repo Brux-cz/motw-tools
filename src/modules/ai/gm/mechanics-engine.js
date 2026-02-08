@@ -235,44 +235,44 @@ export async function spendLuck(hunterId, amount = 1) {
 export function getMoveOutcomes(moveName) {
   const outcomes = {
     'kick_some_ass': {
-      success: 'You inflict harm and suffer little to no harm',
-      partial: 'You inflict harm but suffer harm in return',
-      failure: 'You suffer harm without dealing damage'
+      success: 'Úplný úspěch: Způsobíš příšeře/nepříteli zranění a navíc vyber jedno extra: získáš zranění navíc, odhodíš nepřítele, ochráníš někoho, nebo zastrašíš nepřátele.',
+      partial: 'Částečný úspěch: Způsobíš zranění, ALE nepřítel ti zranění vrátí. Obě strany si udělí harm podle pravidel.',
+      failure: 'Strážce provede tvrdý tah. Nepřítel útočí naplno — utrpíš plný harm a nedealuješ žádné zranění.'
     },
     'act_under_pressure': {
-      success: 'You do it successfully',
-      partial: 'You do it but with a cost or complication',
-      failure: 'Things go badly wrong'
+      success: 'Úplný úspěch: Zvládneš to bez problémů.',
+      partial: 'Strážce dá na výběr: horší výsledek, složitá volba nebo cena za úspěch. Lovec musí obětovat něco konkrétního.',
+      failure: 'Strážce provede tvrdý tah. Akce selže a situace se výrazně zhorší.'
     },
     'investigate': {
-      success: 'Ask the Keeper 3 questions',
-      partial: 'Ask the Keeper 1 question',
-      failure: 'You reveal something to the monster or danger'
+      success: 'Úplný úspěch: Polož Strážci 2 otázky ze seznamu: Co se tu stalo? Co to znamená? Kam to vede? Co tu není vidět? Kdo za tím stojí?',
+      partial: 'Částečný úspěch: Polož Strážci 1 otázku ze seznamu, ale vyšetřování tě stojí čas, pozornost, nebo prozradí tvou přítomnost.',
+      failure: 'Strážce provede tvrdý tah. Vyšetřování prozradí informaci příšeře nebo nebezpečí — nepřítel ví o lovcích.'
     },
     'manipulate': {
-      success: 'They do what you want',
-      partial: 'They do it if you promise something or make a bargain',
-      failure: 'They turn the tables on you'
+      success: 'Úplný úspěch: NPC udělá co chceš (pokud jsi nabídl rozumný důvod).',
+      partial: 'NPC to udělá jen pokud jim HNED splníš podmínku, nebo ti nabídne nevýhodný obchod. Musíš něco slíbit nebo obětovat.',
+      failure: 'Strážce provede tvrdý tah. NPC se obrátí proti tobě — prozradí tě, zavolá pomoc, nebo ti aktivně škodí.'
     },
     'protect': {
-      success: 'You protect them and choose one: suffer little harm, retain control, impress them',
-      partial: 'You protect them but suffer harm or lose control',
-      failure: 'You fail to protect them'
+      success: 'Úplný úspěch: Ochráníš je a vyber jedno: utrpíš jen malé zranění, udržíš si pozici a kontrolu, nebo na chráněnou osobu uděláš dojem.',
+      partial: 'Ochráníš je, ale utrpíš plný harm NEBO tě to dostane do nevýhodné pozice.',
+      failure: 'Strážce provede tvrdý tah. Nedokážeš je ochránit — oba utrpíte následky.'
     },
     'use_magic': {
-      success: 'The magic works without issues',
-      partial: 'The magic works but with a cost or glitch',
-      failure: 'The magic fails or backfires'
+      success: 'Úplný úspěch: Magie funguje přesně jak má.',
+      partial: 'Magie funguje, ale Strážce vybere vedlejší efekt: kouzlo je slabší, vyžaduje oběť, přitáhne nežádoucí pozornost, nebo má nepředvídatelný účinek.',
+      failure: 'Strážce provede tvrdý tah. Magie selže nebo se obrátí proti sesílateli — nežádoucí efekt, zranění, nebo přivolá něco horšího.'
     },
     'read_bad_situation': {
-      success: 'Hold 3 to ask questions',
-      partial: 'Hold 1 to ask a question',
-      failure: 'You misread the situation'
+      success: 'Úplný úspěch: Polož Strážci 3 otázky: Kam vede úniková cesta? Co je tu nejnebezpečnější? Co je tu nejzranitelnější? Kdo tu skrývá pravdu? Co tu není vidět?',
+      partial: 'Částečný úspěch: Polož 1 otázku ze seznamu, ale tvé soustředění tě stojí čas nebo pozornost — nepřítel získá výhodu.',
+      failure: 'Strážce provede tvrdý tah. Špatně vyhodnotíš situaci — tvé jednání na základě chybné analýzy tě dostane do nebezpečí.'
     }
   };
   return outcomes[moveName] || {
-    success: 'Success',
-    partial: 'Partial success',
-    failure: 'Failure'
+    success: 'Úplný úspěch',
+    partial: 'Částečný úspěch s cenou nebo komplikací',
+    failure: 'Strážce provede tvrdý tah'
   };
 }

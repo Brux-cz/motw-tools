@@ -417,7 +417,7 @@ function renderLogEntry(entry) {
           <div>${msg}</div>
           ${entry.roll ? `
             <div class="mt-2 text-sm text-neutral-400">
-              🎲 Roll: ${entry.roll.roll.die1} + ${entry.roll.roll.die2} + ${entry.roll.statValue} = ${entry.roll.total}
+              🎲 ${entry.roll.moveName_cz ? escapeHtml(entry.roll.moveName_cz) + ': ' : ''}${entry.roll.roll.die1} + ${entry.roll.roll.die2} + ${entry.roll.statValue} = ${entry.roll.total}
               (${escapeHtml(entry.roll.outcome)})
             </div>
           ` : ''}
@@ -588,7 +588,7 @@ export function attachGMPanelListeners() {
           case 'player': return `[${time}] ${entry.hunter}: ${entry.message}`;
           case 'gm': {
             let line = `[${time}] Keeper: ${entry.message}`;
-            if (entry.roll) line += `\n  🎲 ${entry.roll.roll.die1}+${entry.roll.roll.die2}+${entry.roll.statValue}=${entry.roll.total} (${entry.roll.outcome})`;
+            if (entry.roll) line += `\n  🎲 ${entry.roll.moveName_cz ? entry.roll.moveName_cz + ': ' : ''}${entry.roll.roll.die1}+${entry.roll.roll.die2}+${entry.roll.statValue}=${entry.roll.total} (${entry.roll.outcome})`;
             return line;
           }
           case 'npc': return `[${time}] ${entry.npc}: ${entry.message}`;

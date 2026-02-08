@@ -3,7 +3,7 @@
  * Main engine for running AI GM mode
  */
 import { getState } from '../../state/store.js';
-import { parsePlayerAction } from './player-input-parser.js';
+import { parsePlayerAction, getMoveNameCz } from './player-input-parser.js';
 import { resolveMove, applyHarm, applyCondition } from './mechanics-engine.js';
 import { generateNPCResponse, shouldNPCIntervene, determineNPCBehavior } from './npc-engine.js';
 import {
@@ -43,11 +43,23 @@ class GMEngine {
     this.lastAmbientEvent = 0;
     this.lastNPCBehavior = 0;
     this.npcBehaviorInProgress = false;
+    this.autoPlayActive = false;
+    this.processing = false;
 
     // Activity tracking for adaptive rate limiting
     this.activityTracking = {
       recentPlayerActions: [],
       highActivityThreshold: 3  // 3 akce za minutu = vysoká aktivita
+    };
+
+    // Story state tracking
+    this.storyState = {
+      phase: 'investigation', // investigation | confrontation | resolution
+      round: 0,
+      discoveredClues: [],
+      monsterRevealed: false,
+      actionsAtCurrentLocation: 0,
+      lastNPCReactionTime: 0
     };
   }
 
@@ -101,6 +113,73 @@ class GMEngine {
   }
 
   /**
+   * Get current story state for narrative context
+   * @returns {Object} Story state
+   */
+  getStoryState() {
+    return { ...this.storyState };
+  }
+
+  /**
+   * Update story phase based on session events
+   * Called after each player action
+   */
+  updateStoryPhase() {
+    const { campaign, currentMysteryId } = getState();
+    const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
+    if (!mystery) return;
+
+    this.storyState.round++;
+    this.storyState.actionsAtCurrentLocation++;
+
+    // Check for phase transitions based on keywords in recent log
+    const recentEntries = this.sessionLog.slice(-10);
+    const recentText = recentEntries.map(e => e.message).join(' ').toLowerCase();
+
+    const monsterName = (mystery.monster?.name || '').toLowerCase();
+    const combatKeywords = ['útočí', 'útok', 'bojuj', 'zaútoč', 'tasím', 'střílím', 'sekám', 'bráním se', 'kick_some_ass', 'zbraň'];
+    const revealKeywords = [monsterName, 'příšera', 'monstrum', 'odhalení', 'objevil', 'spatřil'].filter(Boolean);
+
+    // Detect monster revealed
+    if (!this.storyState.monsterRevealed && monsterName) {
+      if (revealKeywords.some(kw => recentText.includes(kw))) {
+        this.storyState.monsterRevealed = true;
+      }
+    }
+
+    // Track discovered clues from investigation moves
+    const lastEntry = recentEntries[recentEntries.length - 1];
+    if (lastEntry?.roll?.move === 'investigate_a_mystery' && lastEntry?.roll?.outcome !== 'failure') {
+      const clue = `Stopa z kola ${this.storyState.round}`;
+      if (this.storyState.discoveredClues.length < 5) {
+        this.storyState.discoveredClues.push(clue);
+      }
+    }
+
+    // Phase transition logic
+    const countdown = mystery.countdown;
+    const currentPhase = countdown?.currentPhase || 0;
+
+    if (this.storyState.phase === 'investigation') {
+      // Transition to confrontation when:
+      // - Monster is revealed, OR
+      // - Combat keywords appear, OR
+      // - Countdown reaches phase 3+
+      const hasCombat = combatKeywords.some(kw => recentText.includes(kw));
+      if (this.storyState.monsterRevealed || hasCombat || currentPhase >= 3) {
+        this.storyState.phase = 'confrontation';
+        console.log('[Story] Phase transition: investigation → confrontation');
+      }
+    } else if (this.storyState.phase === 'confrontation') {
+      // Transition to resolution when countdown reaches phase 5+
+      if (currentPhase >= 5) {
+        this.storyState.phase = 'resolution';
+        console.log('[Story] Phase transition: confrontation → resolution');
+      }
+    }
+  }
+
+  /**
    * Initialize default scene
    */
   async initializeDefaultScene() {
@@ -115,7 +194,8 @@ class GMEngine {
 
     // Generate opening scene description with mystery context
     const mysteryContext = this.buildMysteryContext();
-    const sceneDesc = await generateSceneDescription(location, 'mysterious', 5, { mysteryContext });
+    const storyState = this.getStoryState();
+    const sceneDesc = await generateSceneDescription(location, 'mysterious', 5, { mysteryContext, storyState });
     this.addToSessionLog({
       type: 'scene',
       message: sceneDesc,
@@ -171,16 +251,16 @@ class GMEngine {
     }
 
     // Countdown
-    if (mystery.countdown?.steps?.length) {
+    if (mystery.countdown?.phases?.length) {
       const cd = mystery.countdown;
-      const currentStep = cd.currentStep || 0;
+      const currentPhase = cd.currentPhase || 0;
       const phaseNames = ['Den', 'Příšeří', 'Západ', 'Soumrak', 'Noc', 'Půlnoc'];
       parts.push('');
-      parts.push(`ODPOČET (fáze ${currentStep + 1}/${cd.steps.length}):`);
-      cd.steps.forEach((step, i) => {
-        const marker = i < currentStep ? ' ✓' : i === currentStep ? ' [AKTUÁLNÍ]' : '';
+      parts.push(`ODPOČET (fáze ${currentPhase + 1}/${cd.phases.length}):`);
+      cd.phases.forEach((phase, i) => {
+        const marker = i < currentPhase ? ' ✓' : i === currentPhase ? ' [AKTUÁLNÍ]' : '';
         const phaseName = phaseNames[i] || `Krok ${i + 1}`;
-        parts.push(`${i + 1}. ${phaseName}: ${step}${marker}`);
+        parts.push(`${i + 1}. ${phaseName}: ${phase.description || ''}${marker}`);
       });
     }
 
@@ -193,10 +273,32 @@ class GMEngine {
    * @returns {string} Formatted history
    */
   buildRecentHistory(maxEntries = 15) {
-    const recent = this.sessionLog.slice(-maxEntries);
-    if (recent.length === 0) return '';
+    if (this.sessionLog.length === 0) return '';
 
-    return recent.map(entry => {
+    // Prioritize player/keeper/scene entries, limit NPC/ambient to prevent flooding
+    const candidates = this.sessionLog.slice(-(maxEntries * 2));
+    const prioritized = [];
+    let npcCount = 0;
+    let ambientCount = 0;
+    const maxNPC = 3;      // Max NPC entries in history
+    const maxAmbient = 1;  // Max ambient entries in history
+
+    // Walk backwards to keep most recent entries, apply limits
+    for (let i = candidates.length - 1; i >= 0 && prioritized.length < maxEntries; i--) {
+      const entry = candidates[i];
+      if (entry.type === 'npc') {
+        if (npcCount >= maxNPC) continue;
+        npcCount++;
+      } else if (entry.type === 'ambient') {
+        if (ambientCount >= maxAmbient) continue;
+        ambientCount++;
+      } else if (entry.type === 'system' || entry.type === 'autoplay') {
+        continue; // Skip system/autoplay entries
+      }
+      prioritized.unshift(entry);
+    }
+
+    return prioritized.map(entry => {
       switch (entry.type) {
         case 'player':
           return `[${entry.hunter}]: ${entry.message}`;
@@ -300,14 +402,19 @@ class GMEngine {
         // Process player actions
         if (this.playerActionQueue.length > 0) {
           const action = this.playerActionQueue.shift();
-          await this.handlePlayerAction(action);
+          this.processing = true;
+          try {
+            await this.handlePlayerAction(action);
+          } finally {
+            this.processing = false;
+          }
         }
 
         // Check for ambient events
         await this.checkAmbientEvents();
 
-        // Process NPC behaviors (if high autonomy)
-        if (this.settings.npcAutonomy === 'high') {
+        // Process NPC behaviors (if high autonomy, skip during auto-play)
+        if (this.settings.npcAutonomy === 'high' && !this.autoPlayActive) {
           await this.processNPCBehaviors();
         }
       } catch (error) {
@@ -339,10 +446,14 @@ class GMEngine {
     // 1. Parse action
     const parsed = parsePlayerAction(actionText);
 
+    // Update story state tracking
+    this.updateStoryPhase();
+
     // Build context for AI calls
     const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
     const mysteryContext = this.buildMysteryContext();
     const recentHistory = this.buildRecentHistory(15);
+    const storyState = this.getStoryState();
 
     // 2. Determine if move is triggered
     if (parsed.move) {
@@ -357,7 +468,7 @@ class GMEngine {
       }
 
       // 3. Narrate outcome with context
-      const narrative = await narrateAction(parsed, result, { mysteryContext, recentHistory });
+      const narrative = await narrateAction(parsed, result, { mysteryContext, recentHistory, storyState });
 
       // 4. Apply consequences if auto-apply enabled
       if (this.settings.autoApplyMechanics) {
@@ -368,7 +479,7 @@ class GMEngine {
       this.addToSessionLog({
         type: 'gm',
         message: narrative,
-        roll: result,
+        roll: { ...result, moveName_cz: getMoveNameCz(parsed.move) },
         timestamp: Date.now()
       });
 
@@ -394,6 +505,7 @@ class GMEngine {
         mystery,
         mysteryContext,
         recentHistory,
+        storyState,
         hunterName: hunter?.name
       });
 
@@ -404,7 +516,7 @@ class GMEngine {
       });
     }
 
-    // 7. Check for NPC reactions
+    // 7. Check for NPC reactions (limited to 1 per action)
     await this.triggerNPCReactions(parsed, actionText);
   }
 
@@ -462,31 +574,54 @@ class GMEngine {
       return;
     }
 
-    // Check each NPC if they should react
+    // Cooldown: minimum 10s between NPC reactions
+    const now = Date.now();
+    if (now - this.storyState.lastNPCReactionTime < 10000) {
+      return;
+    }
+
+    // Only allow 1 NPC to react per player action (prevent flooding)
+    // Prioritize NPC that was directly mentioned, otherwise pick randomly
+    let reactingNpcId = null;
+
     for (const npcId of scene.npcsPresent) {
-      const shouldReact = shouldNPCIntervene(npcId, {
-        tension: scene.tension,
-        playerAction: actionText
-      });
+      const npc = mystery.bystanders?.find(b => b.id === npcId);
+      if (npc && actionText.toLowerCase().includes(npc.name.toLowerCase())) {
+        reactingNpcId = npcId;
+        break;
+      }
+    }
 
-      if (shouldReact) {
-        const recentHistory = this.buildRecentHistory(10);
-        const response = await generateNPCResponse(npcId, {
-          playerAction: actionText,
-          situation: 'Player action in scene',
-          recentHistory
-        });
-
-        if (response) {
-          const npc = mystery.bystanders?.find(b => b.id === npcId);
-          this.addToSessionLog({
-            type: 'npc',
-            npc: npc?.name || 'NPC',
-            message: response,
-            timestamp: Date.now()
-          });
+    // If no NPC was mentioned, check random chance for one NPC
+    if (!reactingNpcId) {
+      // Shuffle NPCs and pick first one that passes the check
+      const shuffled = [...scene.npcsPresent].sort(() => Math.random() - 0.5);
+      for (const npcId of shuffled) {
+        if (shouldNPCIntervene(npcId, { tension: scene.tension, playerAction: actionText })) {
+          reactingNpcId = npcId;
+          break;
         }
       }
+    }
+
+    if (!reactingNpcId) return;
+
+    const recentHistory = this.buildRecentHistory(10);
+    const response = await generateNPCResponse(reactingNpcId, {
+      playerAction: actionText,
+      situation: 'Player action in scene',
+      recentHistory
+    });
+
+    if (response) {
+      const npc = mystery.bystanders?.find(b => b.id === reactingNpcId);
+      this.storyState.lastNPCReactionTime = now;
+      this.addToSessionLog({
+        type: 'npc',
+        npc: npc?.name || 'NPC',
+        message: response,
+        timestamp: Date.now()
+      });
     }
   }
 
@@ -521,7 +656,8 @@ class GMEngine {
     // Generate ambient event with mystery context + history to avoid repetition
     const mysteryContext = this.buildMysteryContext();
     const recentHistory = this.buildRecentHistory(10);
-    const event = await generateAmbientEvent(scene, mystery, { mysteryContext, recentHistory });
+    const storyState = this.getStoryState();
+    const event = await generateAmbientEvent(scene, mystery, { mysteryContext, recentHistory, storyState });
 
     if (event) {
       this.addToSessionLog({
@@ -583,6 +719,24 @@ class GMEngine {
   }
 
   /**
+   * Get current queue length
+   */
+  getQueueLength() {
+    return this.playerActionQueue.length;
+  }
+
+  /**
+   * Set auto-play active flag
+   */
+  setAutoPlayActive(active) {
+    this.autoPlayActive = active;
+    if (active) {
+      // Suppress ambient events during auto-play (controller handles pacing)
+      this.settings.ambientEventFrequency = 300000; // 5 min
+    }
+  }
+
+  /**
    * Add entry to session log
    */
   addToSessionLog(entry) {
@@ -627,6 +781,13 @@ class GMEngine {
   }
 
   /**
+   * Check if engine is currently processing an action or has queued actions
+   */
+  isProcessing() {
+    return this.processing || this.playerActionQueue.length > 0;
+  }
+
+  /**
    * Check if running
    */
   isRunning() {
@@ -645,3 +806,6 @@ export const getGMSessionLog = () => gmEngine.getSessionLog();
 export const isGMModeRunning = () => gmEngine.isRunning();
 export const updateGMSettings = (settings) => gmEngine.updateSettings(settings);
 export const getGMSettings = () => gmEngine.getSettings();
+export const getGMQueueLength = () => gmEngine.getQueueLength();
+export const isGMProcessing = () => gmEngine.isProcessing();
+export const setAutoPlayActive = (active) => gmEngine.setAutoPlayActive(active);
