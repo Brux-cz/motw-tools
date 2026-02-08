@@ -230,11 +230,15 @@ export async function callAI(prompt, options = {}) {
     throw new Error('API key not configured. Go to Settings to add your API key.');
   }
 
+  // Support passing messages array OR single prompt
+  const messages = options.messages || [{ role: 'user', content: prompt }];
+
   const response = await sendMessage(
-    [{ role: 'user', content: prompt }],
+    messages,
     {
       apiKey: settings.ai.apiKey,
-      model: settings.ai.model || DEFAULT_MODEL,
+      model: options.model || settings.ai.model || DEFAULT_MODEL,
+      systemPrompt: options.systemPrompt || undefined,
       temperature: options.temperature || settings.ai.temperature || 0.7,
       maxTokens: options.max_tokens || options.maxTokens || settings.ai.maxTokens || 2000
     }

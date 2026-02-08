@@ -19,6 +19,7 @@ import {
 } from './scene-manager.js';
 import {
   narrateAction,
+  narrateHardMove,
   generateSceneDescription,
   generateGMResponse,
   generateAmbientEvent,
@@ -46,6 +47,11 @@ class GMEngine {
     this.autoPlayActive = false;
     this.processing = false;
 
+    // Keeper move escalation: soft → hard
+    // When a failure triggers a soft move (setup), it's stored here.
+    // Next player action checks if they addressed or ignored the setup.
+    this.pendingSetup = null; // { softMove, result, parsed, context, timestamp }
+
     // Activity tracking for adaptive rate limiting
     this.activityTracking = {
       recentPlayerActions: [],
@@ -54,12 +60,14 @@ class GMEngine {
 
     // Story state tracking
     this.storyState = {
-      phase: 'investigation', // investigation | confrontation | resolution
+      phase: 'teaser', // teaser | investigation | confrontation | resolution
       round: 0,
       discoveredClues: [],
       monsterRevealed: false,
       actionsAtCurrentLocation: 0,
-      lastNPCReactionTime: 0
+      lastNPCReactionTime: 0,
+      softMovesThisScene: 0,
+      hardMovesThisScene: 0
     };
   }
 
@@ -160,7 +168,15 @@ class GMEngine {
     const countdown = mystery.countdown;
     const currentPhase = countdown?.currentPhase || 0;
 
-    if (this.storyState.phase === 'investigation') {
+    if (this.storyState.phase === 'teaser') {
+      // Teaser → investigation: after 3 rounds OR explicit investigation action
+      const investigateKeywords = ['vyšetřuj', 'investigate', 'hledám stopy', 'zkoumám', 'prozkoumám', 'pátram', 'stopuji'];
+      const hasInvestigation = investigateKeywords.some(kw => recentText.includes(kw));
+      if (this.storyState.round >= 3 || hasInvestigation) {
+        this.storyState.phase = 'investigation';
+        console.log('[Story] Phase transition: teaser → investigation');
+      }
+    } else if (this.storyState.phase === 'investigation') {
       // Transition to confrontation when:
       // - Monster is revealed, OR
       // - Combat keywords appear, OR
@@ -180,6 +196,24 @@ class GMEngine {
   }
 
   /**
+   * Clamp tension to match current story phase
+   * Prevents tension from exceeding phase-appropriate levels
+   */
+  clampTensionToPhase() {
+    const scene = getCurrentScene();
+    const phaseMaxTension = {
+      teaser: 3,
+      investigation: 5,
+      confrontation: 8,
+      resolution: 10
+    };
+    const maxTension = phaseMaxTension[this.storyState.phase] || 10;
+    if (scene.tension > maxTension) {
+      updateScene({ tension: maxTension });
+    }
+  }
+
+  /**
    * Initialize default scene
    */
   async initializeDefaultScene() {
@@ -195,7 +229,7 @@ class GMEngine {
     // Generate opening scene description with mystery context
     const mysteryContext = this.buildMysteryContext();
     const storyState = this.getStoryState();
-    const sceneDesc = await generateSceneDescription(location, 'mysterious', 5, { mysteryContext, storyState });
+    const sceneDesc = await generateSceneDescription(location, 'calm', 2, { mysteryContext, storyState });
     this.addToSessionLog({
       type: 'scene',
       message: sceneDesc,
@@ -424,6 +458,58 @@ class GMEngine {
   }
 
   /**
+   * Detect if the player's action addresses the pending soft move setup
+   * @param {string} actionText - Player's action text
+   * @param {Object} pendingSetup - The pending setup object
+   * @returns {boolean} True if player addressed the setup
+   */
+  detectIfPlayerAddressedSetup(actionText, pendingSetup) {
+    const action = actionText.toLowerCase();
+    const setup = pendingSetup.softMove.toLowerCase();
+
+    // Defensive/reactive keywords suggest the player is responding to the threat
+    const reactiveKeywords = [
+      'uhnout', 'uhnu', 'uhýbám', 'uskočím', 'uskočit',
+      'bráním', 'bráním se', 'kryt', 'schovám', 'schovávám',
+      'utíkám', 'prchám', 'couvám', 'ustupuji',
+      'otočím se', 'podívám se', 'zkontroluji', 'prozkoumám',
+      'zastavím', 'poslouchám', 'dávám pozor',
+      'reaguji', 'připravím se', 'tasím', 'zvedám',
+      'varování', 'nebezpečí', 'opatrně', 'pomalu'
+    ];
+
+    // Check if action references anything from the soft move
+    // Extract key nouns from setup (crude but effective)
+    const setupWords = setup.split(/\s+/).filter(w => w.length > 4);
+    const referencesSetup = setupWords.some(word => action.includes(word));
+
+    // Check for reactive keywords
+    const isReactive = reactiveKeywords.some(kw => action.includes(kw));
+
+    return referencesSetup || isReactive;
+  }
+
+  /**
+   * Check if pacing rules require forcing a soft move
+   * @returns {boolean} True if hard moves should be suppressed
+   */
+  shouldForceSoftMove() {
+    const { softMovesThisScene, hardMovesThisScene } = this.storyState;
+
+    // If 2+ hard moves in a row without a soft move, force soft
+    if (hardMovesThisScene >= 2 && softMovesThisScene === 0) {
+      return true;
+    }
+
+    // Target ratio: at least 2 soft for every 1 hard
+    if (hardMovesThisScene > 0 && softMovesThisScene / hardMovesThisScene < 2) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Handle single player action
    */
   async handlePlayerAction({ hunterId, actionText }) {
@@ -448,14 +534,49 @@ class GMEngine {
 
     // Update story state tracking
     this.updateStoryPhase();
+    this.clampTensionToPhase();
 
     // Build context for AI calls
     const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
     const mysteryContext = this.buildMysteryContext();
     const recentHistory = this.buildRecentHistory(15);
     const storyState = this.getStoryState();
+    const aiContext = { mysteryContext, recentHistory, storyState };
 
-    // 2. Determine if move is triggered
+    // 2. Resolve pending soft move setup (if any)
+    if (this.pendingSetup) {
+      const addressed = this.detectIfPlayerAddressedSetup(actionText, this.pendingSetup);
+
+      if (!addressed) {
+        // Golden opportunity → hard move (player ignored the warning)
+        console.log('[GM Engine] Player ignored setup → golden opportunity → hard move');
+        const hardNarrative = await narrateHardMove(this.pendingSetup, actionText, aiContext);
+
+        this.storyState.hardMovesThisScene++;
+        this.storyState.softMovesThisScene = 0; // reset soft counter
+
+        this.addToSessionLog({
+          type: 'gm',
+          message: hardNarrative,
+          timestamp: Date.now()
+        });
+
+        // Apply mechanical consequences for the ignored setup
+        if (this.settings.autoApplyMechanics && this.pendingSetup.result) {
+          await this.applyConsequences(hunterId, this.pendingSetup.result, this.pendingSetup.parsed);
+        }
+
+        increaseTension(1);
+      } else {
+        console.log('[GM Engine] Player addressed setup → no hard move');
+        // Player reacted — no hard move, just acknowledge
+        decreaseTension(0.5);
+      }
+
+      this.pendingSetup = null;
+    }
+
+    // 3. Determine if move is triggered
     if (parsed.move) {
       console.log(`[GM Engine] Move detected: ${parsed.move}`);
 
@@ -467,24 +588,30 @@ class GMEngine {
         return;
       }
 
-      // 3. Narrate outcome with context
-      const narrative = await narrateAction(parsed, result, { mysteryContext, recentHistory, storyState });
-
-      // 4. Apply consequences if auto-apply enabled
-      if (this.settings.autoApplyMechanics) {
-        await this.applyConsequences(hunterId, result, parsed);
-      }
-
-      // 5. Post to session log
-      this.addToSessionLog({
-        type: 'gm',
-        message: narrative,
-        roll: { ...result, moveName_cz: getMoveNameCz(parsed.move) },
-        timestamp: Date.now()
-      });
-
-      // 6. Increase tension on failures
+      // 4. Handle outcome with escalation system
       if (result.outcome === 'failure') {
+        // FAILURE: Soft move as setup — NOT immediate hard move
+        // Exception: if pacing already has too many hard moves, always do soft
+        const narrative = await narrateAction(parsed, result, aiContext);
+
+        this.storyState.softMovesThisScene++;
+
+        this.addToSessionLog({
+          type: 'gm',
+          message: narrative,
+          roll: { ...result, moveName_cz: getMoveNameCz(parsed.move) },
+          timestamp: Date.now()
+        });
+
+        // Store setup for next action — hard move comes IF player ignores
+        this.pendingSetup = {
+          softMove: narrative,
+          result,
+          parsed,
+          context: aiContext,
+          timestamp: Date.now()
+        };
+
         increaseTension(1);
 
         // Detect story spike
@@ -492,7 +619,34 @@ class GMEngine {
           triggerStorySpike(180000); // 3 min pause
           console.log('[Story Spike] Triggered by critical failure');
         }
-      } else if (result.outcome === 'success') {
+
+      } else if (result.outcome === 'partial') {
+        // PARTIAL: One-step — consequences from MOVE RULES, not keeper choice
+        const narrative = await narrateAction(parsed, result, aiContext);
+
+        // Apply move-specific consequences (these come from the rules)
+        if (this.settings.autoApplyMechanics) {
+          await this.applyConsequences(hunterId, result, parsed);
+        }
+
+        this.addToSessionLog({
+          type: 'gm',
+          message: narrative,
+          roll: { ...result, moveName_cz: getMoveNameCz(parsed.move) },
+          timestamp: Date.now()
+        });
+
+      } else {
+        // SUCCESS: One-step — narrate success
+        const narrative = await narrateAction(parsed, result, aiContext);
+
+        this.addToSessionLog({
+          type: 'gm',
+          message: narrative,
+          roll: { ...result, moveName_cz: getMoveNameCz(parsed.move) },
+          timestamp: Date.now()
+        });
+
         decreaseTension(0.5);
       }
 
@@ -516,33 +670,25 @@ class GMEngine {
       });
     }
 
-    // 7. Check for NPC reactions (limited to 1 per action)
+    // 5. Check for NPC reactions (limited to 1 per action)
     await this.triggerNPCReactions(parsed, actionText);
   }
 
   /**
    * Apply consequences of move result
+   * Note: Failure consequences are NOT applied here — they go through
+   * the soft→hard move escalation system (pendingSetup).
+   * This method handles partial success consequences (from move rules).
    */
   async applyConsequences(hunterId, result, parsedAction) {
     const { campaign } = getState();
     const hunter = campaign.hunters.find(h => h.id === hunterId);
 
-    // Move-specific consequences
+    // Move-specific consequences for PARTIAL success only
+    // (Failure consequences are deferred to hard move escalation)
     if (result.move === 'kick_some_ass') {
-      if (result.outcome === 'failure') {
-        // Take harm without dealing damage
-        const harmResult = await applyHarm(hunterId, 2, parsedAction.target || 'enemy');
-        const narrative = await narrateConsequence(
-          { type: 'harm', amount: 2, source: parsedAction.target },
-          { hunter: hunter.name }
-        );
-        this.addToSessionLog({
-          type: 'consequence',
-          message: narrative,
-          timestamp: Date.now()
-        });
-      } else if (result.outcome === 'partial') {
-        // Deal damage but take harm
+      if (result.outcome === 'partial') {
+        // 7-9: Both sides exchange harm (this IS the move rule)
         const harmResult = await applyHarm(hunterId, 1, parsedAction.target || 'enemy');
         const narrative = await narrateConsequence(
           { type: 'harm', amount: 1, source: parsedAction.target },
@@ -553,10 +699,21 @@ class GMEngine {
           message: narrative,
           timestamp: Date.now()
         });
+      } else if (result.outcome === 'failure') {
+        // Failure harm applied via hard move escalation (when/if it fires)
+        const harmResult = await applyHarm(hunterId, 2, parsedAction.target || 'enemy');
+        const narrative = await narrateConsequence(
+          { type: 'harm', amount: 2, source: parsedAction.target },
+          { hunter: hunter.name }
+        );
+        this.addToSessionLog({
+          type: 'consequence',
+          message: narrative,
+          timestamp: Date.now()
+        });
       }
     } else if (result.move === 'act_under_pressure') {
       if (result.outcome === 'failure') {
-        // Something goes badly wrong
         increaseTension(2);
       }
     }

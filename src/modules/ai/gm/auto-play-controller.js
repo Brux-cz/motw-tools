@@ -199,11 +199,14 @@ class AutoPlayController {
     const recentHistory = gmEngine.buildRecentHistory(10);
     const scene = getCurrentScene();
 
+    const storyState = gmEngine.getStoryState();
+
     return await generateAction(hunter, {
       mysteryContext,
       recentHistory,
       otherHunterActions: previousActions,
-      scene
+      scene,
+      storyPhase: storyState.phase
     });
   }
 

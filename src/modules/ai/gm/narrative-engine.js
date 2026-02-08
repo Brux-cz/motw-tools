@@ -11,6 +11,10 @@ import { getMoveOutcomes } from './mechanics-engine.js';
  */
 function buildKeeperSystemPrompt(mysteryContext, storyState) {
   const storyPhaseHint = storyState ? `\nFÁZE PŘÍBĚHU: ${storyState.phase} (kolo ${storyState.round || '?'})
+${storyState.phase === 'teaser' ? `- ÚVODNÍ SCÉNA: Lovci právě dorazili. Popiš atmosféru místa, běžný život.
+- ŽÁDNÉ náznaky příšery, ŽÁDNÉ napětí. Jen místo a jeho obyvatelé.
+- Nech lovce se rozhlednou, promluvit s NPC, nasát atmosféru.
+- Jako v Supernatural: příjezd do městečka, check-in v motelu, první návštěva baru.` : ''}
 ${storyState.phase === 'investigation' ? '- Lovci sbírají stopy. Naznačuj přítomnost příšery nepřímo.' : ''}
 ${storyState.phase === 'confrontation' ? '- Příšera je odhalena nebo aktivní. Eskaluj nebezpečí.' : ''}
 ${storyState.phase === 'resolution' ? '- Závěrečný boj nebo řešení. Směřuj k rozuzlení.' : ''}
@@ -23,7 +27,7 @@ ${storyState.monsterRevealed ? 'PŘÍŠERA ODHALENA — může se přímo objevi
 ${mysteryContext ? `TVOJE ZÁHADA:\n${mysteryContext}\n\n` : ''}${storyPhaseHint}PRAVIDLA KEEPERA:
 - Popisuj POUZE co existuje v záhadě — NIKDY nevymýšlej nové postavy, bytosti, artefakty nebo lokace
 - Používej POUZE NPC jmenované v záhadě — žádné vymyšlené svědky, příbuzné, oběti
-- PŘÍŠERA musí být přítomna v příběhu — i když jen nepřímo (stopy, důsledky, náznaky)
+- ${storyState?.phase === 'teaser' ? 'V úvodní fázi NEZMIŇUJ příšeru ani náznaky — soustřeď se na místo a lidi.' : 'PŘÍŠERA musí být přítomna v příběhu — i když jen nepřímo (stopy, důsledky, náznaky)'}
 - Show, don't tell — popisuj co lovci vidí, slyší, cítí
 - Buď stručný: 1-3 věty
 - Piš česky, používej přítomný čas
@@ -69,21 +73,18 @@ export async function narrateAction(parsedAction, result, context = {}) {
   if (result.outcome === 'success') {
     outcomeInstruction = 'Zdůrazni úspěch a kontrolu hráče nad situací.';
   } else if (result.outcome === 'partial') {
-    outcomeInstruction = `Hráč ČÁSTEČNĚ uspěje — ale s KONKRÉTNÍ cenou nebo komplikací.
-Pravidla pro tento tah: ${outcomeDesc}
-MUSÍŠ popsat jednu z těchto komplikací: ztráta času, prozrazení pozice, ztráta předmětu, zranění, horší výsledek, obtížná volba.
-NEPIŠ jen "napětí roste" — popiš konkrétní důsledek, který hráče stojí něco hmatatelného.`;
+    outcomeInstruction = `Hráč ČÁSTEČNĚ uspěje — komplikace vychází PŘESNĚ z pravidel tohoto tahu.
+Pravidla pro tento tah na 7-9: ${outcomeDesc}
+POUŽIJ PŘESNĚ komplikaci z pravidel tahu — NE vlastní kreativní trest.
+Příklady: u Kick Some Ass 7-9 = obě strany si udělí harm. U Investigate 7-9 = méně otázek. U Act Under Pressure 7-9 = horší výsledek nebo cena.
+NEPIŠ komplikace které pravidla tahu neuvádějí.`;
   } else {
-    outcomeInstruction = `SELHÁNÍ — Strážce provádí TVRDÝ TAH.
-Vyber a proveď JEDEN tvrdý tah: způsob zranění (X harm), rozděl lovce od skupiny, odeber vybavení/zbraň, obrať jejich akci proti nim, prozraď informaci nepříteli, nebo použij schopnost příšery.
-Popiš KONKRÉTNÍ důsledek — NE atmosféru. Hráč musí pocítit mechanický dopad selhání.
-Dostupné tvrdé tahy Strážce:
-- Způsob zranění podle pravidel
-- Rozděl lovce
-- Obrať tah proti nim
-- Uzmi jim vybavení
-- Způsob potíže (ztráta času, prozrazení)
-- Použij tah hrozby (schopnost příšery)`;
+    outcomeInstruction = `SELHÁNÍ — Strážce dělá MĚKKÝ TAH (setup, varování).
+Popiš náznaky nebezpečí — zvuky, pohyby, stíny, reakce prostředí.
+NEZPŮSOBUJ okamžité důsledky (žádný harm, žádná ztráta vybavení, žádné zranění).
+Telegrafuj co se CHYSTÁ stát, ale NEDĚLEJ to ještě.
+Konči VŽDY otázkou: "Co uděláš?" nebo podobnou výzvou k reakci.
+NIKDY nedávej finální důsledek — hráč MUSÍ dostat šanci reagovat.`;
   }
 
   const userMessage = `Vypravěj výsledek akce v Monster of the Week:
@@ -118,6 +119,56 @@ Odpověz POUZE narativem (bez dodatečných komentářů):`;
 }
 
 /**
+ * Narrate a hard move (golden opportunity) after player ignored a soft move setup
+ * @param {Object} pendingSetup - The pending soft move setup
+ * @param {string} playerAction - What the player did instead of addressing the setup
+ * @param {Object} context - Mystery/history context
+ * @returns {Promise<string>} Hard move narrative
+ */
+export async function narrateHardMove(pendingSetup, playerAction, context = {}) {
+  const systemPrompt = context.mysteryContext
+    ? buildKeeperSystemPrompt(context.mysteryContext, context.storyState)
+    : undefined;
+
+  const userMessage = `Hráč IGNOROVAL varování. TEPRVE TEĎ proveď TVRDÝ TAH (zlatá příležitost).
+
+Předchozí varování (měkký tah): ${pendingSetup.softMove}
+Co hráč udělal místo reakce: ${playerAction}
+
+Vyber a proveď JEDEN tvrdý tah Strážce:
+- Způsob zranění (X harm) podle pravidel
+- Rozděl lovce od skupiny
+- Obrať tah/situaci proti nim
+- Uzmi jim vybavení nebo zbraň
+- Způsob potíže (ztráta času, prozrazení pozice)
+- Použij tah hrozby (schopnost příšery)
+
+Pravidla:
+- Důsledek MUSÍ navazovat na předchozí varování — co bylo naznačeno, to se teď stane
+- 2-3 věty, konkrétní mechanický dopad
+- Show, don't tell
+- Použij přítomný čas
+- Konči krátce — žádné "Co uděláš?" (důsledek už nastal)
+
+Odpověz POUZE narativem:`;
+
+  const messages = buildMessagesWithHistory(context.recentHistory, userMessage);
+
+  try {
+    const narrative = await callAI('', {
+      systemPrompt,
+      messages,
+      temperature: 0.8,
+      max_tokens: 250
+    });
+    return narrative;
+  } catch (error) {
+    console.error('[Narrative Engine] Error narrating hard move:', error);
+    return 'Varování se naplnilo — situace se dramaticky zhoršuje.';
+  }
+}
+
+/**
  * Generate scene description
  * @param {Object} location - Location object
  * @param {string} atmosphere - Atmosphere/mood
@@ -141,7 +192,7 @@ Pravidla:
 - 2-3 věty
 - Zaměř se na smysly (co vidíš, slyšíš, cítíš)
 - Vytvářej náladu a atmosféru
-- ${tension > 7 ? 'Naznač nebezpečí' : tension > 4 ? 'Lehké napětí' : 'Klidná atmosféra'}
+- ${tension <= 2 ? 'Klidná, pokojná atmosféra. Běžný den, žádné napětí ani náznaky nebezpečí.' : tension <= 4 ? 'Klidná atmosféra' : tension <= 7 ? 'Lehké napětí' : 'Naznač nebezpečí'}
 - Použij přítomný čas
 - Popiš lokaci z mystery, zmíň přítomné NPC pokud je to vhodné
 

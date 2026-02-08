@@ -38,7 +38,8 @@ app.post('/api/anthropic/messages', async (req, res) => {
     'claude-3-5-sonnet-20241022',
     'claude-3-5-sonnet-20240620',
     'claude-3-haiku-20240307',
-    'claude-sonnet-4-5-20250929'
+    'claude-sonnet-4-5-20250929',
+    'claude-haiku-4-5-20251001'
   ];
 
   if (!allowedModels.includes(req.body.model)) {

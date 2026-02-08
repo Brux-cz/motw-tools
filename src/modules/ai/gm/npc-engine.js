@@ -176,27 +176,27 @@ export function shouldNPCIntervene(npcId, situation) {
   // - Direct mention in player action
   // - Type-specific triggers
 
-  if (situation.tension > 7) {
-    return Math.random() < 0.6; // 60% chance on high tension
-  }
-
   if (situation.playerAction?.toLowerCase().includes(npc.name.toLowerCase())) {
-    return true; // Always react if mentioned
+    return true; // Always react if directly mentioned
   }
 
-  // Type-specific behavior (case-insensitive, CZ/EN)
+  if (situation.tension > 7) {
+    return Math.random() < 0.35; // 35% chance on high tension (was 60%)
+  }
+
+  // Type-specific behavior (case-insensitive, CZ/EN) — reduced chances
   const npcType = (npc.type || '').toLowerCase();
   const interventionChance = {
-    'witness': 0.3, 'svědek': 0.3,
-    'victim': 0.7, 'oběť': 0.7,
-    'busybody': 0.8, 'všetečka': 0.8,
-    'helper': 0.6, 'pomocník': 0.6,
-    'official': 0.5, 'úředník': 0.5,
-    'gossip': 0.7, 'drbna': 0.7, 'klevetník': 0.7,
-    'innocent': 0.4, 'nevinný': 0.4,
-    'suspect': 0.5, 'podezřelý': 0.5
+    'witness': 0.15, 'svědek': 0.15,
+    'victim': 0.35, 'oběť': 0.35,
+    'busybody': 0.4, 'všetečka': 0.4,
+    'helper': 0.3, 'pomocník': 0.3,
+    'official': 0.25, 'úředník': 0.25,
+    'gossip': 0.35, 'drbna': 0.35, 'klevetník': 0.35,
+    'innocent': 0.2, 'nevinný': 0.2,
+    'suspect': 0.25, 'podezřelý': 0.25
   };
 
-  const chance = interventionChance[npcType] || 0.3;
+  const chance = interventionChance[npcType] || 0.15;
   return Math.random() < chance;
 }
