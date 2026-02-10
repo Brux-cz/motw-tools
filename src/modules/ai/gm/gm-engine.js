@@ -70,6 +70,12 @@ class GMEngine {
       highActivityThreshold: 3  // 3 akce za minutu = vysoká aktivita
     };
 
+    // Session persistence
+    this.currentSessionId = null;
+    this._saveTimeout = null;
+    this._saveIntervalMs = 10000; // 10s debounce
+    this._lastSaveLogLength = 0;
+
     // Story state tracking
     this.storyState = {
       phase: 'investigation', // investigation | confrontation | resolution
@@ -284,7 +290,26 @@ class GMEngine {
     }
 
     this.running = true;
-    console.log('[GM Engine] Starting autonomous GM mode');
+    this.currentSessionId = this._generateSessionId();
+    console.log('[GM Engine] Starting autonomous GM mode, session:', this.currentSessionId);
+
+    // Mark any old active sessions as abandoned
+    try {
+      const { campaign } = getState();
+      if (campaign?.id) {
+        const { getGMSessionsForCampaign, saveGMSession } = await import('../../state/storage.js');
+        const sessions = await getGMSessionsForCampaign(campaign.id);
+        for (const s of sessions) {
+          if (s.status === 'active' && s.id !== this.currentSessionId) {
+            s.status = 'finished';
+            s.endReason = 'abandoned';
+            await saveGMSession(s);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[GM Engine] Failed to clean old sessions:', e);
+    }
 
     // Initialize session data
     const { currentMysteryId } = getState();
@@ -327,6 +352,9 @@ class GMEngine {
       message: 'AI Game Master mode deactivated.',
       timestamp: Date.now()
     });
+
+    // Save final session state
+    this._saveSessionFinal('stopped');
   }
 
   /**
@@ -1245,6 +1273,9 @@ Odpověz POUZE validním JSON (žádný jiný text):
       }));
     }
 
+    // Save session to DB before stopping (stop() would save with 'stopped', we want the real endReason)
+    await this._saveSessionFinal(endReason);
+
     this.stop();
     console.log(`[GM Engine] Session ended: ${endReason}`);
   }
@@ -1564,6 +1595,127 @@ Odpověz POUZE validním JSON (žádný jiný text):
     }
   }
 
+  // --- Session persistence methods ---
+
+  _generateSessionId() {
+    return `gm-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  _buildSessionRecord(status, endReason = null) {
+    const { campaign, currentMysteryId } = getState();
+    const mystery = campaign?.mysteries?.find(m => m.id === currentMysteryId);
+    const scene = getCurrentScene();
+
+    return {
+      id: this.currentSessionId,
+      campaignId: campaign?.id || null,
+      mysteryId: currentMysteryId || null,
+      mysteryName: mystery?.name || 'Neznámá záhada',
+      status,
+      startedAt: this.sessionData?.startedAt || Date.now(),
+      lastMessageAt: this.sessionLog.length > 0
+        ? this.sessionLog[this.sessionLog.length - 1].timestamp
+        : Date.now(),
+      endReason,
+      roundCount: this.storyState.round,
+      log: [...this.sessionLog],
+      storyState: { ...this.storyState },
+      sceneSnapshot: scene ? { ...scene } : null,
+      hunterNames: (campaign?.hunters || []).map(h => h.name),
+      storyExported: false
+    };
+  }
+
+  _scheduleSave() {
+    // Only save if there are new log entries
+    if (this.sessionLog.length === this._lastSaveLogLength) return;
+    if (!this.currentSessionId) return;
+
+    if (this._saveTimeout) clearTimeout(this._saveTimeout);
+    this._saveTimeout = setTimeout(async () => {
+      try {
+        const record = this._buildSessionRecord('active');
+        const { saveGMSession } = await import('../../state/storage.js');
+        await saveGMSession(record);
+        this._lastSaveLogLength = this.sessionLog.length;
+        console.log('[GM Engine] Auto-saved session:', this.currentSessionId);
+      } catch (error) {
+        console.error('[GM Engine] Auto-save failed:', error);
+      }
+    }, this._saveIntervalMs);
+  }
+
+  async _saveSessionFinal(endReason) {
+    if (this._saveTimeout) {
+      clearTimeout(this._saveTimeout);
+      this._saveTimeout = null;
+    }
+    if (!this.currentSessionId) return;
+
+    try {
+      const record = this._buildSessionRecord('finished', endReason);
+      const { saveGMSession } = await import('../../state/storage.js');
+      await saveGMSession(record);
+      this._lastSaveLogLength = this.sessionLog.length;
+      console.log('[GM Engine] Session finalized:', this.currentSessionId, endReason);
+      // Clear ID to prevent duplicate saves (e.g. handleSessionEnd → stop)
+      this.currentSessionId = null;
+    } catch (error) {
+      console.error('[GM Engine] Final save failed:', error);
+    }
+  }
+
+  async checkForActiveSession() {
+    try {
+      const { campaign } = getState();
+      if (!campaign?.id) return null;
+
+      const { getGMSessionsForCampaign } = await import('../../state/storage.js');
+      const sessions = await getGMSessionsForCampaign(campaign.id);
+      return sessions.find(s => s.status === 'active') || null;
+    } catch (error) {
+      console.error('[GM Engine] Failed to check for active session:', error);
+      return null;
+    }
+  }
+
+  async resumeSession(record) {
+    if (this.running) {
+      console.warn('[GM Engine] Already running, cannot resume');
+      return false;
+    }
+
+    console.log('[GM Engine] Resuming session:', record.id);
+
+    // Restore engine state
+    this.currentSessionId = record.id;
+    this.sessionLog = [...(record.log || [])];
+    this._lastSaveLogLength = this.sessionLog.length;
+    this.storyState = { ...this.storyState, ...(record.storyState || {}) };
+
+    // Restore scene
+    if (record.sceneSnapshot) {
+      const { restoreScene } = await import('./scene-manager.js');
+      restoreScene(record.sceneSnapshot);
+    }
+
+    // Restore session data
+    const { currentMysteryId } = getState();
+    this.initializeSessionData(record.mysteryId || currentMysteryId);
+
+    // Mark as running and start loop
+    this.running = true;
+    this.processLoop();
+
+    this.addToSessionLog({
+      type: 'system',
+      message: 'Session obnovena — pokračujeme tam, kde jsme skončili.',
+      timestamp: Date.now()
+    });
+
+    return true;
+  }
+
   /**
    * Get current queue length
    */
@@ -1596,6 +1748,9 @@ Odpověz POUZE validním JSON (žádný jiný text):
     }
 
     console.log('[GM Session]', entry);
+
+    // Auto-save to IndexedDB
+    this._scheduleSave();
   }
 
   /**
@@ -1610,6 +1765,12 @@ Odpověz POUZE validním JSON (žádný jiný text):
    */
   clearSessionLog() {
     this.sessionLog = [];
+    this.currentSessionId = null;
+    this._lastSaveLogLength = 0;
+    if (this._saveTimeout) {
+      clearTimeout(this._saveTimeout);
+      this._saveTimeout = null;
+    }
   }
 
   /**
@@ -1660,3 +1821,5 @@ export const getGMSettings = () => gmEngine.getSettings();
 export const getGMQueueLength = () => gmEngine.getQueueLength();
 export const isGMProcessing = () => gmEngine.isProcessing();
 export const setAutoPlayActive = (active) => gmEngine.setAutoPlayActive(active);
+export const checkForActiveSession = () => gmEngine.checkForActiveSession();
+export const resumeGMSession = (record) => gmEngine.resumeSession(record);

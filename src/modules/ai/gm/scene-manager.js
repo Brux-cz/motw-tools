@@ -198,6 +198,14 @@ export function clearStorySpike() {
 }
 
 /**
+ * Restore scene from saved data (for session resume)
+ * @param {Object} sceneData - Saved scene state
+ */
+export function restoreScene(sceneData) {
+  currentScene = { ...sceneData };
+}
+
+/**
  * Check if ambient events should be paused
  * @returns {boolean} True if should pause
  */

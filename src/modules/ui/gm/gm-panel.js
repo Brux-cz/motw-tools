@@ -10,12 +10,15 @@ import {
   getGMSessionLog,
   isGMModeRunning,
   updateGMSettings,
-  getGMSettings
+  getGMSettings,
+  checkForActiveSession,
+  resumeGMSession
 } from '../../ai/gm/gm-engine.js';
 import { getCurrentScene } from '../../ai/gm/scene-manager.js';
 
 let updateInterval = null;
 let autoPlayState = null; // Cached auto-play state from events
+let sessionHistoryExpanded = false;
 
 /**
  * Escape HTML to prevent XSS from AI-generated content
@@ -157,6 +160,9 @@ function renderStoppedLayout(settings) {
       <!-- Saved Stories -->
       ${renderSavedStories()}
 
+      <!-- Session History -->
+      ${renderSessionHistory()}
+
       <!-- Settings (open by default) -->
       <div class="bg-neutral-800 p-4 rounded">
         <h3 class="font-semibold mb-4">⚙️ Settings</h3>
@@ -254,6 +260,250 @@ function renderSavedStories() {
       }
     </div>
   `;
+}
+
+/**
+ * Render session history collapsible section
+ */
+function renderSessionHistory() {
+  return `
+    <div class="bg-neutral-800 p-4 rounded">
+      <button id="btn-toggle-session-history" class="w-full flex items-center justify-between font-semibold">
+        <span>📂 Historie sessions</span>
+        <span class="text-neutral-400 text-sm">${sessionHistoryExpanded ? '▲' : '▼'}</span>
+      </button>
+      <div id="session-history-content" class="${sessionHistoryExpanded ? '' : 'hidden'} mt-4">
+        <p class="text-sm text-neutral-500 italic">Načítám...</p>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Load and render session history items
+ */
+async function loadSessionHistory() {
+  const container = document.getElementById('session-history-content');
+  if (!container) return;
+
+  try {
+    const { campaign } = getState();
+    if (!campaign?.id) {
+      container.innerHTML = '<p class="text-sm text-neutral-500 italic">Žádná kampaň.</p>';
+      return;
+    }
+
+    const { getGMSessionsForCampaign } = await import('../../state/storage.js');
+    const sessions = await getGMSessionsForCampaign(campaign.id);
+
+    if (sessions.length === 0) {
+      container.innerHTML = '<p class="text-sm text-neutral-500 italic">Zatím žádné sessions.</p>';
+      return;
+    }
+
+    container.innerHTML = `<div class="space-y-2">${sessions.map(s => {
+      const date = new Date(s.startedAt).toLocaleString('cs-CZ', {
+        day: 'numeric', month: 'numeric', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+      const logCount = s.log?.length || 0;
+      const isActive = s.status === 'active';
+      const statusLabel = isActive ? '⏳ přerušená' : '✓ dokončená';
+      const statusColor = isActive ? 'text-yellow-400' : 'text-green-400';
+
+      const endReasonMap = {
+        monster_defeated: 'Příšera poražena',
+        countdown_midnight: 'Půlnoc',
+        hunters_dead: 'Lovci padli',
+        max_rounds: 'Max kol',
+        stopped: 'Zastavena',
+        abandoned: 'Opuštěna'
+      };
+      const reason = s.endReason ? endReasonMap[s.endReason] || s.endReason : '';
+
+      return `
+        <div class="bg-neutral-700/50 px-4 py-3 rounded hover:bg-neutral-700 transition-colors">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-semibold text-sm">${escapeHtml(s.mysteryName)}</span>
+            <span class="text-xs ${statusColor}">${statusLabel}</span>
+          </div>
+          <div class="text-xs text-neutral-400 mb-2">
+            ${date} · ${s.roundCount || 0} kol · ${logCount} záznamů${reason ? ` · ${reason}` : ''}
+          </div>
+          <div class="flex justify-end gap-2">
+            ${isActive ? `<button class="btn-session-resume px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-xs font-semibold" data-session-id="${s.id}">▶ Obnovit</button>` : ''}
+            <button class="btn-session-view px-2 py-1 bg-neutral-600 hover:bg-neutral-500 rounded text-xs" data-session-id="${s.id}" title="Zobrazit log">👁 Log</button>
+            <button class="btn-session-export px-2 py-1 bg-neutral-600 hover:bg-neutral-500 rounded text-xs" data-session-id="${s.id}" title="Exportovat příběh">📖</button>
+            <button class="btn-session-delete px-2 py-1 bg-neutral-600 hover:bg-red-600 rounded text-xs" data-session-id="${s.id}" title="Smazat">🗑️</button>
+          </div>
+        </div>
+      `;
+    }).join('')}</div>`;
+
+    attachSessionHistoryItemListeners();
+  } catch (error) {
+    console.error('[GM Panel] Failed to load session history:', error);
+    container.innerHTML = '<p class="text-sm text-red-400">Chyba při načítání historie.</p>';
+  }
+}
+
+/**
+ * Attach listeners for session history item buttons
+ */
+function attachSessionHistoryItemListeners() {
+  // Resume
+  document.querySelectorAll('.btn-session-resume').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const sessionId = btn.dataset.sessionId;
+      btn.disabled = true;
+      btn.textContent = '⏳...';
+      try {
+        const { loadGMSession } = await import('../../state/storage.js');
+        const record = await loadGMSession(sessionId);
+        if (record) {
+          await resumeGMSession(record);
+          refreshGMPanel();
+        }
+      } catch (error) {
+        console.error('[GM Panel] Resume failed:', error);
+        alert('Nepodařilo se obnovit session: ' + error.message);
+      }
+    });
+  });
+
+  // View log
+  document.querySelectorAll('.btn-session-view').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const sessionId = btn.dataset.sessionId;
+      try {
+        const { loadGMSession } = await import('../../state/storage.js');
+        const record = await loadGMSession(sessionId);
+        if (record) openSessionViewer(record);
+      } catch (error) {
+        console.error('[GM Panel] View failed:', error);
+      }
+    });
+  });
+
+  // Export story
+  document.querySelectorAll('.btn-session-export').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const sessionId = btn.dataset.sessionId;
+      btn.disabled = true;
+      btn.textContent = '⏳';
+      try {
+        const { loadGMSession } = await import('../../state/storage.js');
+        const record = await loadGMSession(sessionId);
+        if (!record?.log?.length) {
+          alert('Session nemá žádné záznamy.');
+          return;
+        }
+
+        const { campaign } = getState();
+        const mystery = campaign?.mysteries?.find(m => m.id === record.mysteryId);
+
+        const { exportStory } = await import('../../ai/gm/story-exporter.js');
+        const story = await exportStory(record.log, mystery);
+        showStoryModal(story);
+      } catch (error) {
+        console.error('[GM Panel] Story export error:', error);
+        alert('Chyba při generování příběhu: ' + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📖';
+      }
+    });
+  });
+
+  // Delete
+  document.querySelectorAll('.btn-session-delete').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Smazat tuto session?')) return;
+      const sessionId = btn.dataset.sessionId;
+      try {
+        const { deleteGMSession } = await import('../../state/storage.js');
+        await deleteGMSession(sessionId);
+        loadSessionHistory(); // Refresh list
+      } catch (error) {
+        console.error('[GM Panel] Delete failed:', error);
+      }
+    });
+  });
+}
+
+/**
+ * Open session viewer modal (read-only log)
+ */
+function openSessionViewer(record) {
+  const existing = document.getElementById('session-viewer-modal');
+  if (existing) existing.remove();
+
+  const date = new Date(record.startedAt).toLocaleString('cs-CZ');
+  const logHtml = (record.log || []).map(entry => renderLogEntry(entry)).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'session-viewer-modal';
+  modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4';
+  modal.innerHTML = `
+    <div class="bg-neutral-900 rounded-lg max-w-3xl w-full max-h-[90vh] flex flex-col border border-neutral-700">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-700">
+        <div>
+          <h2 class="text-xl font-bold">📜 ${escapeHtml(record.mysteryName)}</h2>
+          <p class="text-sm text-neutral-400">${date} · ${record.roundCount || 0} kol</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btn-viewer-export" class="px-3 py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-semibold">📖 Export příběhu</button>
+          <button id="btn-viewer-copy" class="px-3 py-2 bg-neutral-700 hover:bg-neutral-600 rounded text-sm">📋 Kopírovat</button>
+          <button id="btn-viewer-close" class="px-3 py-2 bg-neutral-700 hover:bg-neutral-600 rounded text-sm">Zavřít</button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto px-6 py-4 space-y-2" style="scrollbar-width: thin; min-height: 0;">
+        ${logHtml || '<p class="text-neutral-500 italic">Prázdný log.</p>'}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  document.getElementById('btn-viewer-close').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+  document.getElementById('btn-viewer-copy').addEventListener('click', () => {
+    const text = (record.log || []).map(entry => {
+      const time = new Date(entry.timestamp).toLocaleTimeString();
+      switch (entry.type) {
+        case 'player': return `[${time}] ${entry.hunter}: ${entry.message}`;
+        case 'gm': return `[${time}] Keeper: ${entry.message}`;
+        case 'npc': return `[${time}] ${entry.npc}: ${entry.message}`;
+        case 'scene': return `[${time}] [Scéna] ${entry.message}`;
+        default: return `[${time}] ${entry.message}`;
+      }
+    }).join('\n\n');
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('btn-viewer-copy');
+      btn.textContent = '✓ Zkopírováno';
+      setTimeout(() => { btn.textContent = '📋 Kopírovat'; }, 2000);
+    });
+  });
+
+  document.getElementById('btn-viewer-export').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-viewer-export');
+    btn.disabled = true;
+    btn.textContent = '⏳ Generuji...';
+    try {
+      const { campaign } = getState();
+      const mystery = campaign?.mysteries?.find(m => m.id === record.mysteryId);
+      const { exportStory } = await import('../../ai/gm/story-exporter.js');
+      const story = await exportStory(record.log, mystery);
+      modal.remove();
+      showStoryModal(story);
+    } catch (error) {
+      alert('Chyba: ' + error.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '📖 Export příběhu';
+    }
+  });
 }
 
 /**
@@ -845,6 +1095,46 @@ export function attachGMPanelListeners() {
   window.addEventListener('autoplay-rate-limited', handleAutoPlayRateLimited);
   window.addEventListener('gm-session-end', handleSessionEnd);
   window.addEventListener('gm-entity-created', handleEntityCreated);
+
+  // Session history toggle + lazy load
+  const historyToggle = document.getElementById('btn-toggle-session-history');
+  if (historyToggle) {
+    historyToggle.addEventListener('click', () => {
+      sessionHistoryExpanded = !sessionHistoryExpanded;
+      const content = document.getElementById('session-history-content');
+      if (content) {
+        content.classList.toggle('hidden', !sessionHistoryExpanded);
+        if (sessionHistoryExpanded) loadSessionHistory();
+      }
+      // Update arrow
+      const arrow = historyToggle.querySelector('span:last-child');
+      if (arrow) arrow.textContent = sessionHistoryExpanded ? '▲' : '▼';
+    });
+    // Load if already expanded
+    if (sessionHistoryExpanded) loadSessionHistory();
+  }
+
+  // Check for interrupted session when GM is not running
+  if (!isGMModeRunning()) {
+    checkForActiveSession().then(activeSession => {
+      if (activeSession) {
+        if (typeof window.showToast === 'function') {
+          window.showToast({
+            message: `Nalezena přerušená session (${escapeHtml(activeSession.mysteryName)})`,
+            type: 'info',
+            duration: 10000,
+            actions: [{
+              label: 'Obnovit',
+              onClick: async () => {
+                await resumeGMSession(activeSession);
+                refreshGMPanel();
+              }
+            }]
+          });
+        }
+      }
+    });
+  }
 
   // Auto-refresh scene if running
   if (isGMModeRunning() && !updateInterval) {

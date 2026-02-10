@@ -252,3 +252,62 @@ export async function importCampaignJSON(file) {
     reader.readAsText(file);
   });
 }
+
+// --- GM Session persistence (aiConversations store) ---
+
+/**
+ * Save GM session record
+ */
+export async function saveGMSession(session) {
+  const db = await initDB();
+  try {
+    await db.put('aiConversations', session);
+    console.log('GM session saved:', session.id);
+  } catch (error) {
+    console.error('Failed to save GM session:', error);
+    throw error;
+  }
+}
+
+/**
+ * Load GM session by ID
+ */
+export async function loadGMSession(sessionId) {
+  const db = await initDB();
+  try {
+    return await db.get('aiConversations', sessionId) || null;
+  } catch (error) {
+    console.error('Failed to load GM session:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get all GM sessions for a campaign, sorted by lastMessageAt desc
+ */
+export async function getGMSessionsForCampaign(campaignId) {
+  const db = await initDB();
+  try {
+    const all = await db.getAll('aiConversations');
+    return all
+      .filter(s => s.campaignId === campaignId)
+      .sort((a, b) => (b.lastMessageAt || 0) - (a.lastMessageAt || 0));
+  } catch (error) {
+    console.error('Failed to get GM sessions:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete GM session by ID
+ */
+export async function deleteGMSession(sessionId) {
+  const db = await initDB();
+  try {
+    await db.delete('aiConversations', sessionId);
+    console.log('GM session deleted:', sessionId);
+  } catch (error) {
+    console.error('Failed to delete GM session:', error);
+    throw error;
+  }
+}
