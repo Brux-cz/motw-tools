@@ -28,7 +28,8 @@ import {
   narrateMonsterHarmMove,
   generateTeaserScene,
   generateHookDelivery,
-  generateCombinedOpeningScene
+  generateCombinedOpeningScene,
+  generateSceneTransition
 } from './narrative-engine.js';
 
 class GMEngine {
@@ -60,6 +61,9 @@ class GMEngine {
     // Countdown cooldown: max 1 advance per 30s
     this.lastCountdownAdvance = 0;
 
+    // Session data — runtime data separate from mystery prep
+    this.sessionData = null;
+
     // Activity tracking for adaptive rate limiting
     this.activityTracking = {
       recentPlayerActions: [],
@@ -81,6 +85,196 @@ class GMEngine {
   }
 
   /**
+   * Initialize session data for a mystery run
+   * @param {string} mysteryId - ID of the active mystery
+   */
+  initializeSessionData(mysteryId) {
+    this.sessionData = {
+      id: `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      mysteryId,
+      startedAt: Date.now(),
+      improvisedLocations: [],
+      improvisedNPCs: [],
+      currentLocationId: null,
+      visitedLocationIds: []
+    };
+    console.log('[GM Engine] Session data initialized:', this.sessionData.id);
+  }
+
+  /**
+   * Get current session data
+   * @returns {Object|null} Session data or null if not started
+   */
+  getSessionData() {
+    return this.sessionData ? { ...this.sessionData } : null;
+  }
+
+  /**
+   * Get all locations (mystery prep + improvised)
+   * @returns {Array} Combined locations array
+   */
+  getAllLocations() {
+    const { campaign, currentMysteryId } = getState();
+    const mystery = campaign?.mysteries?.find(m => m.id === currentMysteryId);
+    const mysteryLocations = mystery?.locations || [];
+    const improvised = this.sessionData?.improvisedLocations || [];
+    return [...mysteryLocations, ...improvised];
+  }
+
+  /**
+   * Get all NPCs (mystery bystanders + improvised)
+   * @returns {Array} Combined NPCs array
+   */
+  getAllNPCs() {
+    const { campaign, currentMysteryId } = getState();
+    const mystery = campaign?.mysteries?.find(m => m.id === currentMysteryId);
+    const mysteryNPCs = mystery?.bystanders || [];
+    const improvised = this.sessionData?.improvisedNPCs || [];
+    return [...mysteryNPCs, ...improvised];
+  }
+
+  /**
+   * Add an improvised location created by AI during session
+   * @param {Object} loc - Location object { name, type, description }
+   */
+  addImprovisedLocation(loc) {
+    if (!this.sessionData) return;
+    const location = {
+      ...loc,
+      id: `imp-loc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      improvised: true
+    };
+    this.sessionData.improvisedLocations.push(location);
+    console.log('[GM Engine] Improvised location added:', location.name);
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('gm-entity-created', {
+        detail: { type: 'location', entity: location }
+      }));
+    }
+    return location;
+  }
+
+  /**
+   * Add an improvised NPC created by AI during session
+   * @param {Object} npc - NPC object { name, type, motivation, description }
+   */
+  addImprovisedNPC(npc) {
+    if (!this.sessionData) return;
+    const character = {
+      ...npc,
+      id: `imp-npc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      improvised: true
+    };
+    this.sessionData.improvisedNPCs.push(character);
+    console.log('[GM Engine] Improvised NPC added:', character.name);
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('gm-entity-created', {
+        detail: { type: 'npc', entity: character }
+      }));
+    }
+    return character;
+  }
+
+  /**
+   * Get current location object (from sessionData.currentLocationId)
+   * @returns {Object|null} Current location or null
+   */
+  getCurrentLocation() {
+    if (!this.sessionData?.currentLocationId) return null;
+    return this.getAllLocations().find(l => l.id === this.sessionData.currentLocationId) || null;
+  }
+
+  /**
+   * Change scene to a different location
+   * @param {string} locationId - ID of the target location
+   * @returns {Promise<boolean>} True if scene changed successfully
+   */
+  async changeScene(locationId) {
+    if (!this.sessionData) return false;
+
+    const allLocations = this.getAllLocations();
+    const targetLocation = allLocations.find(l => l.id === locationId);
+    if (!targetLocation) {
+      console.warn('[GM Engine] Location not found:', locationId);
+      return false;
+    }
+
+    const previousLocation = this.getCurrentLocation();
+    if (previousLocation?.id === locationId) {
+      console.log('[GM Engine] Already at this location');
+      return false;
+    }
+
+    // Update session data
+    this.sessionData.currentLocationId = locationId;
+    if (!this.sessionData.visitedLocationIds.includes(locationId)) {
+      this.sessionData.visitedLocationIds.push(locationId);
+    }
+
+    // Reset location action counter
+    this.storyState.actionsAtCurrentLocation = 0;
+
+    // Reinitialize scene with new location
+    const { campaign } = getState();
+    const hunters = campaign.hunters?.map(h => h.id) || [];
+    // NPCs at new location: for now, keep all mystery NPCs available
+    const npcs = this.getAllNPCs().map(n => n.id);
+    const currentTension = getCurrentScene().tension;
+    this.currentScene = initializeScene(targetLocation, hunters, npcs);
+    updateScene({ tension: Math.max(2, currentTension - 1) }); // Slight tension decrease on move
+
+    // Generate transition narrative
+    const mysteryContext = this.buildMysteryContext();
+    const recentHistory = this.buildRecentHistory(10);
+    const storyState = this.getStoryState();
+
+    const transition = await generateSceneTransition(previousLocation, targetLocation, {
+      mysteryContext, recentHistory, storyState
+    });
+
+    this.addToSessionLog({
+      type: 'scene',
+      message: transition,
+      timestamp: Date.now()
+    });
+
+    console.log(`[GM Engine] Scene changed: ${previousLocation?.name || '?'} → ${targetLocation.name}`);
+    return true;
+  }
+
+  /**
+   * Detect if player action mentions moving to a location
+   * @param {string} actionText - Player's action text
+   * @returns {Object|null} Target location or null
+   */
+  detectLocationMove(actionText) {
+    const text = actionText.toLowerCase();
+    const moveKeywords = [
+      'jdeme do', 'jdu do', 'jdeme na', 'jdu na',
+      'jedeme do', 'jedu do', 'jedeme na', 'jedu na',
+      'přesuneme se', 'přesunu se', 'přesouvám se',
+      'vydáme se', 'vydám se', 'míříme do', 'míříme na',
+      'zamíříme do', 'zamíříme na', 'jdeme k', 'jdu k'
+    ];
+
+    const hasMovementIntent = moveKeywords.some(kw => text.includes(kw));
+    if (!hasMovementIntent) return null;
+
+    // Match against known locations
+    const allLocations = this.getAllLocations();
+    for (const loc of allLocations) {
+      if (loc.id === this.sessionData?.currentLocationId) continue; // Skip current location
+      if (text.includes(loc.name.toLowerCase())) {
+        return loc;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Start GM loop
    */
   async start() {
@@ -91,6 +285,12 @@ class GMEngine {
 
     this.running = true;
     console.log('[GM Engine] Starting autonomous GM mode');
+
+    // Initialize session data
+    const { currentMysteryId } = getState();
+    if (currentMysteryId) {
+      this.initializeSessionData(currentMysteryId);
+    }
 
     // Initialize scene if not exists
     if (!this.currentScene) {
@@ -233,11 +433,30 @@ class GMEngine {
     const { campaign, currentMysteryId } = getState();
     const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
 
-    const location = mystery?.locations?.[0] || { name: 'Unknown Location' };
+    const allLocations = this.getAllLocations();
     const hunters = campaign.hunters?.map(h => h.id) || [];
     const npcs = mystery?.bystanders?.map(b => b.id) || [];
     const mysteryContext = this.buildMysteryContext();
     const teaserType = mystery?.teaserType || 'attack_dramatization';
+
+    // Determine starting location based on teaser type
+    let startingLocation;
+    if (teaserType === 'at_crime_scene') {
+      // Crime scene — first location makes sense as the crime scene
+      startingLocation = allLocations[0] || { name: 'Místo činu' };
+    } else if (teaserType === 'hook_debate') {
+      // Debate — hunters are elsewhere (bar, motel), no specific location
+      startingLocation = null;
+    } else {
+      // attack_dramatization / hook_in_action — first location or generic
+      startingLocation = allLocations[0] || { name: 'Unknown Location' };
+    }
+
+    // Set session data current location
+    if (this.sessionData && startingLocation?.id) {
+      this.sessionData.currentLocationId = startingLocation.id;
+      this.sessionData.visitedLocationIds.push(startingLocation.id);
+    }
 
     if (teaserType === 'attack_dramatization') {
       // Type 1: Original 3-step flow — cold open + hook + scene
@@ -246,14 +465,14 @@ class GMEngine {
         this.addToSessionLog({ type: 'scene', message: teaser, timestamp: Date.now() });
       }
 
-      const hook = await generateHookDelivery(mystery?.hook, campaign.hunters, location);
+      const hook = await generateHookDelivery(mystery?.hook, campaign.hunters, allLocations, mysteryContext);
       this.addToSessionLog({ type: 'scene', message: hook, timestamp: Date.now() });
 
       this.storyState.phase = 'investigation';
-      this.currentScene = initializeScene(location, hunters, npcs);
+      this.currentScene = initializeScene(startingLocation, hunters, npcs);
 
       const storyState = this.getStoryState();
-      const sceneDesc = await generateSceneDescription(location, 'calm', 2, { mysteryContext, storyState });
+      const sceneDesc = await generateSceneDescription(startingLocation, 'calm', 2, { mysteryContext, storyState });
       this.addToSessionLog({ type: 'scene', message: sceneDesc, timestamp: Date.now() });
 
     } else {
@@ -261,7 +480,8 @@ class GMEngine {
       const opening = await generateCombinedOpeningScene(teaserType, {
         hook: mystery?.hook,
         hunters: campaign.hunters,
-        location,
+        location: startingLocation,
+        locations: allLocations,
         monster: mystery?.monster,
         bystanders: mystery?.bystanders,
         mysteryContext
@@ -269,14 +489,14 @@ class GMEngine {
       this.addToSessionLog({ type: 'scene', message: opening, timestamp: Date.now() });
 
       this.storyState.phase = 'investigation';
-      this.currentScene = initializeScene(location, hunters, npcs);
+      this.currentScene = initializeScene(startingLocation || { name: 'Neznámé místo' }, hunters, npcs);
 
       // hook_debate: no location description (hunters are elsewhere — bar, motel, car)
-      if (teaserType !== 'hook_debate') {
+      if (teaserType !== 'hook_debate' && startingLocation) {
         const tension = teaserType === 'at_crime_scene' ? 4 : 2;
         const atmosphere = teaserType === 'at_crime_scene' ? 'unsettling' : 'calm';
         const storyState = this.getStoryState();
-        const sceneDesc = await generateSceneDescription(location, atmosphere, tension, { mysteryContext, storyState });
+        const sceneDesc = await generateSceneDescription(startingLocation, atmosphere, tension, { mysteryContext, storyState });
         this.addToSessionLog({ type: 'scene', message: sceneDesc, timestamp: Date.now() });
       }
 
@@ -325,8 +545,28 @@ class GMEngine {
       }
     }
 
-    // Locations
-    if (mystery.locations?.length) {
+    // Current location
+    const currentLocation = this.getCurrentLocation();
+    if (currentLocation) {
+      parts.push('');
+      parts.push(`AKTUÁLNÍ LOKACE: ${currentLocation.name} (${currentLocation.type || 'lokace'}) — ${currentLocation.description || 'bez popisu'}`);
+    } else if (this.sessionData) {
+      parts.push('');
+      parts.push('AKTUÁLNÍ LOKACE: Lovci zatím nejsou na konkrétním místě');
+    }
+
+    // All available locations (prep + improvised)
+    const allLocations = this.getAllLocations();
+    if (allLocations.length) {
+      parts.push('');
+      parts.push('DOSTUPNÉ LOKACE:');
+      for (const loc of allLocations) {
+        const tag = loc.improvised ? ' [IMPROVIZOVANÉ]' : '';
+        const visited = this.sessionData?.visitedLocationIds?.includes(loc.id) ? ' ✓' : '';
+        parts.push(`- ${loc.name} (${loc.type || 'lokace'}) — ${loc.description || 'bez popisu'}${tag}${visited}`);
+      }
+    } else if (mystery.locations?.length) {
+      // Fallback when session not active
       parts.push('');
       parts.push('LOKACE:');
       for (const loc of mystery.locations) {
@@ -748,23 +988,48 @@ class GMEngine {
       }
 
     } else {
-      // Just narrative response (no move)
-      const scene = getCurrentScene();
+      // Check for explicit location move first
+      const targetLocation = this.detectLocationMove(actionText);
+      if (targetLocation) {
+        await this.changeScene(targetLocation.id);
+      } else {
+        // Generate GM response (may include tool calls for creating entities/moving)
+        const scene = getCurrentScene();
 
-      const response = await generateGMResponse(actionText, {
-        scene,
-        mystery,
-        mysteryContext,
-        recentHistory,
-        storyState,
-        hunterName: hunter?.name
-      });
+        const response = await generateGMResponse(actionText, {
+          scene,
+          mystery,
+          mysteryContext,
+          recentHistory,
+          storyState,
+          hunterName: hunter?.name
+        });
 
-      this.addToSessionLog({
-        type: 'gm',
-        message: response,
-        timestamp: Date.now()
-      });
+        // Handle tool_use response (new format: { text, toolCalls })
+        const responseText = typeof response === 'string' ? response : response.text;
+        const toolCalls = typeof response === 'string' ? [] : (response.toolCalls || []);
+
+        // Process any tool calls (create locations, NPCs, move hunters)
+        if (toolCalls.length > 0) {
+          const { processToolCalls } = await import('./gm-tools.js');
+          const results = processToolCalls(toolCalls, this);
+
+          // Handle move_hunters results (async scene change)
+          for (const result of results) {
+            if (result.success && result.type === 'move') {
+              await this.changeScene(result.locationId);
+            }
+          }
+        }
+
+        if (responseText) {
+          this.addToSessionLog({
+            type: 'gm',
+            message: responseText,
+            timestamp: Date.now()
+          });
+        }
+      }
     }
 
     // 5. Check countdown advancement
@@ -919,13 +1184,14 @@ Odpověz POUZE validním JSON (žádný jiný text):
 
     // Generate closing narrative
     const closingPrompt = `Session končí: ${reasonMessages[endReason] || endReason}. Napiš závěrečný narativ (3-5 vět).`;
-    const closing = await generateGMResponse(closingPrompt, {
+    const closingResponse = await generateGMResponse(closingPrompt, {
       scene,
       mystery,
       mysteryContext,
       recentHistory,
       storyState
     });
+    const closing = typeof closingResponse === 'string' ? closingResponse : closingResponse.text;
 
     this.addToSessionLog({
       type: 'scene',
@@ -942,10 +1208,40 @@ Odpověz POUZE validním JSON (žádný jiný text):
     // Evaluate end-of-session XP (4 MotW questions)
     await this.evaluateSessionXP(endReason);
 
-    // Emit event for UI
+    // Save session record to campaign.sessionHistory
+    if (this.sessionData) {
+      const sessionRecord = {
+        id: this.sessionData.id,
+        mysteryId: this.sessionData.mysteryId,
+        startedAt: this.sessionData.startedAt,
+        endedAt: Date.now(),
+        endReason,
+        improvisedLocations: [...this.sessionData.improvisedLocations],
+        improvisedNPCs: [...this.sessionData.improvisedNPCs],
+        visitedLocationIds: [...this.sessionData.visitedLocationIds],
+        rounds: this.storyState.round
+      };
+
+      const { campaign: currentCampaign } = getState();
+      if (currentCampaign) {
+        const sessionHistory = [...(currentCampaign.sessionHistory || []), sessionRecord];
+        updateCampaign({ sessionHistory });
+      }
+    }
+
+    // Emit event for UI — include improvised entities for promotion dialog
+    const hasImprovised = (this.sessionData?.improvisedLocations?.length > 0) ||
+                          (this.sessionData?.improvisedNPCs?.length > 0);
+
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('gm-session-end', {
-        detail: { endReason, message: reasonMessages[endReason] }
+        detail: {
+          endReason,
+          message: reasonMessages[endReason],
+          improvisedLocations: this.sessionData?.improvisedLocations || [],
+          improvisedNPCs: this.sessionData?.improvisedNPCs || [],
+          hasImprovised
+        }
       }));
     }
 
@@ -1347,6 +1643,11 @@ Odpověz POUZE validním JSON (žádný jiný text):
 
 // Singleton instance
 export const gmEngine = new GMEngine();
+
+// Expose on window for cross-module access (session tab, gm panel)
+if (typeof window !== 'undefined') {
+  window.__MOTW_GM_ENGINE__ = gmEngine;
+}
 
 // Export helper functions
 export const startGMMode = () => gmEngine.start();

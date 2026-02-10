@@ -192,6 +192,27 @@ function renderGameLog(campaign) {
 }
 
 /**
+ * Get improvised entities from GM engine session data (if available)
+ * @returns {{ locations: Array, npcs: Array }}
+ */
+function getImprovisedEntities() {
+  try {
+    // Dynamic import check — gmEngine may not be loaded
+    const gmModule = window.__MOTW_GM_ENGINE__;
+    if (gmModule?.getSessionData) {
+      const sessionData = gmModule.getSessionData();
+      return {
+        locations: sessionData?.improvisedLocations || [],
+        npcs: sessionData?.improvisedNPCs || []
+      };
+    }
+  } catch (e) {
+    // GM engine not available
+  }
+  return { locations: [], npcs: [] };
+}
+
+/**
  * Render Pinned Cards
  */
 function renderPinnedCards(mystery) {
@@ -211,17 +232,32 @@ function renderPinnedCards(mystery) {
     cards.push(renderMonsterCard(mystery.monster));
   }
 
-  // NPC cards
+  // NPC cards (from mystery prep)
   if (mystery.bystanders) {
     mystery.bystanders.forEach(npc => {
-      cards.push(renderNPCCard(npc));
+      cards.push(renderNPCCard(npc, false));
     });
   }
 
-  // Location cards
+  // Location cards (from mystery prep)
   if (mystery.locations) {
     mystery.locations.forEach(location => {
-      cards.push(renderLocationCard(location));
+      cards.push(renderLocationCard(location, false));
+    });
+  }
+
+  // Improvised entities from GM session
+  const improvised = getImprovisedEntities();
+
+  if (improvised.npcs.length > 0) {
+    improvised.npcs.forEach(npc => {
+      cards.push(renderNPCCard(npc, true));
+    });
+  }
+
+  if (improvised.locations.length > 0) {
+    improvised.locations.forEach(location => {
+      cards.push(renderLocationCard(location, true));
     });
   }
 
@@ -289,18 +325,27 @@ function renderMonsterCard(monster) {
 
 /**
  * Render NPC Card
+ * @param {Object} npc - NPC data
+ * @param {boolean} isImprovised - Whether this NPC was created during session
  */
-function renderNPCCard(npc) {
+function renderNPCCard(npc, isImprovised = false) {
+  const borderClass = isImprovised
+    ? 'border-amber-500/50 hover:border-amber-400/70'
+    : 'border-white/10 hover:border-blue-500/50';
+  const iconColor = isImprovised ? 'text-amber-400' : 'text-blue-400';
+  const labelColor = isImprovised ? 'text-amber-300' : 'text-blue-300';
+
   return `
-    <div class="card bg-black/40 border border-white/10 rounded-lg overflow-hidden cursor-pointer hover:border-blue-500/50 transition"
+    <div class="card bg-black/40 border ${borderClass} rounded-lg overflow-hidden cursor-pointer transition"
          data-card-id="${npc.id}"
          data-card-type="npc">
       <div class="p-4">
         <div class="flex items-start justify-between mb-2">
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1">
-              <span class="material-symbols-outlined text-blue-400 text-sm">person</span>
-              <span class="text-xs font-bold uppercase tracking-wider text-blue-300">${escapeHtml(npc.type)}</span>
+              <span class="material-symbols-outlined ${iconColor} text-sm">person</span>
+              <span class="text-xs font-bold uppercase tracking-wider ${labelColor}">${escapeHtml(npc.type)}</span>
+              ${isImprovised ? '<span class="text-[10px] bg-amber-700/40 text-amber-300 px-1.5 py-0.5 rounded uppercase tracking-wider">Improvizované</span>' : ''}
             </div>
             <h3 class="text-base font-bold text-white">${escapeHtml(npc.name)}</h3>
           </div>
@@ -317,18 +362,27 @@ function renderNPCCard(npc) {
 
 /**
  * Render Location Card
+ * @param {Object} location - Location data
+ * @param {boolean} isImprovised - Whether this location was created during session
  */
-function renderLocationCard(location) {
+function renderLocationCard(location, isImprovised = false) {
+  const borderClass = isImprovised
+    ? 'border-amber-500/50 hover:border-amber-400/70'
+    : 'border-white/10 hover:border-green-500/50';
+  const iconColor = isImprovised ? 'text-amber-400' : 'text-green-400';
+  const labelColor = isImprovised ? 'text-amber-300' : 'text-green-300';
+
   return `
-    <div class="card bg-black/40 border border-white/10 rounded-lg overflow-hidden cursor-pointer hover:border-green-500/50 transition"
+    <div class="card bg-black/40 border ${borderClass} rounded-lg overflow-hidden cursor-pointer transition"
          data-card-id="${location.id}"
          data-card-type="location">
       <div class="p-4">
         <div class="flex items-start justify-between mb-2">
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1">
-              <span class="material-symbols-outlined text-green-400 text-sm">place</span>
-              <span class="text-xs font-bold uppercase tracking-wider text-green-300">${escapeHtml(location.type)}</span>
+              <span class="material-symbols-outlined ${iconColor} text-sm">place</span>
+              <span class="text-xs font-bold uppercase tracking-wider ${labelColor}">${escapeHtml(location.type)}</span>
+              ${isImprovised ? '<span class="text-[10px] bg-amber-700/40 text-amber-300 px-1.5 py-0.5 rounded uppercase tracking-wider">Improvizované</span>' : ''}
             </div>
             <h3 class="text-base font-bold text-white">${escapeHtml(location.name)}</h3>
           </div>
@@ -490,6 +544,22 @@ function initSessionEvents() {
 
   // Load keeper moves on initial render
   loadKeeperMoves();
+
+  // Listen for GM improvised entity creation — re-render pinned cards
+  window.removeEventListener('gm-entity-created', handleEntityCreated);
+  window.addEventListener('gm-entity-created', handleEntityCreated);
+}
+
+/**
+ * Handle gm-entity-created event — re-render pinned cards
+ */
+function handleEntityCreated() {
+  const state = getState();
+  const currentMystery = state.campaign?.mysteries?.find(m => m.id === state.currentMysteryId);
+  const container = document.getElementById('pinned-cards-container');
+  if (container && currentMystery) {
+    container.innerHTML = renderPinnedCards(currentMystery);
+  }
 }
 
 /**

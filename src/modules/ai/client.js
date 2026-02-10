@@ -39,6 +39,11 @@ export async function sendMessage(messages, options = {}) {
     throw new Error('No internet connection');
   }
 
+  const {
+    tools,
+    toolChoice
+  } = options;
+
   const requestBody = {
     model,
     messages,
@@ -48,6 +53,13 @@ export async function sendMessage(messages, options = {}) {
 
   if (systemPrompt) {
     requestBody.system = systemPrompt;
+  }
+
+  if (tools && tools.length > 0) {
+    requestBody.tools = tools;
+    if (toolChoice) {
+      requestBody.tool_choice = toolChoice;
+    }
   }
 
   try {
@@ -100,6 +112,7 @@ export async function sendMessage(messages, options = {}) {
 
     return {
       content: textContent,
+      contentBlocks: data.content, // Raw blocks for tool_use parsing
       model: data.model,
       usage: {
         input: data.usage?.input_tokens || 0,
@@ -247,4 +260,51 @@ export async function callAI(prompt, options = {}) {
   );
 
   return response.content;
+}
+
+/**
+ * Call AI with tool_use support
+ * Returns both text response and any tool calls the AI made
+ * @param {string} prompt - User prompt
+ * @param {Array} tools - Tool definitions for the API
+ * @param {Object} options - Additional options (same as callAI + toolChoice)
+ * @returns {Promise<{text: string, toolCalls: Array}>} Text and tool calls
+ */
+export async function callAIWithTools(prompt, tools, options = {}) {
+  const { getState } = await import('../state/store.js');
+  const { settings } = getState();
+
+  const apiKey = settings?.ai?.apiKey || (import.meta.env.DEV ? 'dev-proxy' : null);
+  if (!apiKey) {
+    throw new Error('API key not configured. Go to Settings to add your API key.');
+  }
+
+  const messages = options.messages || [{ role: 'user', content: prompt }];
+
+  const response = await sendMessage(
+    messages,
+    {
+      apiKey,
+      model: options.model || settings.ai.model || DEFAULT_MODEL,
+      systemPrompt: options.systemPrompt || undefined,
+      temperature: options.temperature || settings.ai.temperature || 0.7,
+      maxTokens: options.max_tokens || options.maxTokens || settings.ai.maxTokens || 2000,
+      tools,
+      toolChoice: options.toolChoice || { type: 'auto' }
+    }
+  );
+
+  // Extract tool use blocks
+  const toolCalls = (response.contentBlocks || [])
+    .filter(block => block.type === 'tool_use')
+    .map(block => ({
+      id: block.id,
+      name: block.name,
+      input: block.input
+    }));
+
+  return {
+    text: response.content,
+    toolCalls
+  };
 }

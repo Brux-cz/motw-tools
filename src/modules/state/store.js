@@ -132,6 +132,7 @@ export function createNewCampaign(name) {
     mysteries: [],
     npcArchive: [],
     locationArchive: [],
+    sessionHistory: [],
     stories: [],
     sessionLog: [],
     createdAt: Date.now(),
@@ -366,6 +367,52 @@ export function setCurrentMystery(mysteryId) {
   if (mystery) {
     setState({ currentMysteryId: mysteryId });
   }
+}
+
+/**
+ * Promote improvised entities to a mystery (from session)
+ * @param {string} mysteryId - Target mystery ID
+ * @param {Object} entities - { locations: Array, npcs: Array }
+ */
+export function promoteToMystery(mysteryId, { locations = [], npcs = [] }) {
+  if (!state.campaign) return;
+
+  const mystery = state.campaign.mysteries.find(m => m.id === mysteryId);
+  if (!mystery) return;
+
+  const updatedLocations = [...(mystery.locations || []), ...locations.map(l => ({ ...l, improvised: false }))];
+  const updatedBystanders = [...(mystery.bystanders || []), ...npcs.map(n => ({ ...n, improvised: false }))];
+
+  updateMystery(mysteryId, {
+    locations: updatedLocations,
+    bystanders: updatedBystanders
+  });
+
+  console.log(`[Store] Promoted ${locations.length} locations, ${npcs.length} NPCs to mystery ${mysteryId}`);
+}
+
+/**
+ * Promote improvised entities to campaign archive
+ * @param {Object} entities - { locations: Array, npcs: Array }
+ */
+export function promoteToArchive({ locations = [], npcs = [] }) {
+  if (!state.campaign) return;
+
+  const newLocationArchive = [
+    ...(state.campaign.locationArchive || []),
+    ...locations.map(l => ({ ...l, improvised: false }))
+  ];
+  const newNpcArchive = [
+    ...(state.campaign.npcArchive || []),
+    ...npcs.map(n => ({ ...n, improvised: false }))
+  ];
+
+  updateCampaign({
+    locationArchive: newLocationArchive,
+    npcArchive: newNpcArchive
+  });
+
+  console.log(`[Store] Promoted ${locations.length} locations, ${npcs.length} NPCs to campaign archive`);
 }
 
 /**

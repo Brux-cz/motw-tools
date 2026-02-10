@@ -97,22 +97,26 @@ Odpověz POUZE narativem:`;
  * Generate hook delivery — how hunters learn about the case
  * @param {string} hook - Mystery hook text
  * @param {Array} hunters - Hunter objects
- * @param {Object} location - First location
+ * @param {Array} locations - All available locations
+ * @param {string} mysteryContext - Full mystery context for AI
  * @returns {Promise<string>} Hook delivery text
  */
-export async function generateHookDelivery(hook, hunters, location) {
+export async function generateHookDelivery(hook, hunters, locations, mysteryContext) {
   const hunterNames = hunters?.map(h => h.name).join(', ') || 'Lovci';
+  const locationList = Array.isArray(locations)
+    ? locations.map(l => l.name).join(', ')
+    : locations?.name || 'malé městečko';
 
   const userMessage = `Napiš krátkou scénu kde se lovci dozví o záhadném případu a přijedou na místo.
 
 NÁVNADA: ${hook || 'Záhadné zmizení'}
 LOVCI: ${hunterNames}
-LOKACE: ${location?.name || 'malé městečko'}
+DOSTUPNÉ LOKACE: ${locationList}
 
 Pravidla:
 - 2-4 věty
 - Jak se lovci dozvěděli o případu (zpráva, telefonát, novinový článek, kontakt)
-- Krátký popis příjezdu na lokaci
+- Krátký popis příjezdu na první lokaci
 - Klidný tón — lovci zatím netuší co je čeká
 - Piš česky, přítomný čas
 
@@ -120,7 +124,7 @@ Odpověz POUZE narativem:`;
 
   try {
     return await callAI('', {
-      systemPrompt: 'Jsi vypravěč Monster of the Week. Píšeš přechod mezi teaserem a hlavní hrou.',
+      systemPrompt: `Jsi vypravěč Monster of the Week. Píšeš přechod mezi teaserem a hlavní hrou.\n\n${mysteryContext || ''}`,
       messages: [{ role: 'user', content: userMessage }],
       temperature: 0.8,
       max_tokens: 200
@@ -138,9 +142,10 @@ Odpověz POUZE narativem:`;
  * @param {Object} params - { hook, hunters, location, monster, bystanders, mysteryContext }
  * @returns {Promise<string>} Opening scene text
  */
-export async function generateCombinedOpeningScene(teaserType, { hook, hunters, location, monster, bystanders, mysteryContext }) {
+export async function generateCombinedOpeningScene(teaserType, { hook, hunters, location, locations, monster, bystanders, mysteryContext }) {
   const hunterNames = hunters?.map(h => h.name).join(', ') || 'Lovci';
   const locationName = location?.name || 'neznámé místo';
+  const allLocationNames = (locations || [location]).filter(Boolean).map(l => l.name).join(', ');
 
   const typeInstructions = {
     hook_in_action: `Lovci právě dostali informaci o případu a HNED jednají — žádné čekání, žádná debata.
@@ -166,6 +171,7 @@ Atmosféra: znepokojení, napětí, něco tu není v pořádku.`
 NÁVNADA: ${hook || 'Záhadné zmizení'}
 LOVCI: ${hunterNames}
 LOKACE: ${locationName}${location?.description ? ` — ${location.description}` : ''}
+DOSTUPNÉ LOKACE: ${allLocationNames}
 ${monster ? `PŘÍŠERA: ${monster.name || 'Neznámá'} (${monster.type || 'neznámý typ'})` : ''}
 ${bystanders?.length ? `NPC: ${bystanders.map(b => `${b.name} (${b.description || b.type || 'místní'})`).join(', ')}` : ''}
 
@@ -196,6 +202,50 @@ Odpověz POUZE narativem:`;
   } catch (error) {
     console.error('[Narrative Engine] Error generating combined opening scene:', error);
     return fallbacks[teaserType] || fallbacks.at_crime_scene;
+  }
+}
+
+/**
+ * Generate scene transition narrative when hunters move between locations
+ * @param {Object|null} fromLocation - Previous location (or null)
+ * @param {Object} toLocation - Target location
+ * @param {Object} context - AI context (mysteryContext, recentHistory, storyState)
+ * @returns {Promise<string>} Transition narrative
+ */
+export async function generateSceneTransition(fromLocation, toLocation, context = {}) {
+  const systemPrompt = context.mysteryContext
+    ? buildKeeperSystemPrompt(context.mysteryContext, context.storyState)
+    : undefined;
+
+  const fromName = fromLocation?.name || 'předchozí místo';
+  const toName = toLocation?.name || 'nové místo';
+
+  const userMessage = `Lovci se přesunují z lokace "${fromName}" do lokace "${toName}".
+${toLocation?.description ? `Popis cíle: ${toLocation.description}` : ''}
+
+Napiš krátký popis přesunu a příjezdu na nové místo.
+
+Pravidla:
+- 1-3 věty
+- Popiš cestu a první dojem z nového místa
+- Použij smysly (co vidí, slyší, cítí)
+- Piš česky, přítomný čas
+- Naznač atmosféru nového místa
+
+Odpověz POUZE narativem:`;
+
+  const messages = buildMessagesWithHistory(context.recentHistory, userMessage);
+
+  try {
+    return await callAI('', {
+      systemPrompt,
+      messages,
+      temperature: 0.8,
+      max_tokens: 200
+    });
+  } catch (error) {
+    console.error('[Narrative Engine] Error generating scene transition:', error);
+    return `Lovci opouštějí ${fromName} a míří do ${toName}.`;
   }
 }
 
@@ -415,14 +465,21 @@ Odpověz POUZE popisem události:`;
 
 /**
  * Generate GM response to player action (non-move)
+ * Uses tool_use to allow AI to create locations/NPCs/move hunters
  * @param {string} actionText - Player's action
  * @param {Object} context - Context including scene and mystery
- * @returns {Promise<string>} GM response
+ * @returns {Promise<{text: string, toolCalls: Array}>} GM response with optional tool calls
  */
 export async function generateGMResponse(actionText, context) {
   const { scene, mysteryContext, recentHistory, hunterName } = context;
 
-  const systemPrompt = buildKeeperSystemPrompt(mysteryContext || '', context.storyState);
+  const baseSystemPrompt = buildKeeperSystemPrompt(mysteryContext || '', context.storyState);
+  const toolSystemPrompt = `${baseSystemPrompt}
+
+NÁSTROJE:
+Pokud příběh vyžaduje novou lokaci, novou postavu, nebo přesun lovců — POUŽIJ k tomu nástroje.
+NEVYMÝŠLEJ nové entity do textu — místo toho zavolej příslušný nástroj.
+Nástroje používej jen když je to pro příběh nezbytné, ne při každé odpovědi.`;
 
   const userMessage = `Aktuální scéna: ${scene.location?.name || 'neznámá'}, napětí ${scene.tension}/10
 
@@ -433,16 +490,20 @@ Reaguj jako Keeper (1-3 věty):`;
   const messages = buildMessagesWithHistory(recentHistory, userMessage);
 
   try {
-    const response = await callAI('', {
-      systemPrompt,
+    const { callAIWithTools } = await import('../client.js');
+    const { GM_TOOLS } = await import('./gm-tools.js');
+
+    const result = await callAIWithTools('', GM_TOOLS, {
+      systemPrompt: toolSystemPrompt,
       messages,
       temperature: 0.8,
-      max_tokens: 250
+      max_tokens: 350
     });
-    return response;
+
+    return result;
   } catch (error) {
     console.error('[Narrative Engine] Error generating GM response:', error);
-    return 'Co děláš dál?';
+    return { text: 'Co děláš dál?', toolCalls: [] };
   }
 }
 

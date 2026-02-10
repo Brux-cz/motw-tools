@@ -297,7 +297,21 @@ function renderSettingsContent(settings, isRunning) {
 }
 
 /**
- * Render compact scene bar (1 line)
+ * Get all locations from GM engine (if available)
+ * @returns {Array} All locations
+ */
+function getGMLocations() {
+  try {
+    const gmModule = window.__MOTW_GM_ENGINE__;
+    if (gmModule?.getAllLocations) {
+      return gmModule.getAllLocations();
+    }
+  } catch (e) { /* ignore */ }
+  return [];
+}
+
+/**
+ * Render compact scene bar (1 line) with location dropdown
  */
 function renderSceneBar() {
   const scene = getCurrentScene();
@@ -315,9 +329,28 @@ function renderSceneBar() {
     `;
   }
 
+  // Location dropdown if multiple locations
+  const allLocations = getGMLocations();
+  const currentLocationName = scene.location?.name || 'Neznámá lokace';
+  let locationHtml;
+
+  if (allLocations.length > 1) {
+    locationHtml = `
+      <select id="gm-location-select" class="bg-neutral-700 text-sm font-semibold rounded px-2 py-0.5 border border-neutral-600 focus:border-blue-500 focus:outline-none cursor-pointer">
+        ${allLocations.map(loc => `
+          <option value="${loc.id}" ${loc.name === currentLocationName ? 'selected' : ''}>
+            📍 ${escapeHtml(loc.name)}${loc.improvised ? ' ★' : ''}
+          </option>
+        `).join('')}
+      </select>
+    `;
+  } else {
+    locationHtml = `<span class="font-semibold">📍 ${escapeHtml(currentLocationName)}</span>`;
+  }
+
   return `
     <div id="gm-scene-bar" class="flex items-center gap-4 px-4 py-2 bg-neutral-800/50 border-b border-neutral-700 text-sm">
-      <span class="font-semibold">📍 ${escapeHtml(scene.location?.name || 'Neznámá lokace')}</span>
+      ${locationHtml}
       <span class="text-neutral-500">|</span>
       <div class="flex items-center gap-1.5">
         <span class="text-neutral-400">Napětí:</span>
@@ -463,6 +496,14 @@ function renderLogEntry(entry) {
         </div>
       `;
 
+    case 'entity-created':
+      return `
+        <div class="bg-amber-900/20 p-3 rounded border-l-4 border-amber-500">
+          <div class="text-xs text-neutral-400 mb-1">[${time}] Nová entita</div>
+          <div class="text-amber-300">${msg}</div>
+        </div>
+      `;
+
     case 'autoplay':
       return `
         <div class="bg-violet-900/20 p-3 rounded border-l-4 border-violet-500">
@@ -513,9 +554,35 @@ function handleAutoPlayRateLimited(e) {
   showToast(e.detail?.message || 'API limit — pauza');
 }
 
+function handleEntityCreated(e) {
+  const { type, entity } = e.detail || {};
+  // Update scene bar (may have new locations)
+  refreshSceneBar();
+  // Log the entity creation
+  const log = document.getElementById('gm-session-log');
+  if (log && entity) {
+    const typeName = type === 'location' ? 'lokace' : 'NPC';
+    const entry = {
+      type: 'entity-created',
+      message: `Vytvořena nová ${typeName}: ${entity.name}`,
+      timestamp: Date.now()
+    };
+    const temp = document.createElement('div');
+    temp.innerHTML = renderLogEntry(entry);
+    log.appendChild(temp.firstElementChild);
+    log.scrollTop = log.scrollHeight;
+  }
+}
+
 function handleSessionEnd(e) {
-  const { message } = e.detail || {};
+  const { message, hasImprovised, improvisedLocations, improvisedNPCs } = e.detail || {};
   if (message) showToast(message);
+
+  // Show promotion dialog if there are improvised entities
+  if (hasImprovised) {
+    showPromotionDialog(improvisedLocations || [], improvisedNPCs || []);
+  }
+
   refreshGMPanel();
 }
 
@@ -615,6 +682,7 @@ export function attachGMPanelListeners() {
           case 'scene': return `[${time}] [Scéna] ${entry.message}`;
           case 'ambient': return `[${time}] *${entry.message}*`;
           case 'consequence': return `[${time}] [Důsledek] ${entry.message}`;
+          case 'entity-created': return `[${time}] [Nová entita] ${entry.message}`;
           case 'autoplay': return `[${time}] [Auto-Play] ${entry.message}`;
           default: return `[${time}] ${entry.message}`;
         }
@@ -749,6 +817,19 @@ export function attachGMPanelListeners() {
     });
   });
 
+  // Location dropdown change handler
+  const locationSelect = document.getElementById('gm-location-select');
+  if (locationSelect) {
+    locationSelect.addEventListener('change', async (e) => {
+      const locationId = e.target.value;
+      const { gmEngine } = await import('../../ai/gm/gm-engine.js');
+      if (gmEngine.isRunning()) {
+        await gmEngine.changeScene(locationId);
+        refreshSceneBar();
+      }
+    });
+  }
+
   // --- Event listeners for auto-play events ---
   // Remove old listeners before adding to prevent duplicates on re-attach
   window.removeEventListener('gm-session-update', handleSessionUpdate);
@@ -756,12 +837,14 @@ export function attachGMPanelListeners() {
   window.removeEventListener('autoplay-complete', handleAutoPlayComplete);
   window.removeEventListener('autoplay-rate-limited', handleAutoPlayRateLimited);
   window.removeEventListener('gm-session-end', handleSessionEnd);
+  window.removeEventListener('gm-entity-created', handleEntityCreated);
 
   window.addEventListener('gm-session-update', handleSessionUpdate);
   window.addEventListener('autoplay-progress', handleAutoPlayProgress);
   window.addEventListener('autoplay-complete', handleAutoPlayComplete);
   window.addEventListener('autoplay-rate-limited', handleAutoPlayRateLimited);
   window.addEventListener('gm-session-end', handleSessionEnd);
+  window.addEventListener('gm-entity-created', handleEntityCreated);
 
   // Auto-refresh scene if running
   if (isGMModeRunning() && !updateInterval) {
@@ -922,6 +1005,129 @@ function showToast(message) {
   toast.textContent = message;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 5000);
+}
+
+/**
+ * Show promotion dialog after session ends — let user decide what to keep
+ * @param {Array} locations - Improvised locations
+ * @param {Array} npcs - Improvised NPCs
+ */
+function showPromotionDialog(locations, npcs) {
+  if (locations.length === 0 && npcs.length === 0) return;
+
+  const existing = document.getElementById('promotion-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'promotion-modal';
+  modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4';
+
+  const entityRows = [];
+
+  locations.forEach((loc, i) => {
+    entityRows.push(`
+      <div class="flex items-center justify-between py-2 border-b border-neutral-700">
+        <div class="flex items-center gap-2">
+          <span class="text-green-400">📍</span>
+          <span class="font-semibold">${escapeHtml(loc.name)}</span>
+          <span class="text-xs text-neutral-400">${escapeHtml(loc.type || 'lokace')}</span>
+        </div>
+        <select data-entity-type="location" data-entity-index="${i}" class="promotion-select bg-neutral-700 px-2 py-1 rounded text-sm">
+          <option value="mystery">Převzít do záhady</option>
+          <option value="archive">Převzít do archivu</option>
+          <option value="discard">Zahodit</option>
+        </select>
+      </div>
+    `);
+  });
+
+  npcs.forEach((npc, i) => {
+    entityRows.push(`
+      <div class="flex items-center justify-between py-2 border-b border-neutral-700">
+        <div class="flex items-center gap-2">
+          <span class="text-blue-400">👤</span>
+          <span class="font-semibold">${escapeHtml(npc.name)}</span>
+          <span class="text-xs text-neutral-400">${escapeHtml(npc.type || 'NPC')}</span>
+        </div>
+        <select data-entity-type="npc" data-entity-index="${i}" class="promotion-select bg-neutral-700 px-2 py-1 rounded text-sm">
+          <option value="mystery">Převzít do záhady</option>
+          <option value="archive">Převzít do archivu</option>
+          <option value="discard">Zahodit</option>
+        </select>
+      </div>
+    `);
+  });
+
+  modal.innerHTML = `
+    <div class="bg-neutral-900 rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col border border-amber-700/50">
+      <div class="px-6 py-4 border-b border-neutral-700">
+        <h2 class="text-xl font-bold text-amber-400">✨ Improvizovaný obsah</h2>
+        <p class="text-sm text-neutral-400 mt-1">Během session vznikly nové entity. Co s nimi chcete udělat?</p>
+      </div>
+      <div class="flex-1 overflow-y-auto px-6 py-4 space-y-1" style="scrollbar-width: thin;">
+        ${entityRows.join('')}
+      </div>
+      <div class="px-6 py-4 border-t border-neutral-700 flex justify-end gap-2">
+        <button id="btn-promotion-skip" class="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 rounded text-sm">Zahodit vše</button>
+        <button id="btn-promotion-apply" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 rounded text-sm font-semibold">Potvrdit</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Skip button — close without saving
+  document.getElementById('btn-promotion-skip').addEventListener('click', () => {
+    modal.remove();
+  });
+
+  // Apply button — process selections
+  document.getElementById('btn-promotion-apply').addEventListener('click', async () => {
+    const { promoteToMystery, promoteToArchive } = await import('../../state/store.js');
+    const { currentMysteryId } = (await import('../../state/store.js')).getState();
+
+    const mysteryLocations = [];
+    const mysteryNPCs = [];
+    const archiveLocations = [];
+    const archiveNPCs = [];
+
+    document.querySelectorAll('.promotion-select').forEach(select => {
+      const type = select.dataset.entityType;
+      const index = parseInt(select.dataset.entityIndex);
+      const action = select.value;
+
+      const entity = type === 'location' ? locations[index] : npcs[index];
+      if (!entity || action === 'discard') return;
+
+      if (action === 'mystery') {
+        if (type === 'location') mysteryLocations.push(entity);
+        else mysteryNPCs.push(entity);
+      } else if (action === 'archive') {
+        if (type === 'location') archiveLocations.push(entity);
+        else archiveNPCs.push(entity);
+      }
+    });
+
+    // Apply promotions
+    if ((mysteryLocations.length > 0 || mysteryNPCs.length > 0) && currentMysteryId) {
+      promoteToMystery(currentMysteryId, { locations: mysteryLocations, npcs: mysteryNPCs });
+    }
+    if (archiveLocations.length > 0 || archiveNPCs.length > 0) {
+      promoteToArchive({ locations: archiveLocations, npcs: archiveNPCs });
+    }
+
+    const total = mysteryLocations.length + mysteryNPCs.length + archiveLocations.length + archiveNPCs.length;
+    if (total > 0) {
+      showToast(`${total} entit převzato`);
+    }
+
+    modal.remove();
+  });
+
+  // Click backdrop to close
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
 }
 
 /**
