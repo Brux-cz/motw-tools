@@ -26,3 +26,6 @@ package-lock.json
 
 # Build
 *.log
+
+# Screenshots
+*.png

@@ -217,13 +217,77 @@ export async function spendLuck(hunterId, amount = 1) {
 
   hunter.luck = currentLuck - amount;
 
+  // Check for doomed (luck exhausted)
+  let doomed = false;
+  if (hunter.luck <= 0) {
+    doomed = true;
+    hunter.conditions = hunter.conditions || [];
+    if (!hunter.conditions.includes('doomed')) {
+      hunter.conditions.push('doomed');
+      console.log(`[Mechanics] ${hunter.name} is now DOOMED (luck exhausted)`);
+    }
+  }
+
   await updateCampaign({ hunters: campaign.hunters });
 
   return {
     success: true,
     hunter: hunter.name,
     spent: amount,
-    remaining: hunter.luck
+    remaining: hunter.luck,
+    doomed
+  };
+}
+
+/**
+ * Apply harm to monster
+ * Without weakness: harm applies but capped at maxHarm - 1 (monster is immortal)
+ * With weakness: full harm, monster can die (currentHarm >= maxHarm)
+ * @param {number} harmValue - Amount of harm to deal
+ * @param {boolean} usingWeakness - Whether weakness is being exploited
+ * @returns {Promise<Object>} Result of harm application
+ */
+export async function applyMonsterHarm(harmValue, usingWeakness) {
+  const { campaign, currentMysteryId } = getState();
+  const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
+  if (!mystery?.monster) {
+    return { success: false, error: 'No monster in current mystery' };
+  }
+
+  const monster = mystery.monster;
+  const maxHarm = monster.harm || 10;
+  const armor = monster.armor || 0;
+  const actualHarm = Math.max(0, harmValue - armor);
+  const currentHarm = monster.currentHarm || 0;
+
+  let newHarm;
+  let immortal = false;
+
+  if (usingWeakness) {
+    newHarm = currentHarm + actualHarm;
+  } else {
+    // Cap at maxHarm - 1 (monster can't die without weakness)
+    newHarm = Math.min(currentHarm + actualHarm, maxHarm - 1);
+    if (currentHarm + actualHarm >= maxHarm) {
+      immortal = true;
+    }
+  }
+
+  monster.currentHarm = newHarm;
+  await updateCampaign({ mysteries: campaign.mysteries });
+
+  const defeated = newHarm >= maxHarm;
+  console.log(`[Mechanics] Monster ${monster.name}: ${actualHarm} harm dealt (${newHarm}/${maxHarm})${immortal ? ' [IMMORTAL - capped]' : ''}${defeated ? ' [DEFEATED]' : ''}`);
+
+  return {
+    success: true,
+    monster: monster.name,
+    harmDealt: actualHarm,
+    totalHarm: newHarm,
+    maxHarm,
+    armorReduced: harmValue - actualHarm,
+    immortal,
+    defeated
   };
 }
 

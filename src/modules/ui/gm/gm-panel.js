@@ -302,6 +302,19 @@ function renderSettingsContent(settings, isRunning) {
 function renderSceneBar() {
   const scene = getCurrentScene();
 
+  // Monster HP display
+  let monsterHpHtml = '';
+  const { campaign, currentMysteryId } = getState();
+  const mystery = campaign?.mysteries?.find(m => m.id === currentMysteryId);
+  if (mystery?.monster?.currentHarm > 0) {
+    const m = mystery.monster;
+    const maxHarm = m.harm || 10;
+    monsterHpHtml = `
+      <span class="text-neutral-500">|</span>
+      <span class="text-red-400">🩸 ${escapeHtml(m.name || 'Příšera')}: ${m.currentHarm}/${maxHarm}</span>
+    `;
+  }
+
   return `
     <div id="gm-scene-bar" class="flex items-center gap-4 px-4 py-2 bg-neutral-800/50 border-b border-neutral-700 text-sm">
       <span class="font-semibold">📍 ${escapeHtml(scene.location?.name || 'Neznámá lokace')}</span>
@@ -315,6 +328,7 @@ function renderSceneBar() {
       <span class="text-neutral-400">Lovci: ${scene.huntersPresent?.length || 0}</span>
       <span class="text-neutral-400">NPC: ${scene.npcsPresent?.length || 0}</span>
       ${scene.threats?.length > 0 ? `<span class="text-red-400">Hrozby: ${scene.threats.length}</span>` : ''}
+      ${monsterHpHtml}
     </div>
   `;
 }
@@ -497,6 +511,12 @@ function handleAutoPlayComplete(e) {
 
 function handleAutoPlayRateLimited(e) {
   showToast(e.detail?.message || 'API limit — pauza');
+}
+
+function handleSessionEnd(e) {
+  const { message } = e.detail || {};
+  if (message) showToast(message);
+  refreshGMPanel();
 }
 
 /**
@@ -735,11 +755,13 @@ export function attachGMPanelListeners() {
   window.removeEventListener('autoplay-progress', handleAutoPlayProgress);
   window.removeEventListener('autoplay-complete', handleAutoPlayComplete);
   window.removeEventListener('autoplay-rate-limited', handleAutoPlayRateLimited);
+  window.removeEventListener('gm-session-end', handleSessionEnd);
 
   window.addEventListener('gm-session-update', handleSessionUpdate);
   window.addEventListener('autoplay-progress', handleAutoPlayProgress);
   window.addEventListener('autoplay-complete', handleAutoPlayComplete);
   window.addEventListener('autoplay-rate-limited', handleAutoPlayRateLimited);
+  window.addEventListener('gm-session-end', handleSessionEnd);
 
   // Auto-refresh scene if running
   if (isGMModeRunning() && !updateInterval) {

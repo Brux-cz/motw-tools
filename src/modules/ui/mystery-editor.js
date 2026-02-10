@@ -119,6 +119,7 @@ function createEmptyMystery() {
     status: 'active',
     hook: '',
     concept: '',
+    teaserType: 'attack_dramatization',
     monster: {
       name: '',
       type: '',
@@ -799,6 +800,17 @@ function renderEditor(flush = true) {
                   ${isLocked('hook') ? 'readonly' : ''}
                   onchange="window.mysteryEditor.updateField('hook', this.value)"
                 >${mysteryData.hook || ''}</textarea>
+              </div>
+              <div>
+                <label class="text-sm font-bold mb-1">Typ upoutavky</label>
+                <select class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2"
+                  onchange="window.mysteryEditor.updateField('teaserType', this.value)">
+                  <option value="attack_dramatization" ${mysteryData.teaserType === 'attack_dramatization' ? 'selected' : ''}>Dramatizace utoku — prisera utoci (cold open)</option>
+                  <option value="hook_in_action" ${mysteryData.teaserType === 'hook_in_action' ? 'selected' : ''}>Navnada v akci — lovci dostanou pripad, hned jednaji</option>
+                  <option value="hook_debate" ${mysteryData.teaserType === 'hook_debate' ? 'selected' : ''}>Debata — lovci diskutuji o pripadu</option>
+                  <option value="at_crime_scene" ${mysteryData.teaserType === 'at_crime_scene' ? 'selected' : ''}>Primo na miste cinu — vysetrovani ihned (nejbeznejsi)</option>
+                </select>
+                <p class="text-xs text-slate-500 mt-1">Jak zacne session. Typ 1 ma cold open + navnadu zvlast, typy 2-4 je kombinuji.</p>
               </div>
             </div>
           </details>

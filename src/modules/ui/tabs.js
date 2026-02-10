@@ -69,6 +69,10 @@ export function switchTab(tabId) {
     import('../tabs/prompt-lab.js').then(({ renderPromptLabTab }) => {
       renderPromptLabTab(document.getElementById('prompt-lab-content'));
     });
+  } else if (tabId === 'campaign') {
+    import('../tabs/campaign.js').then(({ renderCampaignTab }) => {
+      renderCampaignTab();
+    });
   }
 
   console.log('Switched to tab:', tabId);

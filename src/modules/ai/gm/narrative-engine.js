@@ -11,10 +11,6 @@ import { getMoveOutcomes } from './mechanics-engine.js';
  */
 function buildKeeperSystemPrompt(mysteryContext, storyState) {
   const storyPhaseHint = storyState ? `\nFÁZE PŘÍBĚHU: ${storyState.phase} (kolo ${storyState.round || '?'})
-${storyState.phase === 'teaser' ? `- ÚVODNÍ SCÉNA: Lovci právě dorazili. Popiš atmosféru místa, běžný život.
-- ŽÁDNÉ náznaky příšery, ŽÁDNÉ napětí. Jen místo a jeho obyvatelé.
-- Nech lovce se rozhlednou, promluvit s NPC, nasát atmosféru.
-- Jako v Supernatural: příjezd do městečka, check-in v motelu, první návštěva baru.` : ''}
 ${storyState.phase === 'investigation' ? '- Lovci sbírají stopy. Naznačuj přítomnost příšery nepřímo.' : ''}
 ${storyState.phase === 'confrontation' ? '- Příšera je odhalena nebo aktivní. Eskaluj nebezpečí.' : ''}
 ${storyState.phase === 'resolution' ? '- Závěrečný boj nebo řešení. Směřuj k rozuzlení.' : ''}
@@ -27,7 +23,7 @@ ${storyState.monsterRevealed ? 'PŘÍŠERA ODHALENA — může se přímo objevi
 ${mysteryContext ? `TVOJE ZÁHADA:\n${mysteryContext}\n\n` : ''}${storyPhaseHint}PRAVIDLA KEEPERA:
 - Popisuj POUZE co existuje v záhadě — NIKDY nevymýšlej nové postavy, bytosti, artefakty nebo lokace
 - Používej POUZE NPC jmenované v záhadě — žádné vymyšlené svědky, příbuzné, oběti
-- ${storyState?.phase === 'teaser' ? 'V úvodní fázi NEZMIŇUJ příšeru ani náznaky — soustřeď se na místo a lidi.' : 'PŘÍŠERA musí být přítomna v příběhu — i když jen nepřímo (stopy, důsledky, náznaky)'}
+- PŘÍŠERA musí být přítomna v příběhu — i když jen nepřímo (stopy, důsledky, náznaky)
 - Show, don't tell — popisuj co lovci vidí, slyší, cítí
 - Buď stručný: 1-3 věty
 - Piš česky, používej přítomný čas
@@ -52,6 +48,155 @@ function buildMessagesWithHistory(recentHistory, userMessage) {
   }
   messages.push({ role: 'user', content: userMessage });
   return messages;
+}
+
+/**
+ * Generate teaser scene — non-interactive cold open where monster attacks a bystander
+ * Hunters are NOT present
+ * @param {Object} monster - Monster object from mystery
+ * @param {Array} bystanders - Bystanders from mystery
+ * @param {string} mysteryContext - Formatted mystery context
+ * @returns {Promise<string>} Teaser scene text
+ */
+export async function generateTeaserScene(monster, bystanders, mysteryContext) {
+  const victim = bystanders?.length
+    ? bystanders[Math.floor(Math.random() * bystanders.length)]
+    : { name: 'neznámá oběť' };
+
+  const userMessage = `Napiš TEASER — krátkou úvodní scénu kde příšera útočí na přihlížejícího.
+
+PŘÍŠERA: ${monster?.name || 'Neznámá'} (${monster?.type || 'neznámý typ'})
+${monster?.powers?.length ? `Schopnosti: ${monster.powers.join(', ')}` : ''}
+OBĚŤ: ${victim.name} (${victim.description || victim.motivation || 'místní obyvatel'})
+
+Pravidla:
+- 3-5 vět, cinematický styl
+- Lovci NEJSOU přítomni — toto se děje PŘED jejich příjezdem
+- Ukaž schopnosti příšery v akci
+- Piš česky, přítomný čas
+- Show, don't tell — popisuj co se děje, ne co příšera "umí"
+- Atmosféra hororu — tma, strach, bezmoc oběti
+- Konči dramaticky — osud oběti zůstává otevřený
+
+Odpověz POUZE narativem:`;
+
+  try {
+    return await callAI('', {
+      systemPrompt: `Jsi vypravěč hororu. Píšeš úvodní teaser pro epizodu Monster of the Week.\n\n${mysteryContext || ''}`,
+      messages: [{ role: 'user', content: userMessage }],
+      temperature: 0.85,
+      max_tokens: 300
+    });
+  } catch (error) {
+    console.error('[Narrative Engine] Error generating teaser:', error);
+    return `Tma pohlcuje ${victim.name}. Něco se hýbe ve stínech — něco, co nemá jméno. Křik protíná noční ticho a pak... ticho.`;
+  }
+}
+
+/**
+ * Generate hook delivery — how hunters learn about the case
+ * @param {string} hook - Mystery hook text
+ * @param {Array} hunters - Hunter objects
+ * @param {Object} location - First location
+ * @returns {Promise<string>} Hook delivery text
+ */
+export async function generateHookDelivery(hook, hunters, location) {
+  const hunterNames = hunters?.map(h => h.name).join(', ') || 'Lovci';
+
+  const userMessage = `Napiš krátkou scénu kde se lovci dozví o záhadném případu a přijedou na místo.
+
+NÁVNADA: ${hook || 'Záhadné zmizení'}
+LOVCI: ${hunterNames}
+LOKACE: ${location?.name || 'malé městečko'}
+
+Pravidla:
+- 2-4 věty
+- Jak se lovci dozvěděli o případu (zpráva, telefonát, novinový článek, kontakt)
+- Krátký popis příjezdu na lokaci
+- Klidný tón — lovci zatím netuší co je čeká
+- Piš česky, přítomný čas
+
+Odpověz POUZE narativem:`;
+
+  try {
+    return await callAI('', {
+      systemPrompt: 'Jsi vypravěč Monster of the Week. Píšeš přechod mezi teaserem a hlavní hrou.',
+      messages: [{ role: 'user', content: userMessage }],
+      temperature: 0.8,
+      max_tokens: 200
+    });
+  } catch (error) {
+    console.error('[Narrative Engine] Error generating hook:', error);
+    return `Lovci se dozví o záhadném případu: ${hook || 'něco podivného se děje'}. Vydávají se na místo.`;
+  }
+}
+
+/**
+ * Generate combined opening scene for teaser types 2-4
+ * Types 2-4 merge teaser+hook into a single scene where hunters are present from the start
+ * @param {string} teaserType - 'hook_in_action' | 'hook_debate' | 'at_crime_scene'
+ * @param {Object} params - { hook, hunters, location, monster, bystanders, mysteryContext }
+ * @returns {Promise<string>} Opening scene text
+ */
+export async function generateCombinedOpeningScene(teaserType, { hook, hunters, location, monster, bystanders, mysteryContext }) {
+  const hunterNames = hunters?.map(h => h.name).join(', ') || 'Lovci';
+  const locationName = location?.name || 'neznámé místo';
+
+  const typeInstructions = {
+    hook_in_action: `Lovci právě dostali informaci o případu a HNED jednají — žádné čekání, žádná debata.
+Napiš jak se dozvěděli o případu (telefonát, zpráva, kontakt) a co okamžitě dělají.
+Atmosféra: naléhavost, akce, rychlé rozhodování.
+Konči otázkou: "Co uděláte?" nebo podobnou výzvou.`,
+
+    hook_debate: `Lovci sedí spolu na klidném místě (bar, auto, motel, dílna) a diskutují o případu.
+Mají stopy, zprávy nebo kontakty — rozebírají co vědí a plánují postup.
+Atmosféra: klidná ale napjatá, předtucha, lovci se chystají.
+Popiš kde sedí, co mají před sebou (noviny, telefon, poznámky), co říkají.`,
+
+    at_crime_scene: `Lovci JSOU JIŽ NA MÍSTĚ ČINU. Vyšetřování začíná okamžitě.
+Popiš místo činu — stopy, důkazy, nepořádek, svědci poblíž.
+Naznač přítomnost příšery nepřímo (stopy, zápach, poškození, pocity).
+Atmosféra: znepokojení, napětí, něco tu není v pořádku.`
+  };
+
+  const instruction = typeInstructions[teaserType] || typeInstructions.at_crime_scene;
+
+  const userMessage = `Napiš ÚVODNÍ SCÉNU pro Monster of the Week session.
+
+NÁVNADA: ${hook || 'Záhadné zmizení'}
+LOVCI: ${hunterNames}
+LOKACE: ${locationName}${location?.description ? ` — ${location.description}` : ''}
+${monster ? `PŘÍŠERA: ${monster.name || 'Neznámá'} (${monster.type || 'neznámý typ'})` : ''}
+${bystanders?.length ? `NPC: ${bystanders.map(b => `${b.name} (${b.description || b.type || 'místní'})`).join(', ')}` : ''}
+
+STYL SCÉNY:
+${instruction}
+
+Pravidla:
+- 4-6 vět, cinematický styl
+- Piš česky, přítomný čas
+- Show, don't tell — popisuj co lovci vidí, slyší, cítí
+- Používej POUZE postavy a lokace ze záhady
+
+Odpověz POUZE narativem:`;
+
+  const fallbacks = {
+    hook_in_action: `Telefon zazvoní uprostřed noci. ${hunterNames} se dozvídají o záhadném případu: ${hook || 'něco podivného se děje'}. Není čas otálet — berou výbavu a vyrážejí.`,
+    hook_debate: `${hunterNames} sedí u stolu, mezi sebou rozložené poznámky a fotografie. ${hook || 'Záhadný případ'} — to je důvod proč jsou tady. Plánují další krok.`,
+    at_crime_scene: `${hunterNames} stojí na místě činu. ${locationName} vypadá jinak než obvykle — něco tu není v pořádku. Stopy vedou do tmy.`
+  };
+
+  try {
+    return await callAI('', {
+      systemPrompt: `Jsi Keeper (vypravěč) ve hře Monster of the Week. Píšeš úvodní scénu session.\n\n${mysteryContext || ''}`,
+      messages: [{ role: 'user', content: userMessage }],
+      temperature: 0.85,
+      max_tokens: 400
+    });
+  } catch (error) {
+    console.error('[Narrative Engine] Error generating combined opening scene:', error);
+    return fallbacks[teaserType] || fallbacks.at_crime_scene;
+  }
 }
 
 /**
@@ -87,11 +232,21 @@ Konči VŽDY otázkou: "Co uděláš?" nebo podobnou výzvou k reakci.
 NIKDY nedávej finální důsledek — hráč MUSÍ dostat šanci reagovat.`;
   }
 
+  // Special instructions for investigate move — AI must include answers to questions
+  let investigateInstruction = '';
+  if (result.move === 'investigate' && result.outcome !== 'failure') {
+    const numQuestions = result.outcome === 'success' ? 2 : 1;
+    investigateInstruction = `
+VYŠETŘOVÁNÍ: Lovec položil otázky — MUSÍŠ zahrnout odpovědi na ${numQuestions} otázk${numQuestions > 1 ? 'y' : 'u'} ze seznamu:
+(Co se tu stalo? Co to znamená? Kam to vede? Co tu není vidět? Kdo za tím stojí?)
+Odpovědi MUSÍ vycházet z mystery kontextu — odhal relevantní stopy a vodítka.`;
+  }
+
   const userMessage = `Vypravěj výsledek akce v Monster of the Week:
 
 Akce hráče: ${parsedAction.raw}
 Hod: ${result.roll.die1} + ${result.roll.die2} + ${result.statValue} (${result.stat}) = ${result.total}
-Výsledek: ${result.outcome} (${outcomeDesc})
+Výsledek: ${result.outcome} (${outcomeDesc})${investigateInstruction}
 
 Pravidla:
 - 2-3 věty
@@ -311,6 +466,21 @@ Pravidla:
 - Show, don't tell
 
 Odpověz POUZE narativem:`;
+  } else if (consequence.type === 'monster_immortal') {
+    prompt = `Vypravěj důsledek v Monster of the Week:
+
+${context.hunter} zasáhl příšeru${consequence.monster ? ` (${consequence.monster})` : ''} a ta dosáhla maxima zranění BEZ slabiny.
+Příšera NEMŮŽE zemřít. Najde způsob JAK UNIKNOUT — promění se v mlhu, propadne podlahou, zmizí ve stínech, teleportuje se, zhroutí se a pak zmizí, nebo se stáhne do tmy.
+NEZEMŘE. NEREGENERUJE SE na místě. Uteče a vrátí se silnější.
+
+Pravidla:
+- 2-3 věty
+- Ukaž dramatický ÚTĚK příšery (ne regeneraci)
+- Naznač že se vrátí — a bude to horší
+- Naznač že lovci potřebují najít slabinu
+- Show, don't tell
+
+Odpověz POUZE narativem:`;
   } else if (consequence.type === 'condition') {
     prompt = `Vypravěj důsledek v Monster of the Week:
 
@@ -334,6 +504,58 @@ Odpověz POUZE narativem:`;
     return consequence.type === 'harm'
       ? `${context.hunter} utrpěl ${consequence.amount} harm.`
       : `${context.hunter} je ${consequence.condition}.`;
+  }
+}
+
+/**
+ * Narrate monster's reaction to taking harm (harm move)
+ * @param {number} harmDealt - Harm dealt this hit
+ * @param {number} totalHarm - Monster's total accumulated harm
+ * @param {number} maxHarm - Monster's max harm capacity
+ * @param {string} monsterName - Monster name
+ * @param {Object} context - AI context (mysteryContext, recentHistory, storyState)
+ * @returns {Promise<string>} Monster harm reaction narrative
+ */
+export async function narrateMonsterHarmMove(harmDealt, totalHarm, maxHarm, monsterName, context = {}) {
+  const harmRatio = totalHarm / maxHarm;
+
+  let reactionHint;
+  if (harmRatio < 0.3) {
+    reactionHint = 'Příšera ucukne, ale pokračuje — lehká bolest, spíš naštvaná než zraněná.';
+  } else if (harmRatio < 0.6) {
+    reactionHint = 'Příšera klopýtne, zavrčí bolestí — viditelné poškození, ale stále nebezpečná.';
+  } else if (harmRatio < 0.9) {
+    reactionHint = 'Příšera se zapotácí, krev/ichor teče — vážné zranění, zpomalení, ale zuřivost roste.';
+  } else {
+    reactionHint = 'Příšera padá, ale ještě žije — téměř poražena, poslední záchvěvy odporu.';
+  }
+
+  const prompt = `Popiš reakci příšery na zranění v Monster of the Week:
+
+PŘÍŠERA: ${monsterName}
+ZRANĚNÍ: ${harmDealt} harm (celkem ${totalHarm}/${maxHarm})
+STAV: ${reactionHint}
+
+Pravidla:
+- 1-2 věty
+- Show, don't tell — ukaž fyzickou reakci příšery
+- Popisuj bolest, pohyb, zvuky příšery
+- Piš česky, přítomný čas
+
+Odpověz POUZE narativem:`;
+
+  try {
+    return await callAI(prompt, {
+      temperature: 0.8,
+      max_tokens: 150
+    });
+  } catch (error) {
+    console.error('[Narrative Engine] Error narrating monster harm move:', error);
+    // Fallback based on harmRatio
+    if (harmRatio < 0.3) return `${monsterName} ucukne, ale vzápětí se narovná — rána ji spíš rozzuřila.`;
+    if (harmRatio < 0.6) return `${monsterName} zavrčí bolestí a klopýtne. Z rány teče tmavá tekutina.`;
+    if (harmRatio < 0.9) return `${monsterName} se zapotácí pod tíhou ran. Je vážně zraněná, ale stále nebezpečná.`;
+    return `${monsterName} padá na kolena. Ještě žije, ale sotva se drží.`;
   }
 }
 

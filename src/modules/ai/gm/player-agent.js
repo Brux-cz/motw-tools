@@ -107,7 +107,7 @@ PRAVIDLA:
 - NIKDY nepopisuj výsledek ("podaří se mi", "zjistím že", "monster padne")
 - Pokud máš zranění 5+, jednej opatrněji
 - NESUMAŘIZUJ situaci — rovnou jednej
-${context.storyPhase === 'teaser' ? '- Jsi v ÚVODNÍ FÁZI — rozhlížej se, mluv s místními, objednávej si pivo. NEÚTOK, NEVYŠETŘUJ agresivně.' : ''}${context.storyPhase === 'investigation' ? '- VYŠETŘUJEŠ — ptej se lidí, hledej stopy, prozkoumávej místa. Bojuj jen v sebeobraně.' : ''}${context.storyPhase === 'confrontation' ? '- KONFRONTACE — příšera je aktivní. Bojuj, braň se, chraň ostatní.' : ''}`;
+${context.storyPhase === 'investigation' ? '- VYŠETŘUJEŠ — ptej se lidí, hledej stopy, prozkoumávej místa. Bojuj jen v sebeobraně.' : ''}${context.storyPhase === 'confrontation' ? '- KONFRONTACE — příšera je aktivní. Bojuj, braň se, chraň ostatní.' : ''}`;
 
   const userMessage = `${context.mysteryContext ? `ZÁHADA:\n${context.mysteryContext}\n\n` : ''}${context.recentHistory ? `POSLEDNÍ UDÁLOSTI:\n${context.recentHistory}\n\n` : ''}${otherActions ? `${otherActions}\n\n` : ''}Co děláš?`;
 

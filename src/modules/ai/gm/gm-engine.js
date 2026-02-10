@@ -2,9 +2,9 @@
  * GM Engine - Autonomous Game Master
  * Main engine for running AI GM mode
  */
-import { getState } from '../../state/store.js';
+import { getState, updateCampaign } from '../../state/store.js';
 import { parsePlayerAction, getMoveNameCz } from './player-input-parser.js';
-import { resolveMove, applyHarm, applyCondition } from './mechanics-engine.js';
+import { resolveMove, applyHarm, applyCondition, applyMonsterHarm } from './mechanics-engine.js';
 import { generateNPCResponse, shouldNPCIntervene, determineNPCBehavior } from './npc-engine.js';
 import {
   getCurrentScene,
@@ -23,7 +23,12 @@ import {
   generateSceneDescription,
   generateGMResponse,
   generateAmbientEvent,
-  narrateConsequence
+  narrateConsequence,
+  narrateCountdown,
+  narrateMonsterHarmMove,
+  generateTeaserScene,
+  generateHookDelivery,
+  generateCombinedOpeningScene
 } from './narrative-engine.js';
 
 class GMEngine {
@@ -52,6 +57,9 @@ class GMEngine {
     // Next player action checks if they addressed or ignored the setup.
     this.pendingSetup = null; // { softMove, result, parsed, context, timestamp }
 
+    // Countdown cooldown: max 1 advance per 30s
+    this.lastCountdownAdvance = 0;
+
     // Activity tracking for adaptive rate limiting
     this.activityTracking = {
       recentPlayerActions: [],
@@ -60,14 +68,15 @@ class GMEngine {
 
     // Story state tracking
     this.storyState = {
-      phase: 'teaser', // teaser | investigation | confrontation | resolution
+      phase: 'investigation', // investigation | confrontation | resolution
       round: 0,
       discoveredClues: [],
       monsterRevealed: false,
       actionsAtCurrentLocation: 0,
       lastNPCReactionTime: 0,
       softMovesThisScene: 0,
-      hardMovesThisScene: 0
+      hardMovesThisScene: 0,
+      weaknessDiscovered: false
     };
   }
 
@@ -155,6 +164,15 @@ class GMEngine {
       }
     }
 
+    // Detect weakness discovered
+    if (!this.storyState.weaknessDiscovered && mystery.monster?.weakness) {
+      const weaknessWords = mystery.monster.weakness.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+      if (weaknessWords.some(w => recentText.includes(w))) {
+        this.storyState.weaknessDiscovered = true;
+        console.log('[Story] Monster weakness discovered!');
+      }
+    }
+
     // Track discovered clues from investigation moves
     const lastEntry = recentEntries[recentEntries.length - 1];
     if (lastEntry?.roll?.move === 'investigate_a_mystery' && lastEntry?.roll?.outcome !== 'failure') {
@@ -168,15 +186,7 @@ class GMEngine {
     const countdown = mystery.countdown;
     const currentPhase = countdown?.currentPhase || 0;
 
-    if (this.storyState.phase === 'teaser') {
-      // Teaser → investigation: after 3 rounds OR explicit investigation action
-      const investigateKeywords = ['vyšetřuj', 'investigate', 'hledám stopy', 'zkoumám', 'prozkoumám', 'pátram', 'stopuji'];
-      const hasInvestigation = investigateKeywords.some(kw => recentText.includes(kw));
-      if (this.storyState.round >= 3 || hasInvestigation) {
-        this.storyState.phase = 'investigation';
-        console.log('[Story] Phase transition: teaser → investigation');
-      }
-    } else if (this.storyState.phase === 'investigation') {
+    if (this.storyState.phase === 'investigation') {
       // Transition to confrontation when:
       // - Monster is revealed, OR
       // - Combat keywords appear, OR
@@ -202,7 +212,6 @@ class GMEngine {
   clampTensionToPhase() {
     const scene = getCurrentScene();
     const phaseMaxTension = {
-      teaser: 3,
       investigation: 5,
       confrontation: 8,
       resolution: 10
@@ -214,7 +223,11 @@ class GMEngine {
   }
 
   /**
-   * Initialize default scene
+   * Initialize default scene based on mystery's teaserType:
+   * - attack_dramatization (type 1): 3-step — cold open + hook + scene description
+   * - hook_in_action (type 2): 2-step — combined opening + scene description
+   * - hook_debate (type 3): 1-step — combined opening only (no location desc)
+   * - at_crime_scene (type 4): 2-step — combined opening + scene description, tension=4
    */
   async initializeDefaultScene() {
     const { campaign, currentMysteryId } = getState();
@@ -223,18 +236,55 @@ class GMEngine {
     const location = mystery?.locations?.[0] || { name: 'Unknown Location' };
     const hunters = campaign.hunters?.map(h => h.id) || [];
     const npcs = mystery?.bystanders?.map(b => b.id) || [];
-
-    this.currentScene = initializeScene(location, hunters, npcs);
-
-    // Generate opening scene description with mystery context
     const mysteryContext = this.buildMysteryContext();
-    const storyState = this.getStoryState();
-    const sceneDesc = await generateSceneDescription(location, 'calm', 2, { mysteryContext, storyState });
-    this.addToSessionLog({
-      type: 'scene',
-      message: sceneDesc,
-      timestamp: Date.now()
-    });
+    const teaserType = mystery?.teaserType || 'attack_dramatization';
+
+    if (teaserType === 'attack_dramatization') {
+      // Type 1: Original 3-step flow — cold open + hook + scene
+      if (mystery?.monster) {
+        const teaser = await generateTeaserScene(mystery.monster, mystery.bystanders, mysteryContext);
+        this.addToSessionLog({ type: 'scene', message: teaser, timestamp: Date.now() });
+      }
+
+      const hook = await generateHookDelivery(mystery?.hook, campaign.hunters, location);
+      this.addToSessionLog({ type: 'scene', message: hook, timestamp: Date.now() });
+
+      this.storyState.phase = 'investigation';
+      this.currentScene = initializeScene(location, hunters, npcs);
+
+      const storyState = this.getStoryState();
+      const sceneDesc = await generateSceneDescription(location, 'calm', 2, { mysteryContext, storyState });
+      this.addToSessionLog({ type: 'scene', message: sceneDesc, timestamp: Date.now() });
+
+    } else {
+      // Types 2-4: Combined opening scene (hunters present from start)
+      const opening = await generateCombinedOpeningScene(teaserType, {
+        hook: mystery?.hook,
+        hunters: campaign.hunters,
+        location,
+        monster: mystery?.monster,
+        bystanders: mystery?.bystanders,
+        mysteryContext
+      });
+      this.addToSessionLog({ type: 'scene', message: opening, timestamp: Date.now() });
+
+      this.storyState.phase = 'investigation';
+      this.currentScene = initializeScene(location, hunters, npcs);
+
+      // hook_debate: no location description (hunters are elsewhere — bar, motel, car)
+      if (teaserType !== 'hook_debate') {
+        const tension = teaserType === 'at_crime_scene' ? 4 : 2;
+        const atmosphere = teaserType === 'at_crime_scene' ? 'unsettling' : 'calm';
+        const storyState = this.getStoryState();
+        const sceneDesc = await generateSceneDescription(location, atmosphere, tension, { mysteryContext, storyState });
+        this.addToSessionLog({ type: 'scene', message: sceneDesc, timestamp: Date.now() });
+      }
+
+      // at_crime_scene: start with higher tension
+      if (teaserType === 'at_crime_scene') {
+        updateScene({ tension: 4 });
+      }
+    }
   }
 
   /**
@@ -567,6 +617,9 @@ class GMEngine {
         }
 
         increaseTension(1);
+
+        // Hard move (keeper threat move) → advance countdown
+        await this.checkCountdownAdvancement(null);
       } else {
         console.log('[GM Engine] Player addressed setup → no hard move');
         // Player reacted — no hard move, just acknowledge
@@ -590,34 +643,78 @@ class GMEngine {
 
       // 4. Handle outcome with escalation system
       if (result.outcome === 'failure') {
-        // FAILURE: Soft move as setup — NOT immediate hard move
-        // Exception: if pacing already has too many hard moves, always do soft
-        const narrative = await narrateAction(parsed, result, aiContext);
+        // Check if hunter is doomed (luck exhausted)
+        const isDoomed = hunter?.conditions?.includes('doomed');
 
-        this.storyState.softMovesThisScene++;
+        if (isDoomed) {
+          // DOOMED: Skip soft move, go STRAIGHT to hard move
+          console.log(`[GM Engine] ${hunter.name} is DOOMED → immediate hard move`);
+          const narrative = await narrateAction(parsed, result, aiContext);
 
-        this.addToSessionLog({
-          type: 'gm',
-          message: narrative,
-          roll: { ...result, moveName_cz: getMoveNameCz(parsed.move) },
-          timestamp: Date.now()
-        });
+          this.storyState.hardMovesThisScene++;
 
-        // Store setup for next action — hard move comes IF player ignores
-        this.pendingSetup = {
-          softMove: narrative,
-          result,
-          parsed,
-          context: aiContext,
-          timestamp: Date.now()
-        };
+          this.addToSessionLog({
+            type: 'gm',
+            message: narrative,
+            roll: { ...result, moveName_cz: getMoveNameCz(parsed.move) },
+            timestamp: Date.now()
+          });
 
-        increaseTension(1);
+          // XP on failure (MotW rule: mark experience on miss)
+          if (hunter) {
+            hunter.experience = (hunter.experience || 0) + 1;
+            updateCampaign({ hunters: campaign.hunters });
+            console.log(`[Mechanics] ${hunter.name} gains 1 XP (now ${hunter.experience})`);
+          }
 
-        // Detect story spike
-        if (this.detectStorySpike(result, parsed)) {
-          triggerStorySpike(180000); // 3 min pause
-          console.log('[Story Spike] Triggered by critical failure');
+          // Immediate consequences (no pending setup)
+          if (this.settings.autoApplyMechanics) {
+            await this.applyConsequences(hunterId, result, parsed);
+          }
+
+          increaseTension(2); // Harder escalation for doomed
+
+          // Detect story spike
+          if (this.detectStorySpike(result, parsed)) {
+            triggerStorySpike(180000);
+            console.log('[Story Spike] Triggered by doomed failure');
+          }
+        } else {
+          // NORMAL: Soft move as setup — NOT immediate hard move
+          const narrative = await narrateAction(parsed, result, aiContext);
+
+          this.storyState.softMovesThisScene++;
+
+          this.addToSessionLog({
+            type: 'gm',
+            message: narrative,
+            roll: { ...result, moveName_cz: getMoveNameCz(parsed.move) },
+            timestamp: Date.now()
+          });
+
+          // XP on failure (MotW rule: mark experience on miss)
+          if (hunter) {
+            hunter.experience = (hunter.experience || 0) + 1;
+            updateCampaign({ hunters: campaign.hunters });
+            console.log(`[Mechanics] ${hunter.name} gains 1 XP (now ${hunter.experience})`);
+          }
+
+          // Store setup for next action — hard move comes IF player ignores
+          this.pendingSetup = {
+            softMove: narrative,
+            result,
+            parsed,
+            context: aiContext,
+            timestamp: Date.now()
+          };
+
+          increaseTension(1);
+
+          // Detect story spike
+          if (this.detectStorySpike(result, parsed)) {
+            triggerStorySpike(180000); // 3 min pause
+            console.log('[Story Spike] Triggered by critical failure');
+          }
         }
 
       } else if (result.outcome === 'partial') {
@@ -670,8 +767,271 @@ class GMEngine {
       });
     }
 
-    // 5. Check for NPC reactions (limited to 1 per action)
+    // 5. Check countdown advancement
+    await this.checkCountdownAdvancement(parsed);
+
+    // 6. Check for NPC reactions (limited to 1 per action)
     await this.triggerNPCReactions(parsed, actionText);
+
+    // 7. Check end conditions
+    const endReason = this.checkEndConditions();
+    if (endReason) {
+      await this.handleSessionEnd(endReason);
+      return;
+    }
+  }
+
+  /**
+   * Evaluate end-of-session XP based on 4 MotW questions
+   * AI analyzes the session log and awards 1 XP per "yes" to all hunters
+   * @param {string} endReason - Why the session ended
+   */
+  async evaluateSessionXP(endReason) {
+    const { campaign } = getState();
+    if (!campaign.hunters?.length) return;
+
+    const recentHistory = this.buildRecentHistory(30);
+    const mysteryContext = this.buildMysteryContext();
+
+    const questions = [
+      'Vyřešili lovci záhadu? (Porazili příšeru / zastavili hrozbu?)',
+      'Zachránili někoho, kdo by jinak zemřel nebo vážně utrpěl?',
+      'Zjistili něco nového a důležitého o světě (nadpřirozenu, organizacích, historii)?',
+      'Zjistili něco nového o svém lovci (vztahy, motivace, minulost)?'
+    ];
+
+    const prompt = `Na základě průběhu session vyhodnoť tyto otázky (odpověz ANO/NE + stručné zdůvodnění):
+${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+
+Důvod konce session: ${endReason}
+
+Kontext záhady:
+${mysteryContext}
+
+Session log:
+${recentHistory}
+
+Odpověz POUZE validním JSON (žádný jiný text):
+{ "answers": [{ "yes": true, "reason": "..." }, { "yes": false, "reason": "..." }, ...] }`;
+
+    try {
+      const { callAI } = await import('../client.js');
+      const response = await callAI(prompt, { max_tokens: 500, temperature: 0.3 });
+
+      // Parse JSON from response (handle potential markdown wrapping)
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error('[GM Engine] Failed to parse XP evaluation response');
+        return;
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (!parsed.answers || !Array.isArray(parsed.answers)) return;
+
+      // Count "yes" answers and build result text
+      let totalXP = 0;
+      const lines = [];
+      for (let i = 0; i < Math.min(parsed.answers.length, questions.length); i++) {
+        const answer = parsed.answers[i];
+        const isYes = answer.yes === true;
+        if (isYes) totalXP++;
+        lines.push(`${isYes ? '✓' : '✗'} ${questions[i].split('?')[0]}?${isYes ? ' (+1 XP)' : ''}`);
+        if (answer.reason) lines.push(`  → ${answer.reason}`);
+      }
+
+      lines.unshift('--- ZKUŠENOSTI NA KONCI SESSION ---');
+      lines.push(`Celkem: +${totalXP} XP pro každého lovce`);
+
+      // Award XP to all hunters
+      if (totalXP > 0) {
+        for (const hunter of campaign.hunters) {
+          hunter.experience = (hunter.experience || 0) + totalXP;
+        }
+        updateCampaign({ hunters: campaign.hunters });
+        console.log(`[Mechanics] All hunters gain ${totalXP} end-of-session XP`);
+      }
+
+      // Log results
+      this.addToSessionLog({
+        type: 'system',
+        message: lines.join('\n'),
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error('[GM Engine] Error evaluating session XP:', error);
+    }
+  }
+
+  /**
+   * Check if session should end
+   * @returns {string|null} End reason or null
+   */
+  checkEndConditions() {
+    const { campaign, currentMysteryId } = getState();
+    const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
+
+    // 1. Monster defeated
+    if (mystery?.monster) {
+      const maxHarm = mystery.monster.harm || 10;
+      const currentHarm = mystery.monster.currentHarm || 0;
+      if (currentHarm >= maxHarm) {
+        return 'monster_defeated';
+      }
+    }
+
+    // 2. Countdown reached midnight
+    if (mystery?.countdown?.phases?.length) {
+      const currentPhase = mystery.countdown.currentPhase || 0;
+      const maxPhase = mystery.countdown.phases.length - 1;
+      if (currentPhase >= maxPhase) {
+        return 'countdown_midnight';
+      }
+    }
+
+    // 3. All hunters dead (harm >= 7)
+    if (campaign.hunters?.length > 0) {
+      const allDead = campaign.hunters.every(h => (h.harm || 0) >= 7);
+      if (allDead) {
+        return 'hunters_dead';
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Handle session end — generate closing narrative, log, emit event, stop
+   * @param {string} endReason - Why the session ended
+   */
+  async handleSessionEnd(endReason) {
+    const reasonMessages = {
+      monster_defeated: 'Příšera byla poražena! Lovci zvítězili.',
+      countdown_midnight: 'Odpočet dosáhl půlnoci. Plán příšery se naplnil.',
+      hunters_dead: 'Všichni lovci padli. Příšera zvítězila.'
+    };
+
+    const scene = getCurrentScene();
+    const { campaign, currentMysteryId } = getState();
+    const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
+    const mysteryContext = this.buildMysteryContext();
+    const recentHistory = this.buildRecentHistory(15);
+    const storyState = this.getStoryState();
+
+    // Generate closing narrative
+    const closingPrompt = `Session končí: ${reasonMessages[endReason] || endReason}. Napiš závěrečný narativ (3-5 vět).`;
+    const closing = await generateGMResponse(closingPrompt, {
+      scene,
+      mystery,
+      mysteryContext,
+      recentHistory,
+      storyState
+    });
+
+    this.addToSessionLog({
+      type: 'scene',
+      message: closing,
+      timestamp: Date.now()
+    });
+
+    this.addToSessionLog({
+      type: 'system',
+      message: `--- SESSION END: ${reasonMessages[endReason] || endReason} ---`,
+      timestamp: Date.now()
+    });
+
+    // Evaluate end-of-session XP (4 MotW questions)
+    await this.evaluateSessionXP(endReason);
+
+    // Emit event for UI
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('gm-session-end', {
+        detail: { endReason, message: reasonMessages[endReason] }
+      }));
+    }
+
+    this.stop();
+    console.log(`[GM Engine] Session ended: ${endReason}`);
+  }
+
+  /**
+   * Check if countdown should advance automatically
+   * Conditions:
+   * 1. Deterministic on failure of investigative/defensive moves (investigate, act_under_pressure, protect, read_bad_situation)
+   * 2. After hard move (parsed === null, called from golden opportunity handler)
+   * 3. Every 8 rounds (safety valve)
+   * 4. 5+ actions at same location
+   * Cooldown: max 1 advance per 30s
+   */
+  async checkCountdownAdvancement(parsed) {
+    const { campaign, currentMysteryId } = getState();
+    const mystery = campaign.mysteries?.find(m => m.id === currentMysteryId);
+    if (!mystery?.countdown?.phases?.length) return;
+
+    const currentPhase = mystery.countdown.currentPhase || 0;
+    const maxPhase = mystery.countdown.phases.length - 1;
+    if (currentPhase >= maxPhase) return;
+
+    // Cooldown: max 1 advance per 30s
+    const now = Date.now();
+    if (now - this.lastCountdownAdvance < 30000) return;
+
+    let shouldAdvance = false;
+    let reason = '';
+
+    // Condition 1: Deterministic on failure of investigative/defensive moves
+    const investigativeMoves = ['investigate', 'act_under_pressure', 'protect', 'read_bad_situation'];
+    if (parsed?.move && investigativeMoves.includes(parsed.move) && this.sessionLog.length > 0) {
+      const lastGMEntry = [...this.sessionLog].reverse().find(e => e.type === 'gm');
+      if (lastGMEntry?.roll?.outcome === 'failure') {
+        shouldAdvance = true;
+        reason = 'Selhání při vyšetřování/obraně';
+      }
+    }
+
+    // Condition 2: After hard move (keeper threat move) — parsed is null
+    if (!shouldAdvance && parsed === null) {
+      shouldAdvance = true;
+      reason = 'Tah hrozby';
+    }
+
+    // Condition 3: Every 8 rounds (safety valve)
+    if (!shouldAdvance && this.storyState.round > 0 && this.storyState.round % 8 === 0) {
+      shouldAdvance = true;
+      reason = 'Čas plyne — automatický postup';
+    }
+
+    // Condition 4: 5+ actions at same location without progress
+    if (!shouldAdvance && this.storyState.actionsAtCurrentLocation >= 5) {
+      shouldAdvance = true;
+      reason = 'Příliš dlouho na jednom místě';
+    }
+
+    if (!shouldAdvance) return;
+
+    this.lastCountdownAdvance = now;
+
+    const { advanceCountdown } = await import('../../state/store.js');
+    advanceCountdown(currentMysteryId, reason);
+
+    const newPhase = currentPhase + 1;
+    const narrative = await narrateCountdown(mystery.countdown, newPhase);
+    this.addToSessionLog({
+      type: 'scene',
+      message: narrative,
+      timestamp: Date.now()
+    });
+
+    increaseTension(1);
+    console.log(`[Story] Countdown advanced to phase ${newPhase}: ${reason}`);
+
+    // Phase 3+ → confrontation, phase 5+ → resolution
+    if (newPhase >= 5 && this.storyState.phase !== 'resolution') {
+      this.storyState.phase = 'resolution';
+      console.log('[Story] Phase transition: → resolution (countdown phase 5+)');
+    } else if (newPhase >= 3 && this.storyState.phase === 'investigation') {
+      this.storyState.phase = 'confrontation';
+      console.log('[Story] Phase transition: → confrontation (countdown phase 3+)');
+    }
   }
 
   /**
@@ -687,6 +1047,39 @@ class GMEngine {
     // Move-specific consequences for PARTIAL success only
     // (Failure consequences are deferred to hard move escalation)
     if (result.move === 'kick_some_ass') {
+      if (result.outcome === 'success' || result.outcome === 'partial') {
+        // Hunter deals harm to monster (1 base, +1 extra on full success)
+        const monsterHarm = result.outcome === 'success' ? 2 : 1;
+        const monsterResult = await applyMonsterHarm(monsterHarm, this.storyState.weaknessDiscovered);
+
+        if (monsterResult.immortal) {
+          // Monster escapes — narrate escape (not regeneration)
+          const immortalNarrative = await narrateConsequence(
+            { type: 'monster_immortal', monster: monsterResult.monster },
+            { hunter: hunter.name }
+          );
+          this.addToSessionLog({
+            type: 'consequence',
+            message: immortalNarrative,
+            timestamp: Date.now()
+          });
+        } else if (monsterResult.harmDealt > 0) {
+          // Monster took harm but isn't at immortal cap — narrate harm reaction
+          const mysteryContext = this.buildMysteryContext();
+          const recentHistory = this.buildRecentHistory(10);
+          const storyState = this.getStoryState();
+          const harmNarrative = await narrateMonsterHarmMove(
+            monsterResult.harmDealt, monsterResult.totalHarm, monsterResult.maxHarm,
+            monsterResult.monster, { mysteryContext, recentHistory, storyState }
+          );
+          this.addToSessionLog({
+            type: 'consequence',
+            message: harmNarrative,
+            timestamp: Date.now()
+          });
+        }
+      }
+
       if (result.outcome === 'partial') {
         // 7-9: Both sides exchange harm (this IS the move rule)
         const harmResult = await applyHarm(hunterId, 1, parsedAction.target || 'enemy');

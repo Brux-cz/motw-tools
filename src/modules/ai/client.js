@@ -226,7 +226,9 @@ export async function callAI(prompt, options = {}) {
   const { getState } = await import('../state/store.js');
   const { settings } = getState();
 
-  if (!settings?.ai?.apiKey) {
+  // In dev mode, proxy server handles API key — no need to have it in browser settings
+  const apiKey = settings?.ai?.apiKey || (import.meta.env.DEV ? 'dev-proxy' : null);
+  if (!apiKey) {
     throw new Error('API key not configured. Go to Settings to add your API key.');
   }
 
@@ -236,7 +238,7 @@ export async function callAI(prompt, options = {}) {
   const response = await sendMessage(
     messages,
     {
-      apiKey: settings.ai.apiKey,
+      apiKey,
       model: options.model || settings.ai.model || DEFAULT_MODEL,
       systemPrompt: options.systemPrompt || undefined,
       temperature: options.temperature || settings.ai.temperature || 0.7,
