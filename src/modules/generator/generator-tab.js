@@ -29,7 +29,7 @@ function getSubtypes(typ) {
   switch (typ) {
     case ThreatType.PRISERA: return threatsData.monsterTypes;
     case ThreatType.PRISLUHOVAC: return threatsData.minionTypes;
-    case ThreatType.PRIHLIZEJICI: return threatsData.bystanderTypes.filter(t => !t.type.startsWith('**'));
+    case ThreatType.PRIHLIZEJICI: return threatsData.bystanderTypes.filter(t => !t.type.startsWith('**') && t.type !== 'Role');
     case ThreatType.LOKALITA: return threatsData.locationTypes;
     default: return [];
   }
@@ -46,85 +46,236 @@ function threatHasField(typ, field) {
   return true;
 }
 
-// ─── Atomický generátor (no AI) ────────────────────────────────
-// Rozbitý na prvočinitele: adjektivum+místo, rys příšery, zvrat
+// ─── Gramatický systém + Atomický generátor ─────────────────────
+// Adjektiva s tvary pro mužský (m), ženský (f) a střední (n) rod
 
-// Technika 1: Adjektivum + Substantivum → unikátní lokace
-const ADJEKTIVA_MISTA = [
-  'Opuštěná', 'Zatopená', 'Vyhořelá', 'Luxusní', 'Podzemní',
-  'Mlžná', 'Zamořená plísní', 'High-tech', 'Středověká', 'Vojenská',
-  'Zchátralá', 'Přelidněná', 'Nově postavená', 'Prokletá', 'Izolovaná'
+const ADJEKTIVA_DB = {
+  opusten:    ['Opuštěný', 'Opuštěná', 'Opuštěné'],
+  zatopen:    ['Zatopený', 'Zatopená', 'Zatopené'],
+  vyhorel:    ['Vyhořelý', 'Vyhořelá', 'Vyhořelé'],
+  podzem:     ['Podzemní', 'Podzemní', 'Podzemní'],
+  mlzn:       ['Mlžný', 'Mlžná', 'Mlžné'],
+  zamor:      ['Zamořený', 'Zamořená', 'Zamořené'],
+  hightech:   ['High-tech', 'High-tech', 'High-tech'],
+  stredovek:  ['Středověký', 'Středověká', 'Středověké'],
+  vojensk:    ['Vojenský', 'Vojenská', 'Vojenské'],
+  zchatra:    ['Zchátralý', 'Zchátralá', 'Zchátralé'],
+  prelidnen:  ['Přelidněný', 'Přelidněná', 'Přelidněné'],
+  postaven:   ['Nově postavený', 'Nově postavená', 'Nově postavené'],
+  proklet:    ['Prokletý', 'Prokletá', 'Prokleté'],
+  izolovan:   ['Izolovaný', 'Izolovaná', 'Izolované'],
+  viktor:     ['Viktoriánský', 'Viktoriánská', 'Viktoriánské'],
+  mraziv:     ['Mrazivý', 'Mrazivá', 'Mrazivé'],
+  radioakt:   ['Radioaktivní', 'Radioaktivní', 'Radioaktivní'],
+  hluc:       ['Hlučný', 'Hlučná', 'Hlučné'],
+  tich:       ['Tichý', 'Tichá', 'Tiché'],
+  steril:     ['Sterilní', 'Sterilní', 'Sterilní'],
+  krvav:      ['Krvavý', 'Krvavá', 'Krvavé'],
+  pachn:      ['Páchnoucí', 'Páchnoucí', 'Páchnoucí'],
+  vznasejici: ['Vznášející se', 'Vznášející se', 'Vznášející se'],
+  halucin:    ['Halucinogenní', 'Halucinogenní', 'Halucinogenní'],
+  beton:      ['Betonový', 'Betonová', 'Betonové'],
+  sklen:      ['Skleněný', 'Skleněná', 'Skleněné'],
+  podmor:     ['Podmořský', 'Podmořská', 'Podmořské'],
+  luxus:      ['Luxusní', 'Luxusní', 'Luxusní'],
+  kyber:      ['Kyberpunkový', 'Kyberpunková', 'Kyberpunkové'],
+  bomb:       ['Vybombardovaný', 'Vybombardovaná', 'Vybombardované']
+};
+
+const ADJEKTIVA_KEYS = Object.keys(ADJEKTIVA_DB);
+
+function sklonuj(koren, rod) {
+  const tvary = ADJEKTIVA_DB[koren];
+  if (!tvary) return koren;
+  return tvary[rod === 'm' ? 0 : rod === 'f' ? 1 : 2];
+}
+
+function ziskajZajmeno(rod) {
+  return rod === 'm' ? 'který' : rod === 'f' ? 'která' : 'které';
+}
+
+// Lokace s rodem a přiřazeným typem lokace (logicky — žádná Katedrála jako Divočina)
+const LOKACE_DB = [
+  { nazev: 'Škola', rod: 'f', typ: 'Křižovatka' },
+  { nazev: 'Nemocnice', rod: 'f', typ: 'Křižovatka' },
+  { nazev: 'Továrna', rod: 'f', typ: 'Past' },
+  { nazev: 'Knihovna', rod: 'f', typ: 'Knihovna' },
+  { nazev: 'Zoo', rod: 'n', typ: 'Divočina' },
+  { nazev: 'Metro', rod: 'n', typ: 'Labyrint' },
+  { nazev: 'Katedrála', rod: 'f', typ: 'Křižovatka' },
+  { nazev: 'Jatka', rod: 'n', typ: 'Past' },
+  { nazev: 'Lunapark', rod: 'm', typ: 'Past' },
+  { nazev: 'Maják', rod: 'm', typ: 'Pevnost' },
+  { nazev: 'Motel', rod: 'm', typ: 'Křižovatka' },
+  { nazev: 'Tábor', rod: 'm', typ: 'Divočina' },
+  { nazev: 'Věznice', rod: 'f', typ: 'Pevnost' },
+  { nazev: 'Muzeum', rod: 'n', typ: 'Knihovna' },
+  { nazev: 'Zahrada', rod: 'f', typ: 'Divočina' },
+  { nazev: 'Vrakoviště', rod: 'n', typ: 'Labyrint' },
+  { nazev: 'Stoka', rod: 'f', typ: 'Labyrint' },
+  { nazev: 'Márnice', rod: 'f', typ: 'Past' },
+  { nazev: 'Studio', rod: 'n', typ: 'Křižovatka' },
+  { nazev: 'Obchodní dům', rod: 'm', typ: 'Křižovatka' },
+  { nazev: 'Kasino', rod: 'n', typ: 'Past' },
+  { nazev: 'Přístav', rod: 'm', typ: 'Křižovatka' },
+  { nazev: 'Kryt', rod: 'm', typ: 'Pevnost' },
+  { nazev: 'Důl', rod: 'm', typ: 'Labyrint' },
+  { nazev: 'Léčebna', rod: 'f', typ: 'Pevnost' },
+  { nazev: 'Opera', rod: 'f', typ: 'Křižovatka' },
+  { nazev: 'Sanatorium', rod: 'n', typ: 'Past' },
+  { nazev: 'Hřbitov', rod: 'm', typ: 'Divočina' },
+  { nazev: 'Tržnice', rod: 'f', typ: 'Křižovatka' },
+  { nazev: 'Letiště', rod: 'n', typ: 'Křižovatka' }
 ];
-const PODSTATNA_MISTA = [
-  'Škola', 'Nemocnice', 'Továrna', 'Knihovna', 'Zoo',
-  'Stanice metra', 'Přehrada', 'Vila starosty', 'Katedrála',
-  'Hřbitov', 'Tržnice', 'Sanatorium', 'Důl', 'Letiště'
-];
+
 const ATMOSFERY = [
   'kde neustále prší', 'kde vypadává elektřina', 'kde je hrobové ticho',
   'kde teplota klesá pod nulu', 'odkud se nedá dovolat pomoc',
-  'kde se kompasy točí dokola', 'kde se zdi potí krví'
+  'kde se kompasy točí dokola', 'kde se zdi potí krví',
+  'kde je cítit síra', 'kde hraje děsivá hudba', 'kde se hýbou stíny',
+  'kde je nepřirozené horko', 'kde je všechno černobílé',
+  'kde gravitace funguje divně', 'kde jsou nápisy v neznámém jazyce'
 ];
 
-// Technika 2: Podivné rysy → unikátní příšera
+// Podivné rysy příšery (genderově neutrální — fungují s který/která/které)
 const PODIVNE_RYSY = [
-  'je neustále v plamenech',
-  'je neviditelná na přímém světle',
-  'mluví hlasem malého dítěte',
-  'je složená z odpadků a kovu',
-  'vydává zvuk jako porouchané rádio',
-  'kape z ní černý olej',
-  'má o pět končetin více, než by měla mít',
-  'svítí neonově modře',
-  'má místo očí hodiny',
-  'je pokrytá zrcadlovými střepy',
-  'zapáchá po spáleném cukru',
-  'vrhá stín, i když nestojí ve světle'
+  'neustále hoří', 'mizí ve stínu', 'mluví hlasem dítěte',
+  'drží pohromadě z odpadků', 'vydává bzučivý zvuk', 'kape z toho kyselina',
+  'má místo očí hodiny', 'má příliš mnoho končetin', 'levituje nad zemí',
+  'vypadá jako porcelánová panenka', 'páchne po zkaženém mase',
+  'mění tvar podle pozorovatele', 'cinká sklem při pohybu',
+  'má na těle tváře svých obětí', 'vrhá stín i bez světla',
+  'existuje jen jako kouř', 'svítí neonově modře'
 ];
 
-// Technika 3: Dějové zvraty → mění pravidla hry
+// Dějové zvraty → mění pravidla hry
 const ZVRATY = [
   'Příšera se jen brání, skutečným zlem je někdo z lidí.',
-  'Celá lokace je v časové smyčce, den se opakuje.',
+  'Celá lokace je v časové smyčce.',
   'Příšera je ve skutečnosti halucinace způsobená plynem.',
-  'Místní policie o příšeře ví a krmí ji.',
-  'Příšera hledá své ztracené mládě, nechce zabíjet.',
-  'Magie v této oblasti nefunguje (nebo funguje opačně).',
+  'Lovci musí příšeru chytit živou, nesmí ji zabít.',
+  'V lokaci jsou dvě příšery, které bojují proti sobě.',
+  'Místní lidé příšeru uctívají a brání ji.',
+  'Příšera je mrtvý lovec monster.',
   'Oběti se dobrovolně nechávají sežrat — jsou součástí kultu.',
   'Přihlížející je ve skutečnosti šedá eminence za vším.',
-  'Příšera tu byla dřív než lidé — tohle je její území.',
-  'Lokace je živá a záměrně láká oběti dovnitř.'
+  'Příšera hledá něco, co jí bylo ukradeno.',
+  'Slabina se mění každou hodinu.',
+  'Zabitím příšery se zřítí celá budova.'
 ];
 
-// Pravidlové statistiky podle typu příšery (HP, zbroj)
-const TYPY_STATS = {
-  'Bestie':      { hp: [10, 12], zbroj: 1 },
-  'Černokněžník': { hp: [8, 10],  zbroj: 1 },
-  'Královna':    { hp: [10, 12], zbroj: 2 },
-  'Mučitel':     { hp: [8, 10],  zbroj: 0 },
-  'Ničitel':     { hp: [12, 15], zbroj: 2 },
-  'Parazit':     { hp: [8, 10],  zbroj: 0 },
-  'Pokušitel':   { hp: [8, 10],  zbroj: 0 },
-  'Popravčí':    { hp: [10, 12], zbroj: 1 },
-  'Požírač':     { hp: [11, 14], zbroj: 1 },
-  'Sběratel':    { hp: [9, 11],  zbroj: 1 },
-  'Šibal':       { hp: [7, 9],   zbroj: 0 },
-  'Zploditel':   { hp: [10, 12], zbroj: 1 }
+// ─── Pravidlové tabulky per typ hrozby ──────────────────────────
+// Každý typ má: rod, motivace, HP, zbroj, tahy, tag (pro útoky), weakType (pro slabiny)
+
+const TYPY_MONSTER = {
+  'Bestie':       { rod: 'f', mot: 'Ničit a zabíjet', hp: [10, 12], zbroj: 1, tag: 'physical', weakType: 'physical',
+                    tahy: ['Naznačit její přítomnost', 'Vrátit se do svého teritoria', 'Vztekle zaútočit vší silou', 'Uniknout bez ohledu na to, jak je spoutána'] },
+  'Černokněžník': { rod: 'm', mot: 'Uchvátit nadpřirozenou moc', hp: [8, 10], zbroj: 1, tag: 'magic', weakType: 'ritual',
+                    tahy: ['Použít nadpřirozenou schopnost', 'Škodolibě se chvástat a prozradit tajemství', 'Někoho nebo něčeho se zmocnit', 'Tiše a prohnaně zaútočit'] },
+  'Královna':     { rod: 'f', mot: 'Posednout a ovládnout', hp: [10, 12], zbroj: 2, tag: 'minion_master', weakType: 'ritual',
+                    tahy: ['Rozkázat přisluhovačům provést strašné věci', 'Někoho nebo něčeho se zmocnit', 'Odhalit její skutečnou moc', 'Navrátit se po zdánlivém skonu'] },
+  'Mučitel':      { rod: 'm', mot: 'Způsobit bolest a vyvolat hrůzu', hp: [8, 10], zbroj: 0, tag: 'stealth', weakType: 'holy',
+                    tahy: ['Tiše a prohnaně zaútočit', 'Škodolibě se chvástat a prozradit tajemství', 'Z čista jasna se objevit', 'Někoho nebo něčeho se zmocnit'] },
+  'Ničitel':      { rod: 'm', mot: 'Přivodit konec světa', hp: [12, 15], zbroj: 2, tag: 'physical', weakType: 'ritual',
+                    tahy: ['Něco zničit', 'Odhalit její skutečnou moc', 'Vztekle zaútočit vší silou', 'Uniknout bez ohledu na to, jak je spoutána'] },
+  'Parazit':      { rod: 'm', mot: 'Napadnout, ovládnout a sežrat', hp: [8, 10], zbroj: 0, tag: 'stealth', weakType: 'fire',
+                    tahy: ['Tiše a prohnaně zaútočit', 'Naznačit její přítomnost', 'Někoho nebo něčeho se zmocnit', 'Navrátit se po zdánlivém skonu'] },
+  'Pokušitel':    { rod: 'm', mot: 'Svést lidi ke konání zla', hp: [8, 10], zbroj: 0, tag: 'magic', weakType: 'logic',
+                    tahy: ['Škodolibě se chvástat a prozradit tajemství', 'Použít nadpřirozenou schopnost', 'Tiše a prohnaně zaútočit', 'Z čista jasna se objevit'] },
+  'Popravčí':     { rod: 'm', mot: 'Trestat viníky', hp: [10, 12], zbroj: 1, tag: 'physical', weakType: 'holy',
+                    tahy: ['Pronásledovat', 'Z čista jasna se objevit', 'Použít nadpřirozenou schopnost', 'Vztekle zaútočit vší silou'] },
+  'Požírač':      { rod: 'm', mot: 'Hodovat na lidech', hp: [11, 14], zbroj: 1, tag: 'physical', weakType: 'poison',
+                    tahy: ['Škodolibě se chvástat a prozradit tajemství', 'Něco zničit', 'Rozkázat přisluhovačům provést strašné věci', 'Naznačit její přítomnost'] },
+  'Sběratel':     { rod: 'm', mot: 'Krást specifický druh věcí', hp: [9, 11], zbroj: 1, tag: 'stealth', weakType: 'logic',
+                    tahy: ['Někoho nebo něčeho se zmocnit', 'Tiše a prohnaně zaútočit', 'Škodolibě se chvástat a prozradit tajemství', 'Uniknout bez ohledu na to, jak je spoutána'] },
+  'Šibal':        { rod: 'm', mot: 'Vnést do všeho chaos', hp: [7, 9], zbroj: 0, tag: 'magic', weakType: 'logic',
+                    tahy: ['Použít nadpřirozenou schopnost', 'Škodolibě se chvástat a prozradit tajemství', 'Z čista jasna se objevit', 'Uniknout bez ohledu na to, jak je spoutána'] },
+  'Zploditel':    { rod: 'm', mot: 'Přivést zlo na svět', hp: [10, 12], zbroj: 1, tag: 'minion_master', weakType: 'fire',
+                    tahy: ['Naznačit její přítomnost', 'Někoho nebo něčeho se zmocnit', 'Odhalit její skutečnou moc', 'Vrátit se do svého teritoria'] }
 };
 
-// Strukturované útoky: { nazev, dmg, stitky[] }
-const UTOKY_POOL = [
-  { nazev: 'Drápy',             dmg: 3, stitky: ['blízko', 'brutální'] },
-  { nazev: 'Kousnutí',          dmg: 4, stitky: ['dotek', 'trhá maso'] },
-  { nazev: 'Chapadla',          dmg: 3, stitky: ['blízko', 'svírající'] },
-  { nazev: 'Jedovatý plivnutí', dmg: 2, stitky: ['daleko'] },
-  { nazev: 'Stínový úder',      dmg: 3, stitky: ['magický'] },
-  { nazev: 'Psychický nápor',   dmg: 2, stitky: ['ignoruje zbroj'] },
-  { nazev: 'Drtivý náraz',      dmg: 4, stitky: ['blízko', 'brutální'] },
-  { nazev: 'Poleptání',         dmg: 3, stitky: ['dotek', 'bolestivý'] },
-  { nazev: 'Paralyza dotykem',  dmg: 1, stitky: ['dotek', 'ochromující'] },
-  { nazev: 'Temná magie',       dmg: 3, stitky: ['daleko', 'magický'] }
-];
+const TYPY_PRISLUHOVACU = {
+  'Hlídač':     { mot: 'Zahradit cestu nebo něco chránit', hp: [5, 8],
+                  tahy: ['Koordinovaně zaútočit', 'Vyhrožovat ve jménu svého pána', 'Použít nadpřirozenou schopnost'] },
+  'Kultista':   { mot: 'Zachránit si kůži za každou cenu', hp: [4, 6],
+                  tahy: ['Utéct', 'Prozradit tajemství', 'Ukázat záblesk svědomí'] },
+  'Mor':        { mot: 'Zaplavit a zničit', hp: [5, 7],
+                  tahy: ['Náhlý záchvat nekontrolovaného násilí', 'Odevzdat někoho svému pánu', 'Ukázat záblesk lidství'] },
+  'Pravá ruka': { mot: 'Stát za příšerou', hp: [6, 9],
+                  tahy: ['Koordinovaně zaútočit', 'Vyhrožovat ve jménu svého pána', 'Malicherným způsobem se vzepřít svému pánu'] },
+  'Průzkumník': { mot: 'Stopovat, sledovat a podat zprávu', hp: [5, 7],
+                  tahy: ['Pronásledovat', 'Prozradit tajemství', 'Odevzdat někoho svému pánu'] },
+  'Renfield':   { mot: 'Zajistit příšeře přísun obětí', hp: [4, 6],
+                  tahy: ['Někoho zajmout nebo něco ukrást', 'Vyhrožovat ve jménu svého pána', 'Malicherným způsobem se vzepřít'] },
+  'Surovec':    { mot: 'Zastrašit a zaútočit', hp: [6, 9],
+                  tahy: ['Náhlý záchvat nekontrolovaného násilí', 'Koordinovaně zaútočit', 'Pronásledovat'] },
+  'Vrah':       { mot: 'Zabít lovce', hp: [6, 8],
+                  tahy: ['Tiše zaútočit', 'Pronásledovat', 'Utéct'] },
+  'Zloděj':     { mot: 'Něco pro příšeru ukrást', hp: [4, 6],
+                  tahy: ['Někoho zajmout nebo něco ukrást', 'Utéct', 'Prozradit tajemství'] },
+  'Zrádce':     { mot: 'Zradit lidi', hp: [4, 6],
+                  tahy: ['Prozradit tajemství', 'Odevzdat někoho svému pánu', 'Ukázat záblesk svědomí'] }
+};
+
+const TYPY_NPC = {
+  'Byrokrat':  { mot: 'Podezírat', tahy: ['Překážet', 'Dohadovat se s lovci', 'Projevit neschopnost'] },
+  'Detektiv':  { mot: 'Zavrhnout rozumné vysvětlení', tahy: ['Dohadovat se s lovci', 'Něco prozradit', 'Vydat se někam sám'] },
+  'Drbna':     { mot: 'Šířit klevety', tahy: ['Ze strachu ztratit hlavu', 'Přiznat se ke svým obavám', 'Něco prozradit'] },
+  'Nevinný':   { mot: 'Zachovat se správně', tahy: ['Vydat se někam sám', 'Pokusit se ochránit lidi', 'Ze strachu ztratit hlavu'] },
+  'Oběť':      { mot: 'Vystavit se nebezpečí', tahy: ['Překážet', 'Pokusit se ochránit lidi', 'Vydat se někam sám'] },
+  'Pomocník':  { mot: 'Přidat se k lovu', tahy: ['Pokusit se pomoct lovcům', 'Vydat se někam sám', 'Přiznat se ke svým obavám'] },
+  'Skeptik':   { mot: 'Odmítat nadpřirozené vysvětlení', tahy: ['Dohadovat se s lovci', 'Překážet', 'Ze strachu ztratit hlavu'] },
+  'Svědek':    { mot: 'Poskytnout informace', tahy: ['Něco prozradit', 'Přiznat se ke svým obavám', 'Vydat se někam sám'] },
+  'Šťoural':   { mot: 'Plést se do záležitostí jiných lidí', tahy: ['Překážet', 'Něco prozradit', 'Hledat pomoc nebo útěchu'] }
+};
+
+const TYPY_LOKALIT = {
+  'Brána pekel': { mot: 'Stvořit zlo', tahy: ['Představit hrozbu', 'Něco odhalit', 'Přetvořit se'] },
+  'Divočina':    { mot: 'Obsahovat skryté věci', tahy: ['Někoho polapit do pasti', 'Navodit jedinečný dojem', 'Navést na stopu'] },
+  'Doupě':       { mot: 'Ukrývat příšery', tahy: ['Něco skrývat', 'Představit hrozbu', 'Zabránit v cestě'] },
+  'Knihovna':    { mot: 'Poskytnout informace', tahy: ['Navést na stopu', 'Něco skrývat', 'Něco odhalit'] },
+  'Křižovatka':  { mot: 'Svést lidi a věci dohromady', tahy: ['Něco odhalit', 'Uvolnit cestu', 'Navodit jedinečný dojem'] },
+  'Laboratoř':   { mot: 'Vytvářet prapodivnosti', tahy: ['Něco tu nefunguje', 'Představit hrozbu', 'Něco odhalit'] },
+  'Labyrint':    { mot: 'Zmást a rozdělit', tahy: ['Přetvořit se', 'Zabránit v cestě', 'Navodit jedinečný dojem'] },
+  'Past':        { mot: 'Zranit vetřelce', tahy: ['Představit hlídače', 'Někoho polapit do pasti', 'Uvolnit cestu'] },
+  'Pevnost':     { mot: 'Bránit ve vstupu', tahy: ['Zabránit v cestě', 'Představit hlídače', 'Něco skrývat'] },
+  'Vězení':      { mot: 'Zadržet a zabránit v úniku', tahy: ['Někoho polapit do pasti', 'Zabránit v cestě', 'Představit hrozbu'] }
+};
+
+// Útoky dle tagu příšery — tematicky propojené (Pokušitel nemá Drtivý úder)
+const UTOKY_POOL = {
+  physical: [
+    { nazev: 'Drápy', dmg: 3, stitky: ['blízko', 'brutální'] },
+    { nazev: 'Tesáky', dmg: 3, stitky: ['dotek', 'trhá maso'] },
+    { nazev: 'Drtivý úder', dmg: 4, stitky: ['blízko', 'pomalé'] },
+    { nazev: 'Kousnutí', dmg: 4, stitky: ['dotek', 'trhá maso'] },
+    { nazev: 'Chapadla', dmg: 3, stitky: ['blízko', 'svírající'] },
+    { nazev: 'Ocas', dmg: 2, stitky: ['blízko', 'sráží'] }
+  ],
+  magic: [
+    { nazev: 'Psychický útlak', dmg: 1, stitky: ['ignoruje zbroj'] },
+    { nazev: 'Blesk', dmg: 3, stitky: ['daleko'] },
+    { nazev: 'Vysátí vůle', dmg: 0, stitky: ['ignoruje zbroj', 'bere štěstí'] },
+    { nazev: 'Magický plamen', dmg: 2, stitky: ['plošné'] },
+    { nazev: 'Temná magie', dmg: 3, stitky: ['daleko', 'magický'] },
+    { nazev: 'Stínový úder', dmg: 3, stitky: ['magický'] }
+  ],
+  stealth: [
+    { nazev: 'Bodnutí ze stínů', dmg: 3, stitky: ['ignoruje zbroj'] },
+    { nazev: 'Škrcení', dmg: 2, stitky: ['dotek'] },
+    { nazev: 'Jedová jehla', dmg: 1, stitky: ['dotek', 'jedovatý'] },
+    { nazev: 'Paralyza dotykem', dmg: 1, stitky: ['dotek', 'ochromující'] },
+    { nazev: 'Poleptání', dmg: 3, stitky: ['dotek', 'bolestivý'] }
+  ],
+  minion_master: [
+    { nazev: 'Rozkaz k útoku', dmg: 0, stitky: ['přisluhovači +1'] },
+    { nazev: 'Obětování pěšáka', dmg: 2, stitky: ['blízko'] },
+    { nazev: 'Zahltit těly', dmg: 3, stitky: ['blízko', 'svírající'] }
+  ]
+};
+
+// Flat pool pro přisluhovače a manuální editaci
+const UTOKY_ALL = [...UTOKY_POOL.physical, ...UTOKY_POOL.magic, ...UTOKY_POOL.stealth];
 
 // Nadpřirozené schopnosti per typ příšery (bod 2 pravidel)
 const SCHOPNOSTI_POOL = {
@@ -142,35 +293,59 @@ const SCHOPNOSTI_POOL = {
   'Zploditel':    ['Kladení vajec/spor', 'Přeměna obětí', 'Kontrola potomků', 'Feromony podrobení', 'Rychlý růst']
 };
 
-// Slabiny (bod 5 pravidel)
-const SLABINY_POOL = [
-  'Stříbro (zbraně nebo munice)', 'Oheň (zapálit ji)',
-  'Svěcená voda', 'Železo (čisté, nekované)',
-  'Sluneční svit', 'Specifický rituál exorcismu',
-  'Zničit její totem/předmět moci', 'Sůl (vytvořit kruh)',
-  'Její vlastní jméno (vyslovit pozpátku)', 'Krev nevinného (dobrovolně darovaná)',
-  'Rozbít zrcadlo, ve kterém se odráží', 'Píseň z dob jejího vzniku'
+// Slabiny dle typu příšery (bod 5 pravidel) — tematicky svázané s weakType
+const SLABINY_POOL = {
+  physical: ['Stříbro', 'Chladné železo', 'Zásah do srdce', 'Useknutí hlavy'],
+  elemental: ['Oheň', 'Mráz', 'Elektřina', 'Vysušení'],
+  ritual: ['Exorcismus', 'Zničení zdroje moci', 'Pohřbení ostatků', 'Rituál svázání'],
+  holy: ['Svěcená voda', 'Svatá půda', 'Symboly víry', 'Modlitba'],
+  poison: ['Sůl', 'Specifická protilátka', 'Jed z byliny', 'Čistý ocet'],
+  logic: ['Hádanka', 'Zrcadlo', 'Vyslovení pravého jména', 'Splnění slibu'],
+  fire: ['Oheň', 'Extrémní teplo', 'Sluneční svit', 'UV záření']
+};
+
+// Jména pro NPC a příšery
+const JMENA_MUZI = [
+  'Petr', 'Jan', 'Karel', 'Tomáš', 'Šerif Bárta', 'Dr. Novák',
+  'Farář Blažek', 'Starosta Hrdlička', 'Hajný Vrána', 'Martin'
+];
+const JMENA_ZENY = [
+  'Jana', 'Eva', 'Marie', 'Lucie', 'Dr. Sýkorová', 'Sestra Alžběta',
+  'Starostka Králová', 'Knihovnice Dvořáková', 'Učitelka Čermáková', 'Tereza'
+];
+const TITULY_MONSTER_M = [
+  'Pán much', 'Černý jezdec', 'Noční lovec', 'Hrobník', 'Strážce prahu',
+  'Stínový muž', 'Bezejmenný', 'Král červů', 'Tulák mlhy', 'Řezník'
+];
+const TITULY_MONSTER_F = [
+  'Bílá paní', 'Krvavá Marie', 'Matka hniloby', 'Sestra tmy', 'Královna hmyzu',
+  'Šeptavá', 'Bledá nevěsta', 'Paní z jezera', 'Tkadlena osudu', 'Plačka'
 ];
 
-// Skládačka návnady: KDO + CO + KDE
-const NAVNADA_KDO = [
-  'Místní bezdomovec', 'Vyděšený školník', 'Policejní hlídka',
-  'Skupina teenagerů', 'Osamělý rybář', 'Místní blázen',
-  'Investigativní novinář', 'Noční hlídač', 'Poštovní doručovatel',
-  'Důchodkyně se psem'
+// Šablony pro námět — (lokace, monstrum, motivace, zvrat) → string
+const SABLONY_NAMET = [
+  (lok, mon, mot, zvr) => `V ${lok} se začali ztrácet lidé. Stojí za tím ${mon}, jehož cílem je ${mot}. ${zvr}`,
+  (lok, mon, mot, zvr) => `Záhadné události v ${lok} ukazují na přítomnost ${mon}. Motivací je ${mot}. ${zvr}`,
+  (lok, mon, mot, zvr) => `Něco děsivého se probouzí v ${lok}. ${mon} začíná ${mot}. ${zvr}`,
+  (lok, mon, mot, zvr) => `Místní z okolí ${lok} hlásí podivné úkazy. Za vším stojí ${mon} s cílem ${mot}. ${zvr}`,
+  (lok, mon, mot, zvr) => `${mon} si zřídil základnu v ${lok} a systematicky pracuje na tom, aby mohl ${mot}. ${zvr}`
 ];
-const NAVNADA_CO = [
-  'našel roztrhané tělo', 'viděl zářit podivné světlo',
-  'slyšel nelidský řev', 'objevil kaluže divného slizu',
-  'natočil na mobil stínovou postavu', 'nahlásil zmizení svého psa',
-  'našel podivné symboly vyryté do zdi', 'zavolal policii kvůli zápachu',
-  'zveřejnil na sítích děsivou fotku'
+
+// Šablony pro návnadu — (kdo, akce, lokace) → string
+const SABLONY_NAVNADA = [
+  (kdo, akce, lok) => `Policejní hlášení: ${kdo} ${akce} poblíž ${lok}.`,
+  (kdo, akce, lok) => `Lovci obdrží zprávu: ${kdo} údajně ${akce} v okolí ${lok}.`,
+  (kdo, akce, lok) => `Na sociálních sítích se virálně šíří video, kde ${kdo} ${akce} u ${lok}.`,
+  (kdo, akce, lok) => `Místní noviny píší: „${kdo} ${akce}" — místo: ${lok}.`,
+  (kdo, akce, lok) => `Anonymní tip: ${kdo} ${akce}. Poslední známá pozice: ${lok}.`
 ];
-const NAVNADA_KDE = [
-  'v popelnici', 'na střeše budovy', 'v zamčeném sklepě',
-  'uprostřed parkoviště', 'v kanálu', 'na dětském hřišti',
-  'za opuštěným skladištěm', 'u hlavní silnice', 've staré studni',
-  'na kraji lesa'
+
+const NAVNADA_AKCE = [
+  'našel zohavené tělo', 'viděl přízrak', 'slyšel nelidský křik',
+  'natočil na mobil podivnou postavu', 'nahlásil zmizení dítěte',
+  'objevil podivné symboly na zdi', 'zavolal policii kvůli zápachu krve',
+  'zveřejnil na sítích děsivou fotku', 'tvrdí, že viděl svítící oči v temnotě',
+  'zmizel beze stopy'
 ];
 
 function pickRandom(arr) {
@@ -205,87 +380,122 @@ function parseUtok(str) {
   };
 }
 
-// Složí unikátní lokaci: "Zatopená Knihovna, kde vypadává elektřina"
+// Složí unikátní lokaci z LOKACE_DB s genderově správným adjektivem
 function generujUnikatniLokaci() {
-  const adj = pickRandom(ADJEKTIVA_MISTA);
-  const podst = pickRandom(PODSTATNA_MISTA);
+  const lok = pickRandom(LOKACE_DB);
+  const adjKey = pickRandom(ADJEKTIVA_KEYS);
+  const adj = sklonuj(adjKey, lok.rod);
+  const nazev = `${adj} ${lok.nazev}`;
   // 50% šance na detail atmosféry
   if (Math.random() > 0.5) {
-    return `${adj} ${podst}, ${pickRandom(ATMOSFERY)}`;
+    return { nazev: `${nazev}, ${pickRandom(ATMOSFERY)}`, rod: lok.rod, typ: lok.typ };
   }
-  return `${adj} ${podst}`;
+  return { nazev, rod: lok.rod, typ: lok.typ };
 }
 
-// Složí unikátní příšeru: "Požírač, který svítí neonově modře"
-function generujUnikatniPriseru(monsterType) {
-  const rys = pickRandom(PODIVNE_RYSY);
-  return { jmeno: `${monsterType.type}, který ${rys}`, rys };
+// Generuje jméno příšery dle rodu typu
+function generujJmenoMonstrum(rod) {
+  if (rod === 'f') return pickRandom(TITULY_MONSTER_F);
+  return pickRandom(TITULY_MONSTER_M);
 }
 
-function vytvorSlozenouNavnadu(lokace) {
-  const kdo = pickRandom(NAVNADA_KDO);
-  const co = pickRandom(NAVNADA_CO);
-  const kde = pickRandom(NAVNADA_KDE);
-  return `${kdo} ${co} ${kde} (poblíž: ${lokace}).`;
+// Generuje odpočet ve 3 stylech dle motivace (rod = m/f/n pro správné tvary sloves)
+function generujOdpocet(lokNazev, monJmeno, mot, minionJmeno, rod) {
+  const motLower = mot.toLowerCase();
+  const dokoncil = rod === 'f' ? 'dokončila' : rod === 'n' ? 'dokončilo' : 'dokončil';
+  const nezastavitelny = rod === 'f' ? 'téměř nezastavitelná' : rod === 'n' ? 'téměř nezastavitelné' : 'téměř nezastavitelný';
+
+  // Agresivní styl — pro ničitele, bestie, popravčí
+  if (motLower.includes('ničit') || motLower.includes('konec') || motLower.includes('trestat') || motLower.includes('zabíjet')) {
+    return createCountdown({
+      den: `V okolí ${lokNazev} se najde první oběť. Zvířata utíkají z oblasti.`,
+      priseri: `${monJmeno} zaútočí podruhé. Policie uzavírá oblast.`,
+      zapad_slunce: `Těla přibývají. ${minionJmeno} aktivně brání lovcům v přístupu.`,
+      soumrak: `${monJmeno} řádí otevřeně. Civilisté panicky prchají.`,
+      noc: `Masivní destrukce. Poslední šance zasáhnout, než bude pozdě.`,
+      pulnoc: `${monJmeno} ${dokoncil} svůj cíl: ${mot}. Oblast je zničená.`
+    });
+  }
+
+  // Skrytý/korupční styl — pro pokušitele, parazity, královny
+  if (motLower.includes('svést') || motLower.includes('ovládnout') || motLower.includes('napadnout') || motLower.includes('posednout')) {
+    return createCountdown({
+      den: `Lidé v okolí ${lokNazev} se začínají chovat podivně. Drobné náznaky.`,
+      priseri: `Další lidé padají pod vliv ${monJmeno}. Šíří se podivné zvyky.`,
+      zapad_slunce: `${minionJmeno} otevřeně slouží příšeře. Polovina místních je ovládnuta.`,
+      soumrak: `${monJmeno} ovládá klíčové osoby. Lovci nevědí, komu věřit.`,
+      noc: `Téměř celé město je pod kontrolou. Zbývá jen hrstka nezasažených.`,
+      pulnoc: `${monJmeno} ${dokoncil} přeměnu. Celá komunita je navždy ztracena.`
+    });
+  }
+
+  // Obecný styl — pro ostatní
+  return createCountdown({
+    den: `Průzkum lokace '${lokNazev}'. Drobné stopy, šeptanda mezi místními.`,
+    priseri: `${monJmeno} naznačuje svou přítomnost. Další oběť zmizí.`,
+    zapad_slunce: `Situace se zhoršuje. ${monJmeno} útočí otevřeněji.`,
+    soumrak: `${minionJmeno} aktivně brání lovcům v postupu. Vážné nebezpečí.`,
+    noc: `${monJmeno} je ${nezastavitelny}. Poslední šance použít slabinu.`,
+    pulnoc: `Konec hry. ${monJmeno} ${dokoncil} svůj plán: ${mot}. Následky jsou nevratné.`
+  });
 }
 
 function vytvorZahaduNahodne() {
-  // 1. Atomické stavební kameny
-  const monster = pickRandom(threatsData.monsterTypes);
-  const location = pickRandom(threatsData.locationTypes);
-  const minion = pickRandom(threatsData.minionTypes);
-  const bystander = pickRandom(
-    threatsData.bystanderTypes.filter(t => !t.type.startsWith('**'))
-  );
+  // 1. Vybrat typy z per-type slovníků
+  const monsterTypeName = pickRandom(Object.keys(TYPY_MONSTER));
+  const monsterData = TYPY_MONSTER[monsterTypeName];
+  const minionTypeName = pickRandom(Object.keys(TYPY_PRISLUHOVACU));
+  const minionData = TYPY_PRISLUHOVACU[minionTypeName];
+  const npcTypeName = pickRandom(Object.keys(TYPY_NPC));
+  const npcData = TYPY_NPC[npcTypeName];
 
-  // 2. Kreativní vrstva: unikátní lokace + příšera + zvrat
-  const mistoNazev = generujUnikatniLokaci();
-  const prisera = generujUnikatniPriseru(monster);
+  // 2. Lokace s genderem a typem z LOKACE_DB
+  const lokace = generujUnikatniLokaci();
+
+  // 3. Jméno příšery dle rodu typu + podivný rys
+  const rys = pickRandom(PODIVNE_RYSY);
+  const zajmeno = ziskajZajmeno(monsterData.rod);
+  const titul = generujJmenoMonstrum(monsterData.rod);
+  const priseraJmeno = `${titul}, ${zajmeno} ${rys}`;
+
+  // 4. Jméno NPC z reálných jmen
+  const npcJmeno = pickRandom(Math.random() > 0.5 ? JMENA_MUZI : JMENA_ZENY);
+
+  // 5. Zvrat
   const zvrat = pickRandom(ZVRATY);
 
-  // 3. Bod 1: Typ a Motivace (z threats.json)
-  const stats = TYPY_STATS[monster.type] || { hp: [8, 12], zbroj: 1 };
+  // 6. Bod 1: Typ a Motivace
+  const hp = randRange(monsterData.hp[0], monsterData.hp[1]);
+  const zbroj = monsterData.zbroj;
 
-  // 4. Bod 2: Nadpřirozené schopnosti (per typ + podivný rys)
-  const typSchopnosti = SCHOPNOSTI_POOL[monster.type] || [];
+  // 7. Bod 2: Nadpřirozené schopnosti (per typ + podivný rys)
+  const typSchopnosti = SCHOPNOSTI_POOL[monsterTypeName] || [];
   const schopnosti = pickN(typSchopnosti, randRange(2, 3));
-  schopnosti.push(prisera.rys); // přidáme kreativní rys z atomického generátoru
+  schopnosti.push(rys);
 
-  // 5. Bod 3: Útoky a Zbroj (strukturované)
-  const utoky = pickN(UTOKY_POOL, 2);
-  const zbroj = stats.zbroj;
+  // 8. Bod 3: Útoky dle tagu příšery (tematicky propojené)
+  const tagUtoky = UTOKY_POOL[monsterData.tag] || UTOKY_POOL.physical;
+  const utoky = pickN(tagUtoky, 2);
 
-  // 6. Bod 4: Výdrž (HP dle typu)
-  const hp = randRange(stats.hp[0], stats.hp[1]);
+  // 9. Bod 5: Slabina dle weakType příšery
+  const typSlabiny = SLABINY_POOL[monsterData.weakType] || SLABINY_POOL.physical;
+  const slabina = pickRandom(typSlabiny);
 
-  // 7. Bod 5: Slabina
-  const slabina = pickRandom(SLABINY_POOL);
+  // 10. Lokace typ z LOKACE_DB → namapovat na TYPY_LOKALIT
+  const locationTypeName = lokace.typ;
+  const locationData = TYPY_LOKALIT[locationTypeName] || TYPY_LOKALIT[pickRandom(Object.keys(TYPY_LOKALIT))];
 
-  // 8. Bod 6: Tahy hrozby (z threats.json)
-  const monsterTahy = pickN(threatsData.monsterMoves, 4).map(m => m.name_cz);
-  const minionTahy = pickN(threatsData.minionMoves, 3).map(m => m.name_cz);
-  const bystanderTahy = pickN(threatsData.bystanderMoves, 3).map(m => m.name_cz);
-  const locationTahy = pickN(threatsData.locationMoves, 3).map(m => m.name_cz);
+  // 11. Odpočet ve 3 stylech dle motivace (s rodem pro správné slovesné tvary)
+  const odpocet = generujOdpocet(lokace.nazev, titul, monsterData.mot, minionTypeName, monsterData.rod);
 
-  // 9. Odpočet odvozený z motivace
-  const mot = monster.motivation.toLowerCase();
-  const odpocet = createCountdown({
-    den: `Průzkum lokace '${mistoNazev}'. Drobné stopy, šeptanda mezi místními.`,
-    priseri: `Příšera naznačuje svou přítomnost. Další oběť zmizí.`,
-    zapad_slunce: `Příšera útočí otevřeněji, snaží se ${mot}.`,
-    soumrak: `Situace eskaluje. Přisluhovač (${minion.type}) aktivně brání lovcům v postupu.`,
-    noc: `Příšera je téměř nezastavitelná. Poslední šance použít slabinu.`,
-    pulnoc: `Konec hry. Příšera dokončila svůj plán: ${mot}. Následky jsou nevratné.`
-  });
+  // 12. Námět a návnada z šablon
+  const namet = pickRandom(SABLONY_NAMET)(lokace.nazev, priseraJmeno, monsterData.mot.toLowerCase(), `ALE: ${zvrat}`);
+  const navnada = pickRandom(SABLONY_NAVNADA)(npcJmeno, pickRandom(NAVNADA_AKCE), lokace.nazev);
 
-  // 10. Složit námět
-  const nazev = `${prisera.jmeno} — ${mistoNazev}`;
-  const namet = `Lovci přicházejí do lokace '${mistoNazev}', kde řádí ${prisera.jmeno}. `
-    + `Hlavní motivací je ${mot}. `
-    + `ALE: ${zvrat}`;
-  const navnada = vytvorSlozenouNavnadu(mistoNazev);
+  // 13. Název
+  const nazev = `${titul} — ${lokace.nazev}`;
 
-  // 11. Sestavit kompletní hratelnou záhadu — všech 6 bodů
+  // 14. Sestavit kompletní hratelnou záhadu
   const mystery = createMystery({
     nazev,
     namet,
@@ -293,40 +503,40 @@ function vytvorZahaduNahodne() {
     odpocet,
     hrozby: [
       createThreat({
-        jmeno: prisera.jmeno,
+        jmeno: priseraJmeno,
         typ: ThreatType.PRISERA,
-        druh: monster.type,
-        motivace: monster.motivation,
+        druh: monsterTypeName,
+        motivace: monsterData.mot,
         schopnosti,
         utoky,
         zivoty: hp,
         zbroj,
         slabina,
-        tahy: monsterTahy
+        tahy: monsterData.tahy
       }),
       createThreat({
-        jmeno: minion.type,
+        jmeno: minionTypeName,
         typ: ThreatType.PRISLUHOVAC,
-        druh: minion.type,
-        motivace: minion.motivation,
-        utoky: [pickRandom(UTOKY_POOL)],
-        zivoty: randRange(5, 8),
+        druh: minionTypeName,
+        motivace: minionData.mot,
+        utoky: [pickRandom(UTOKY_ALL)],
+        zivoty: randRange(minionData.hp[0], minionData.hp[1]),
         zbroj: Math.random() > 0.5 ? 1 : 0,
-        tahy: minionTahy
+        tahy: minionData.tahy
       }),
       createThreat({
-        jmeno: bystander.type,
+        jmeno: npcJmeno,
         typ: ThreatType.PRIHLIZEJICI,
-        druh: bystander.type,
-        motivace: bystander.motivation,
-        tahy: bystanderTahy
+        druh: npcTypeName,
+        motivace: npcData.mot,
+        tahy: npcData.tahy
       }),
       createThreat({
-        jmeno: `${mistoNazev} (Místo činu)`,
+        jmeno: `${lokace.nazev} (Místo činu)`,
         typ: ThreatType.LOKALITA,
-        druh: location.type,
-        motivace: location.motivation,
-        tahy: locationTahy
+        druh: locationTypeName,
+        motivace: locationData.mot,
+        tahy: locationData.tahy
       })
     ]
   });
