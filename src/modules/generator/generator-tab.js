@@ -46,86 +46,88 @@ function threatHasField(typ, field) {
   return true;
 }
 
-// ─── Gramatický systém + Atomický generátor ─────────────────────
-// Adjektiva s tvary pro mužský (m), ženský (f) a střední (n) rod
+// ─── Český jazykový engine ───────────────────────────────────────
+// Skloňování adjektiv: tvrdé (vzor mladý), měkké (vzor jarní), nesklonné
+// Formát: [kořen, typ] — kořen je základ bez koncovky
 
-const ADJEKTIVA_DB = {
-  opusten:    ['Opuštěný', 'Opuštěná', 'Opuštěné'],
-  zatopen:    ['Zatopený', 'Zatopená', 'Zatopené'],
-  vyhorel:    ['Vyhořelý', 'Vyhořelá', 'Vyhořelé'],
-  podzem:     ['Podzemní', 'Podzemní', 'Podzemní'],
-  mlzn:       ['Mlžný', 'Mlžná', 'Mlžné'],
-  zamor:      ['Zamořený', 'Zamořená', 'Zamořené'],
-  hightech:   ['High-tech', 'High-tech', 'High-tech'],
-  stredovek:  ['Středověký', 'Středověká', 'Středověké'],
-  vojensk:    ['Vojenský', 'Vojenská', 'Vojenské'],
-  zchatra:    ['Zchátralý', 'Zchátralá', 'Zchátralé'],
-  prelidnen:  ['Přelidněný', 'Přelidněná', 'Přelidněné'],
-  postaven:   ['Nově postavený', 'Nově postavená', 'Nově postavené'],
-  proklet:    ['Prokletý', 'Prokletá', 'Prokleté'],
-  izolovan:   ['Izolovaný', 'Izolovaná', 'Izolované'],
-  viktor:     ['Viktoriánský', 'Viktoriánská', 'Viktoriánské'],
-  mraziv:     ['Mrazivý', 'Mrazivá', 'Mrazivé'],
-  radioakt:   ['Radioaktivní', 'Radioaktivní', 'Radioaktivní'],
-  hluc:       ['Hlučný', 'Hlučná', 'Hlučné'],
-  tich:       ['Tichý', 'Tichá', 'Tiché'],
-  steril:     ['Sterilní', 'Sterilní', 'Sterilní'],
-  krvav:      ['Krvavý', 'Krvavá', 'Krvavé'],
-  pachn:      ['Páchnoucí', 'Páchnoucí', 'Páchnoucí'],
-  vznasejici: ['Vznášející se', 'Vznášející se', 'Vznášející se'],
-  halucin:    ['Halucinogenní', 'Halucinogenní', 'Halucinogenní'],
-  beton:      ['Betonový', 'Betonová', 'Betonové'],
-  sklen:      ['Skleněný', 'Skleněná', 'Skleněné'],
-  podmor:     ['Podmořský', 'Podmořská', 'Podmořské'],
-  luxus:      ['Luxusní', 'Luxusní', 'Luxusní'],
-  kyber:      ['Kyberpunkový', 'Kyberpunková', 'Kyberpunkové'],
-  bomb:       ['Vybombardovaný', 'Vybombardovaná', 'Vybombardované']
-};
+const ADJEKTIVA_DATA = [
+  ['Opuštěn', 'tvrde'], ['Zatopen', 'tvrde'], ['Vyhořel', 'tvrde'],
+  ['Podzemn', 'mekke'], ['Mlžn', 'tvrde'], ['Zamořen', 'tvrde'],
+  ['High-tech', 'nesklonne'], ['Středověk', 'tvrde'], ['Vojensk', 'tvrde'],
+  ['Zchátral', 'tvrde'], ['Přelidněn', 'tvrde'], ['Nově postaven', 'tvrde'],
+  ['Proklet', 'tvrde'], ['Izolovan', 'tvrde'], ['Viktoriánsk', 'tvrde'],
+  ['Mraziv', 'tvrde'], ['Radioaktivn', 'mekke'], ['Hlučn', 'tvrde'],
+  ['Tich', 'tvrde'], ['Steriln', 'mekke'], ['Krvav', 'tvrde'],
+  ['Páchnouc', 'mekke'], ['Vznášející se', 'nesklonne'],
+  ['Halucinogenn', 'mekke'], ['Betonov', 'tvrde'], ['Skleněn', 'tvrde'],
+  ['Podmořsk', 'tvrde'], ['Luxusn', 'mekke'], ['Kyberpunkov', 'tvrde'],
+  ['Vybombardovan', 'tvrde']
+];
 
-const ADJEKTIVA_KEYS = Object.keys(ADJEKTIVA_DB);
+/**
+ * Skloňování adjektiv — pády 1 (nominativ), 2 (genitiv), 6 (lokál)
+ * rod: 'm'|'f'|'n' (singular), 'pl' (neuter plural — pro Jatka apod.)
+ */
+function sklonujAdjektivum(koren, typ, rod, pad) {
+  if (typ === 'nesklonne') return koren;
+  // Plurál (pro pluralia tantum jako Jatka)
+  if (rod === 'pl') {
+    if (typ === 'tvrde') return pad === 1 ? `${koren}á` : `${koren}ých`;
+    return pad === 1 ? `${koren}í` : `${koren}ích`;
+  }
+  if (typ === 'tvrde') {
+    if (pad === 1) return `${koren}${rod === 'm' ? 'ý' : rod === 'f' ? 'á' : 'é'}`;
+    if (pad === 2) return `${koren}${rod === 'f' ? 'é' : 'ého'}`;
+    if (pad === 6) return `${koren}${rod === 'f' ? 'é' : 'ém'}`;
+  }
+  // měkké (vzor jarní)
+  if (pad === 1) return `${koren}í`;
+  if (pad === 2) return `${koren}${rod === 'f' ? 'í' : 'ího'}`;
+  if (pad === 6) return `${koren}${rod === 'f' ? 'í' : 'ím'}`;
+  return koren;
+}
 
-function sklonuj(koren, rod) {
-  const tvary = ADJEKTIVA_DB[koren];
-  if (!tvary) return koren;
-  return tvary[rod === 'm' ? 0 : rod === 'f' ? 1 : 2];
+function capitalize(str) {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function ziskajZajmeno(rod) {
   return rod === 'm' ? 'který' : rod === 'f' ? 'která' : 'které';
 }
 
-// Lokace s rodem a přiřazeným typem lokace (logicky — žádná Katedrála jako Divočina)
-const LOKACE_DB = [
-  { nazev: 'Škola', rod: 'f', typ: 'Křižovatka' },
-  { nazev: 'Nemocnice', rod: 'f', typ: 'Křižovatka' },
-  { nazev: 'Továrna', rod: 'f', typ: 'Past' },
-  { nazev: 'Knihovna', rod: 'f', typ: 'Knihovna' },
-  { nazev: 'Zoo', rod: 'n', typ: 'Divočina' },
-  { nazev: 'Metro', rod: 'n', typ: 'Labyrint' },
-  { nazev: 'Katedrála', rod: 'f', typ: 'Křižovatka' },
-  { nazev: 'Jatka', rod: 'n', typ: 'Past' },
-  { nazev: 'Lunapark', rod: 'm', typ: 'Past' },
-  { nazev: 'Maják', rod: 'm', typ: 'Pevnost' },
-  { nazev: 'Motel', rod: 'm', typ: 'Křižovatka' },
-  { nazev: 'Tábor', rod: 'm', typ: 'Divočina' },
-  { nazev: 'Věznice', rod: 'f', typ: 'Pevnost' },
-  { nazev: 'Muzeum', rod: 'n', typ: 'Knihovna' },
-  { nazev: 'Zahrada', rod: 'f', typ: 'Divočina' },
-  { nazev: 'Vrakoviště', rod: 'n', typ: 'Labyrint' },
-  { nazev: 'Stoka', rod: 'f', typ: 'Labyrint' },
-  { nazev: 'Márnice', rod: 'f', typ: 'Past' },
-  { nazev: 'Studio', rod: 'n', typ: 'Křižovatka' },
-  { nazev: 'Obchodní dům', rod: 'm', typ: 'Křižovatka' },
-  { nazev: 'Kasino', rod: 'n', typ: 'Past' },
-  { nazev: 'Přístav', rod: 'm', typ: 'Křižovatka' },
-  { nazev: 'Kryt', rod: 'm', typ: 'Pevnost' },
-  { nazev: 'Důl', rod: 'm', typ: 'Labyrint' },
-  { nazev: 'Léčebna', rod: 'f', typ: 'Pevnost' },
-  { nazev: 'Opera', rod: 'f', typ: 'Křižovatka' },
-  { nazev: 'Sanatorium', rod: 'n', typ: 'Past' },
-  { nazev: 'Hřbitov', rod: 'm', typ: 'Divočina' },
-  { nazev: 'Tržnice', rod: 'f', typ: 'Křižovatka' },
-  { nazev: 'Letiště', rod: 'n', typ: 'Křižovatka' }
+// Lokace s deklinací: nominativ, genitiv, lokál+předložka, rod, typ
+const LOKACE_DATA = [
+  { nom: 'Škola', gen: 'Školy', lok: 've Škole', rod: 'f', typ: 'Křižovatka' },
+  { nom: 'Nemocnice', gen: 'Nemocnice', lok: 'v Nemocnici', rod: 'f', typ: 'Křižovatka' },
+  { nom: 'Továrna', gen: 'Továrny', lok: 'v Továrně', rod: 'f', typ: 'Past' },
+  { nom: 'Knihovna', gen: 'Knihovny', lok: 'v Knihovně', rod: 'f', typ: 'Knihovna' },
+  { nom: 'Zoo', gen: 'Zoo', lok: 'v Zoo', rod: 'n', typ: 'Divočina' },
+  { nom: 'Metro', gen: 'Metra', lok: 'v Metru', rod: 'n', typ: 'Labyrint' },
+  { nom: 'Katedrála', gen: 'Katedrály', lok: 'v Katedrále', rod: 'f', typ: 'Křižovatka' },
+  { nom: 'Jatka', gen: 'Jatek', lok: 'na Jatkách', rod: 'pl', typ: 'Past' },
+  { nom: 'Lunapark', gen: 'Lunaparku', lok: 'v Lunaparku', rod: 'm', typ: 'Past' },
+  { nom: 'Maják', gen: 'Majáku', lok: 'na Majáku', rod: 'm', typ: 'Pevnost' },
+  { nom: 'Motel', gen: 'Motelu', lok: 'v Motelu', rod: 'm', typ: 'Křižovatka' },
+  { nom: 'Tábor', gen: 'Tábora', lok: 'v Táboře', rod: 'm', typ: 'Divočina' },
+  { nom: 'Věznice', gen: 'Věznice', lok: 've Věznici', rod: 'f', typ: 'Pevnost' },
+  { nom: 'Muzeum', gen: 'Muzea', lok: 'v Muzeu', rod: 'n', typ: 'Knihovna' },
+  { nom: 'Zahrada', gen: 'Zahrady', lok: 'v Zahradě', rod: 'f', typ: 'Divočina' },
+  { nom: 'Vrakoviště', gen: 'Vrakoviště', lok: 'na Vrakovišti', rod: 'n', typ: 'Labyrint' },
+  { nom: 'Stoka', gen: 'Stoky', lok: 've Stoce', rod: 'f', typ: 'Labyrint' },
+  { nom: 'Márnice', gen: 'Márnice', lok: 'v Márnici', rod: 'f', typ: 'Past' },
+  { nom: 'Studio', gen: 'Studia', lok: 've Studiu', rod: 'n', typ: 'Křižovatka' },
+  { nom: 'Obchodní dům', gen: 'Obchodního domu', lok: 'v Obchodním domě', rod: 'm', typ: 'Křižovatka' },
+  { nom: 'Kasino', gen: 'Kasina', lok: 'v Kasinu', rod: 'n', typ: 'Past' },
+  { nom: 'Přístav', gen: 'Přístavu', lok: 'v Přístavu', rod: 'm', typ: 'Křižovatka' },
+  { nom: 'Kryt', gen: 'Krytu', lok: 'v Krytu', rod: 'm', typ: 'Pevnost' },
+  { nom: 'Důl', gen: 'Dolu', lok: 'v Dole', rod: 'm', typ: 'Labyrint' },
+  { nom: 'Léčebna', gen: 'Léčebny', lok: 'v Léčebně', rod: 'f', typ: 'Pevnost' },
+  { nom: 'Opera', gen: 'Opery', lok: 'v Opeře', rod: 'f', typ: 'Křižovatka' },
+  { nom: 'Sanatorium', gen: 'Sanatoria', lok: 'v Sanatoriu', rod: 'n', typ: 'Past' },
+  { nom: 'Hřbitov', gen: 'Hřbitova', lok: 'na Hřbitově', rod: 'm', typ: 'Divočina' },
+  { nom: 'Tržnice', gen: 'Tržnice', lok: 'na Tržnici', rod: 'f', typ: 'Křižovatka' },
+  { nom: 'Letiště', gen: 'Letiště', lok: 'na Letišti', rod: 'n', typ: 'Křižovatka' }
 ];
 
 const ATMOSFERY = [
@@ -322,27 +324,26 @@ const TITULY_MONSTER_F = [
   'Šeptavá', 'Bledá nevěsta', 'Paní z jezera', 'Tkadlena osudu', 'Plačka'
 ];
 
-// Šablony pro námět — (lokace, monstrum, motivace, zvrat) → string
-// Šablony pro námět — (lokace, monstrum, motivace, zvrat, rod) → string
+// Šablony pro námět — (lok6=lokál s předložkou, lok2=genitiv, monstrum, motivace, zvrat, rod)
 const SABLONY_NAMET = [
-  (lok, mon, mot, zvr, rod) => `V ${lok} se začali ztrácet lidé. Stojí za tím ${mon}, ${rod === 'f' ? 'jejíž' : 'jehož'} cílem je ${mot}. ${zvr}`,
-  (lok, mon, mot, zvr) => `Záhadné události v ${lok} ukazují na přítomnost ${mon}. Motivací je ${mot}. ${zvr}`,
-  (lok, mon, mot, zvr) => `Něco děsivého se probouzí v ${lok}. ${mon} začíná ${mot}. ${zvr}`,
-  (lok, mon, mot, zvr) => `Místní z okolí ${lok} hlásí podivné úkazy. Za vším stojí ${mon} s cílem ${mot}. ${zvr}`,
-  (lok, mon, mot, zvr, rod) => {
+  (lok6, lok2, mon, mot, zvr, rod) => `${capitalize(lok6)} se začali ztrácet lidé. Stojí za tím ${mon}, ${rod === 'f' ? 'jejíž' : 'jehož'} cílem je ${mot}. ${zvr}`,
+  (lok6, lok2, mon, mot, zvr) => `Záhadné události ${lok6} ukazují na přítomnost ${mon}. Motivací je ${mot}. ${zvr}`,
+  (lok6, lok2, mon, mot, zvr) => `Něco děsivého se probouzí ${lok6}. ${mon} začíná ${mot}. ${zvr}`,
+  (lok6, lok2, mon, mot, zvr) => `Místní z okolí ${lok2} hlásí podivné úkazy. Za vším stojí ${mon} s cílem ${mot}. ${zvr}`,
+  (lok6, lok2, mon, mot, zvr, rod) => {
     const zridil = rod === 'f' ? 'zřídila' : rod === 'n' ? 'zřídilo' : 'zřídil';
     const mohl = rod === 'f' ? 'mohla' : rod === 'n' ? 'mohlo' : 'mohl';
-    return `${mon} si ${zridil} základnu v ${lok} a systematicky pracuje na tom, aby ${mohl} ${mot}. ${zvr}`;
+    return `${mon} si ${zridil} základnu ${lok6} a systematicky pracuje na tom, aby ${mohl} ${mot}. ${zvr}`;
   }
 ];
 
-// Šablony pro návnadu — (kdo, akce, lokace) → string
+// Šablony pro návnadu — (kdo, akce, lok2=genitiv, lok1=nominativ)
 const SABLONY_NAVNADA = [
-  (kdo, akce, lok) => `Policejní hlášení: ${kdo} ${akce} poblíž ${lok}.`,
-  (kdo, akce, lok) => `Lovci obdrží zprávu: ${kdo} údajně ${akce} v okolí ${lok}.`,
-  (kdo, akce, lok) => `Na sociálních sítích se virálně šíří video, kde ${kdo} ${akce} u ${lok}.`,
-  (kdo, akce, lok) => `Místní noviny píší: „${kdo} ${akce}" — místo: ${lok}.`,
-  (kdo, akce, lok) => `Anonymní tip: ${kdo} ${akce}. Poslední známá pozice: ${lok}.`
+  (kdo, akce, lok2, lok1) => `Policejní hlášení: ${kdo} ${akce} poblíž ${lok2}.`,
+  (kdo, akce, lok2, lok1) => `Lovci obdrží zprávu: ${kdo} údajně ${akce} v okolí ${lok2}.`,
+  (kdo, akce, lok2, lok1) => `Na sociálních sítích se virálně šíří video, kde ${kdo} ${akce} u ${lok2}.`,
+  (kdo, akce, lok2, lok1) => `Místní noviny píší: „${kdo} ${akce}" — místo: ${lok1}.`,
+  (kdo, akce, lok2, lok1) => `Anonymní tip: ${kdo} ${akce}. Poslední známá pozice: ${lok1}.`
 ];
 
 // Páry [mužský, ženský] tvar — slovesa v minulém čase se liší rodem
@@ -391,17 +392,33 @@ function parseUtok(str) {
   };
 }
 
-// Složí unikátní lokaci z LOKACE_DB s genderově správným adjektivem
+// Oprava předložky v/ve — záleží na prvním slově za předložkou, ne na podstatném jméně
+function zvolPredlozku(predlozka, nasledujiciSlovo) {
+  if (predlozka !== 'v' && predlozka !== 've') return predlozka; // "na" apod.
+  const s = nasledujiciSlovo.toLowerCase();
+  // "ve" před: v/f + souhláska, nebo s/z/š/ž + souhláska
+  if (/^[vfszšž][^aeiouyáéíóúůý]/i.test(s)) return 've';
+  return 'v';
+}
+
+// Složí unikátní lokaci se správnými pády (nominativ, genitiv, lokál)
 function generujUnikatniLokaci() {
-  const lok = pickRandom(LOKACE_DB);
-  const adjKey = pickRandom(ADJEKTIVA_KEYS);
-  const adj = sklonuj(adjKey, lok.rod);
-  const nazev = `${adj} ${lok.nazev}`;
-  // 50% šance na detail atmosféry
-  if (Math.random() > 0.5) {
-    return { nazev: `${nazev}, ${pickRandom(ATMOSFERY)}`, rod: lok.rod, typ: lok.typ };
-  }
-  return { nazev, rod: lok.rod, typ: lok.typ };
+  const lok = pickRandom(LOKACE_DATA);
+  const [adjKoren, adjTyp] = pickRandom(ADJEKTIVA_DATA);
+
+  // 1. pád (nominativ): "Zatopená Škola"
+  const nom = `${sklonujAdjektivum(adjKoren, adjTyp, lok.rod, 1)} ${lok.nom}`;
+  // 2. pád (genitiv): "Zatopené Školy"
+  const gen = `${sklonujAdjektivum(adjKoren, adjTyp, lok.rod, 2)} ${lok.gen}`;
+  // 6. pád (lokál): "v Zatopené Škole" — vložit adjektivum za předložku
+  const [predlozka, ...zbytekParts] = lok.lok.split(' ');
+  const adjLok = sklonujAdjektivum(adjKoren, adjTyp, lok.rod, 6);
+  const lokativ = `${zvolPredlozku(predlozka, adjLok)} ${adjLok} ${zbytekParts.join(' ')}`;
+
+  // Atmosféra se vypisuje zvlášť (nerepetuje se v každé větě)
+  const atmosfera = Math.random() > 0.5 ? pickRandom(ATMOSFERY) : '';
+
+  return { nom, gen, lok: lokativ, atmosfera, rod: lok.rod, typ: lok.typ };
 }
 
 // Generuje jméno příšery dle rodu typu
@@ -410,8 +427,9 @@ function generujJmenoMonstrum(rod) {
   return pickRandom(TITULY_MONSTER_M);
 }
 
-// Generuje odpočet ve 3 stylech dle motivace (rod = m/f/n pro správné tvary sloves)
-function generujOdpocet(lokNazev, monJmeno, mot, minionJmeno, rod) {
+// Generuje odpočet ve 3 stylech dle motivace
+// lokGen = genitiv lokace ("Zatopené Školy"), lokNom = nominativ ("Zatopená Škola")
+function generujOdpocet(lokGen, lokNom, monJmeno, mot, minionJmeno, rod) {
   const motLower = mot.toLowerCase();
   const dokoncil = rod === 'f' ? 'dokončila' : rod === 'n' ? 'dokončilo' : 'dokončil';
   const nezastavitelny = rod === 'f' ? 'téměř nezastavitelná' : rod === 'n' ? 'téměř nezastavitelné' : 'téměř nezastavitelný';
@@ -419,7 +437,7 @@ function generujOdpocet(lokNazev, monJmeno, mot, minionJmeno, rod) {
   // Agresivní styl — pro ničitele, bestie, popravčí
   if (motLower.includes('ničit') || motLower.includes('konec') || motLower.includes('trestat') || motLower.includes('zabíjet')) {
     return createCountdown({
-      den: `V okolí ${lokNazev} se najde první oběť. Zvířata utíkají z oblasti.`,
+      den: `V okolí ${lokGen} se najde první oběť. Zvířata utíkají z oblasti.`,
       priseri: `${monJmeno} zaútočí podruhé. Policie uzavírá oblast.`,
       zapad_slunce: `Těla přibývají. ${minionJmeno} aktivně brání lovcům v přístupu.`,
       soumrak: `${monJmeno} řádí otevřeně. Civilisté panicky prchají.`,
@@ -431,7 +449,7 @@ function generujOdpocet(lokNazev, monJmeno, mot, minionJmeno, rod) {
   // Skrytý/korupční styl — pro pokušitele, parazity, královny
   if (motLower.includes('svést') || motLower.includes('ovládnout') || motLower.includes('napadnout') || motLower.includes('posednout')) {
     return createCountdown({
-      den: `Lidé v okolí ${lokNazev} se začínají chovat podivně. Drobné náznaky.`,
+      den: `Lidé v okolí ${lokGen} se začínají chovat podivně. Drobné náznaky.`,
       priseri: `Další lidé padají pod vliv ${monJmeno}. Šíří se podivné zvyky.`,
       zapad_slunce: `${minionJmeno} otevřeně slouží příšeře. Polovina místních je ovládnuta.`,
       soumrak: `${monJmeno} ovládá klíčové osoby. Lovci nevědí, komu věřit.`,
@@ -442,7 +460,7 @@ function generujOdpocet(lokNazev, monJmeno, mot, minionJmeno, rod) {
 
   // Obecný styl — pro ostatní
   return createCountdown({
-    den: `Průzkum lokace '${lokNazev}'. Drobné stopy, šeptanda mezi místními.`,
+    den: `Průzkum ${lokGen}. Drobné stopy, šeptanda mezi místními.`,
     priseri: `${monJmeno} naznačuje svou přítomnost. Další oběť zmizí.`,
     zapad_slunce: `Situace se zhoršuje. ${monJmeno} útočí otevřeněji.`,
     soumrak: `${minionJmeno} aktivně brání lovcům v postupu. Vážné nebezpečí.`,
@@ -497,17 +515,18 @@ function vytvorZahaduNahodne() {
   const locationTypeName = lokace.typ;
   const locationData = TYPY_LOKALIT[locationTypeName] || TYPY_LOKALIT[pickRandom(Object.keys(TYPY_LOKALIT))];
 
-  // 11. Odpočet ve 3 stylech dle motivace (s rodem pro správné slovesné tvary)
-  const odpocet = generujOdpocet(lokace.nazev, titul, monsterData.mot, minionTypeName, monsterData.rod);
+  // 11. Odpočet ve 3 stylech dle motivace (genitiv + nominativ lokace pro správné pády)
+  const odpocet = generujOdpocet(lokace.gen, lokace.nom, titul, monsterData.mot, minionTypeName, monsterData.rod);
 
-  // 12. Námět a návnada z šablon
-  const namet = pickRandom(SABLONY_NAMET)(lokace.nazev, priseraJmeno, monsterData.mot.toLowerCase(), `ALE: ${zvrat}`, monsterData.rod);
+  // 12. Námět a návnada z šablon (lokál a genitiv pro správné pády)
+  const namet = pickRandom(SABLONY_NAMET)(lokace.lok, lokace.gen, priseraJmeno, monsterData.mot.toLowerCase(), `ALE: ${zvrat}`, monsterData.rod);
   const navnadaAkcePar = pickRandom(NAVNADA_AKCE);
   const navnadaAkce = npcRodMuz ? navnadaAkcePar[0] : navnadaAkcePar[1];
-  const navnada = pickRandom(SABLONY_NAVNADA)(npcJmeno, navnadaAkce, lokace.nazev);
+  const navnada = pickRandom(SABLONY_NAVNADA)(npcJmeno, navnadaAkce, lokace.gen, lokace.nom);
 
-  // 13. Název
-  const nazev = `${titul} — ${lokace.nazev}`;
+  // 13. Název (nominativ + atmosféra zvlášť)
+  const nazevLokace = lokace.atmosfera ? `${lokace.nom}, ${lokace.atmosfera}` : lokace.nom;
+  const nazev = `${titul} — ${nazevLokace}`;
 
   // 14. Sestavit kompletní hratelnou záhadu
   const mystery = createMystery({
@@ -546,7 +565,7 @@ function vytvorZahaduNahodne() {
         tahy: npcData.tahy
       }),
       createThreat({
-        jmeno: `${lokace.nazev} (Místo činu)`,
+        jmeno: `${lokace.nom} (Místo činu)`,
         typ: ThreatType.LOKALITA,
         druh: locationTypeName,
         motivace: locationData.mot,
