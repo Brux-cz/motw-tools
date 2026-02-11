@@ -47,6 +47,7 @@ export function createThreat(overrides = {}) {
     zivoty: 0,
     zbroj: 0,
     slabina: '',
+    stopaKSlabine: '',
     tahy: [],
     mustek: '',
     ...overrides
