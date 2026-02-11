@@ -73,6 +73,10 @@ export function switchTab(tabId) {
     import('../tabs/campaign.js').then(({ renderCampaignTab }) => {
       renderCampaignTab();
     });
+  } else if (tabId === 'generator') {
+    import('../generator/generator-tab.js').then(({ renderGeneratorTab }) => {
+      renderGeneratorTab();
+    });
   }
 
   console.log('Switched to tab:', tabId);
