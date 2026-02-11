@@ -1,19 +1,55 @@
 /**
  * Mystery Generator - Main UI Module
- * Three views: list, edit, detail
+ * Four views: list, edit, detail, pools
  * Independent mystery builder with unified Threat (Hrozba) entity
  */
 
 import { escapeHtml } from '../../utils/html.js';
 import { ThreatType, ThreatTypeLabels, createThreat, createCountdown, createMystery } from './model.js';
 import { loadAllMysteries, saveMystery, deleteMystery, getMysteryById } from './storage.js';
+import { poolStorage } from './pool-storage.js';
 import threatsData from '../../data/threats.json';
 
 // ─── Module-level state ────────────────────────────────────────
 
-let currentView = 'list';       // 'list' | 'edit' | 'detail'
+let currentView = 'list';       // 'list' | 'edit' | 'detail' | 'pools'
 let currentMystery = null;      // Mystery being edited/viewed
 let isGenerating = false;       // AI generation in progress
+
+// ─── Pool highlighting ────────────────────────────────────────
+
+const POOL_COLORS = {
+  lokaceNom:   '#60a5fa', // blue
+  lokaceGen:   '#60a5fa',
+  lokaceLok:   '#60a5fa',
+  atmosfera:   '#34d399', // emerald
+  rys:         '#fb923c', // orange
+  zvrat:       '#fb7185', // rose
+  npcJmeno:    '#fde047', // yellow
+  navnadaAkce: '#2dd4bf'  // teal
+};
+
+/**
+ * Replace known pool-sourced substrings with colored <span> tags.
+ * Falls back to escapeHtml when no _pools metadata.
+ */
+function highlightPools(text, pools) {
+  if (!pools || !text) return escapeHtml(text || '');
+  let html = escapeHtml(text);
+  // Sort by value length desc to avoid partial-match collisions
+  const entries = Object.entries(pools)
+    .filter(([, v]) => v && v.length > 1)
+    .sort((a, b) => b[1].length - a[1].length);
+  for (const [key, value] of entries) {
+    const color = POOL_COLORS[key];
+    if (!color) continue;
+    const escaped = escapeHtml(value);
+    if (!escaped) continue;
+    // Replace all occurrences
+    html = html.split(escaped).join(`<span style="color:${color}">${escaped}</span>`);
+  }
+  return html;
+}
 
 const COUNTDOWN_FIELDS = [
   { key: 'den', label: 'Den' },
@@ -50,7 +86,7 @@ function threatHasField(typ, field) {
 // Skloňování adjektiv: tvrdé (vzor mladý), měkké (vzor jarní), nesklonné
 // Formát: [kořen, typ] — kořen je základ bez koncovky
 
-const ADJEKTIVA_DATA = [
+const DEFAULT_ADJEKTIVA = [
   ['Opuštěn', 'tvrde'], ['Zatopen', 'tvrde'], ['Vyhořel', 'tvrde'],
   ['Podzemn', 'mekke'], ['Mlžn', 'tvrde'], ['Zamořen', 'tvrde'],
   ['High-tech', 'nesklonne'], ['Středověk', 'tvrde'], ['Vojensk', 'tvrde'],
@@ -61,8 +97,22 @@ const ADJEKTIVA_DATA = [
   ['Páchnouc', 'mekke'], ['Vznášející se', 'nesklonne'],
   ['Halucinogenn', 'mekke'], ['Betonov', 'tvrde'], ['Skleněn', 'tvrde'],
   ['Podmořsk', 'tvrde'], ['Luxusn', 'mekke'], ['Kyberpunkov', 'tvrde'],
-  ['Vybombardovan', 'tvrde']
+  ['Vybombardovan', 'tvrde'],
+  // --- TEMNÉ A DĚSIVÉ ---
+  ['Temn', 'tvrde'], ['Hnijíc', 'mekke'], ['Mrtv', 'tvrde'],
+  ['Zlověstn', 'tvrde'], ['Oslizl', 'tvrde'], ['Čern', 'tvrde'],
+  ['Pohřebn', 'mekke'], ['Zohaven', 'tvrde'], ['Pekeln', 'tvrde'],
+  // --- MODERNÍ A URBÁNNÍ ---
+  ['Špinav', 'tvrde'], ['Toxick', 'tvrde'], ['Zabedněn', 'tvrde'],
+  ['Neonov', 'tvrde'], ['Digitáln', 'mekke'],
+  // --- PŘÍRODNÍ ---
+  ['Bažinat', 'tvrde'], ['Hoříc', 'mekke'], ['Zarostl', 'tvrde'],
+  ['Větrn', 'tvrde'], ['Kamenn', 'tvrde'], ['Písčit', 'tvrde'],
+  // --- PODIVNÉ A MAGICKÉ ---
+  ['Nehmotn', 'tvrde'], ['Zrcadlov', 'tvrde'], ['Nekonečn', 'tvrde'],
+  ['Mechanick', 'tvrde'], ['Starodávn', 'mekke'], ['Zapomenut', 'tvrde']
 ];
+function getAdjektiva() { return poolStorage.get('adjektiva') || DEFAULT_ADJEKTIVA; }
 
 /**
  * Skloňování adjektiv — pády 1 (nominativ), 2 (genitiv), 6 (lokál)
@@ -96,62 +146,87 @@ function ziskajZajmeno(rod) {
   return rod === 'm' ? 'který' : rod === 'f' ? 'která' : 'které';
 }
 
-// Lokace s deklinací: nominativ, genitiv, lokál+předložka, rod, typ
-const LOKACE_DATA = [
-  { nom: 'Škola', gen: 'Školy', lok: 've Škole', rod: 'f', typ: 'Křižovatka' },
-  { nom: 'Nemocnice', gen: 'Nemocnice', lok: 'v Nemocnici', rod: 'f', typ: 'Křižovatka' },
-  { nom: 'Továrna', gen: 'Továrny', lok: 'v Továrně', rod: 'f', typ: 'Past' },
-  { nom: 'Knihovna', gen: 'Knihovny', lok: 'v Knihovně', rod: 'f', typ: 'Knihovna' },
-  { nom: 'Zoo', gen: 'Zoo', lok: 'v Zoo', rod: 'n', typ: 'Divočina' },
-  { nom: 'Metro', gen: 'Metra', lok: 'v Metru', rod: 'n', typ: 'Labyrint' },
-  { nom: 'Katedrála', gen: 'Katedrály', lok: 'v Katedrále', rod: 'f', typ: 'Křižovatka' },
-  { nom: 'Jatka', gen: 'Jatek', lok: 'na Jatkách', rod: 'pl', typ: 'Past' },
-  { nom: 'Lunapark', gen: 'Lunaparku', lok: 'v Lunaparku', rod: 'm', typ: 'Past' },
-  { nom: 'Maják', gen: 'Majáku', lok: 'na Majáku', rod: 'm', typ: 'Pevnost' },
-  { nom: 'Motel', gen: 'Motelu', lok: 'v Motelu', rod: 'm', typ: 'Křižovatka' },
-  { nom: 'Tábor', gen: 'Tábora', lok: 'v Táboře', rod: 'm', typ: 'Divočina' },
-  { nom: 'Věznice', gen: 'Věznice', lok: 've Věznici', rod: 'f', typ: 'Pevnost' },
-  { nom: 'Muzeum', gen: 'Muzea', lok: 'v Muzeu', rod: 'n', typ: 'Knihovna' },
-  { nom: 'Zahrada', gen: 'Zahrady', lok: 'v Zahradě', rod: 'f', typ: 'Divočina' },
-  { nom: 'Vrakoviště', gen: 'Vrakoviště', lok: 'na Vrakovišti', rod: 'n', typ: 'Labyrint' },
-  { nom: 'Stoka', gen: 'Stoky', lok: 've Stoce', rod: 'f', typ: 'Labyrint' },
-  { nom: 'Márnice', gen: 'Márnice', lok: 'v Márnici', rod: 'f', typ: 'Past' },
-  { nom: 'Studio', gen: 'Studia', lok: 've Studiu', rod: 'n', typ: 'Křižovatka' },
-  { nom: 'Obchodní dům', gen: 'Obchodního domu', lok: 'v Obchodním domě', rod: 'm', typ: 'Křižovatka' },
-  { nom: 'Kasino', gen: 'Kasina', lok: 'v Kasinu', rod: 'n', typ: 'Past' },
-  { nom: 'Přístav', gen: 'Přístavu', lok: 'v Přístavu', rod: 'm', typ: 'Křižovatka' },
-  { nom: 'Kryt', gen: 'Krytu', lok: 'v Krytu', rod: 'm', typ: 'Pevnost' },
-  { nom: 'Důl', gen: 'Dolu', lok: 'v Dole', rod: 'm', typ: 'Labyrint' },
-  { nom: 'Léčebna', gen: 'Léčebny', lok: 'v Léčebně', rod: 'f', typ: 'Pevnost' },
-  { nom: 'Opera', gen: 'Opery', lok: 'v Opeře', rod: 'f', typ: 'Křižovatka' },
-  { nom: 'Sanatorium', gen: 'Sanatoria', lok: 'v Sanatoriu', rod: 'n', typ: 'Past' },
-  { nom: 'Hřbitov', gen: 'Hřbitova', lok: 'na Hřbitově', rod: 'm', typ: 'Divočina' },
-  { nom: 'Tržnice', gen: 'Tržnice', lok: 'na Tržnici', rod: 'f', typ: 'Křižovatka' },
-  { nom: 'Letiště', gen: 'Letiště', lok: 'na Letišti', rod: 'n', typ: 'Křižovatka' }
+// Lokace s deklinací: nominativ, genitiv, lokál+předložka, rod
+// Typ lokace (Křižovatka, Past, ...) se losuje náhodně v generátoru
+const DEFAULT_LOKACE = [
+  { nom: 'Škola', gen: 'Školy', lok: 've Škole', rod: 'f' },
+  { nom: 'Nemocnice', gen: 'Nemocnice', lok: 'v Nemocnici', rod: 'f' },
+  { nom: 'Továrna', gen: 'Továrny', lok: 'v Továrně', rod: 'f' },
+  { nom: 'Knihovna', gen: 'Knihovny', lok: 'v Knihovně', rod: 'f' },
+  { nom: 'Zoo', gen: 'Zoo', lok: 'v Zoo', rod: 'n' },
+  { nom: 'Metro', gen: 'Metra', lok: 'v Metru', rod: 'n' },
+  { nom: 'Katedrála', gen: 'Katedrály', lok: 'v Katedrále', rod: 'f' },
+  { nom: 'Jatka', gen: 'Jatek', lok: 'na Jatkách', rod: 'pl' },
+  { nom: 'Lunapark', gen: 'Lunaparku', lok: 'v Lunaparku', rod: 'm' },
+  { nom: 'Maják', gen: 'Majáku', lok: 'na Majáku', rod: 'm' },
+  { nom: 'Motel', gen: 'Motelu', lok: 'v Motelu', rod: 'm' },
+  { nom: 'Tábor', gen: 'Tábora', lok: 'v Táboře', rod: 'm' },
+  { nom: 'Věznice', gen: 'Věznice', lok: 've Věznici', rod: 'f' },
+  { nom: 'Muzeum', gen: 'Muzea', lok: 'v Muzeu', rod: 'n' },
+  { nom: 'Zahrada', gen: 'Zahrady', lok: 'v Zahradě', rod: 'f' },
+  { nom: 'Vrakoviště', gen: 'Vrakoviště', lok: 'na Vrakovišti', rod: 'n' },
+  { nom: 'Stoka', gen: 'Stoky', lok: 've Stoce', rod: 'f' },
+  { nom: 'Márnice', gen: 'Márnice', lok: 'v Márnici', rod: 'f' },
+  { nom: 'Studio', gen: 'Studia', lok: 've Studiu', rod: 'n' },
+  { nom: 'Obchodní dům', gen: 'Obchodního domu', lok: 'v Obchodním domě', rod: 'm' },
+  { nom: 'Kasino', gen: 'Kasina', lok: 'v Kasinu', rod: 'n' },
+  { nom: 'Přístav', gen: 'Přístavu', lok: 'v Přístavu', rod: 'm' },
+  { nom: 'Kryt', gen: 'Krytu', lok: 'v Krytu', rod: 'm' },
+  { nom: 'Důl', gen: 'Dolu', lok: 'v Dole', rod: 'm' },
+  { nom: 'Léčebna', gen: 'Léčebny', lok: 'v Léčebně', rod: 'f' },
+  { nom: 'Opera', gen: 'Opery', lok: 'v Opeře', rod: 'f' },
+  { nom: 'Sanatorium', gen: 'Sanatoria', lok: 'v Sanatoriu', rod: 'n' },
+  { nom: 'Hřbitov', gen: 'Hřbitova', lok: 'na Hřbitově', rod: 'm' },
+  { nom: 'Tržnice', gen: 'Tržnice', lok: 'na Tržnici', rod: 'f' },
+  { nom: 'Letiště', gen: 'Letiště', lok: 'na Letišti', rod: 'n' },
+  { nom: 'Divadlo', gen: 'Divadla', lok: 'v Divadle', rod: 'n' },
+  { nom: 'Banka', gen: 'Banky', lok: 'v Bance', rod: 'f' },
+  { nom: 'Stanice metra', gen: 'Stanice metra', lok: 've Stanici metra', rod: 'f' },
+  { nom: 'Galerie', gen: 'Galerie', lok: 'v Galerii', rod: 'f' },
+  { nom: 'Radnice', gen: 'Radnice', lok: 'na Radnici', rod: 'f' },
+  { nom: 'Elektrárna', gen: 'Elektrárny', lok: 'v Elektrárně', rod: 'f' },
+  { nom: 'Skladiště', gen: 'Skladiště', lok: 've Skladišti', rod: 'n' },
+  { nom: 'Blázinec', gen: 'Blázince', lok: 'v Blázinci', rod: 'm' },
+  { nom: 'Sirotčinec', gen: 'Sirotčince', lok: 'v Sirotčinci', rod: 'm' },
+  { nom: 'Les', gen: 'Lesa', lok: 'v Lese', rod: 'm' },
+  { nom: 'Bažina', gen: 'Bažiny', lok: 'v Bažině', rod: 'f' },
+  { nom: 'Jezero', gen: 'Jezera', lok: 'u Jezera', rod: 'n' },
+  { nom: 'Farma', gen: 'Farmy', lok: 'na Farmě', rod: 'f' },
+  { nom: 'Klášter', gen: 'Kláštera', lok: 'v Klášteře', rod: 'm' },
+  { nom: 'Kemp', gen: 'Kempu', lok: 'v Kempu', rod: 'm' }
 ];
+function getLokace() { return poolStorage.get('lokace') || DEFAULT_LOKACE; }
 
-const ATMOSFERY = [
+const DEFAULT_ATMOSFERY = [
   'kde neustále prší', 'kde vypadává elektřina', 'kde je hrobové ticho',
   'kde teplota klesá pod nulu', 'odkud se nedá dovolat pomoc',
   'kde se kompasy točí dokola', 'kde se zdi potí krví',
   'kde je cítit síra', 'kde hraje děsivá hudba', 'kde se hýbou stíny',
   'kde je nepřirozené horko', 'kde je všechno černobílé',
-  'kde gravitace funguje divně', 'kde jsou nápisy v neznámém jazyce'
+  'kde gravitace funguje divně', 'kde jsou nápisy v neznámém jazyce',
+  'kde nefunguje čas', 'kde je cítit spálenina', 'kde se ozývá dětský pláč',
+  'kde mrzne, i když je léto', 'kde ze zdí vytéká sliz', 'kde nefunguje elektřina',
+  'kde se zjevují mrtví příbuzní', 'kde je nepřirozené ticho', 'kde zní neustálý šepot'
 ];
+function getAtmosfery() { return poolStorage.get('atmosfery') || DEFAULT_ATMOSFERY; }
 
 // Podivné rysy příšery (genderově neutrální — fungují s který/která/které)
-const PODIVNE_RYSY = [
+const DEFAULT_RYSY = [
   'neustále hoří', 'mizí ve stínu', 'mluví hlasem dítěte',
   'drží pohromadě z odpadků', 'vydává bzučivý zvuk', 'kape z toho kyselina',
   'má místo očí hodiny', 'má příliš mnoho končetin', 'levituje nad zemí',
   'vypadá jako porcelánová panenka', 'páchne po zkaženém mase',
   'mění tvar podle pozorovatele', 'cinká sklem při pohybu',
   'má na těle tváře svých obětí', 'vrhá stín i bez světla',
-  'existuje jen jako kouř', 'svítí neonově modře'
+  'existuje jen jako kouř', 'svítí neonově modře',
+  'krvácí z očí', 'je z černého kouře', 'cinká řetězy',
+  'má místo obličeje zrcadlo', 'vydává zvuk sirény', 'zarůstá plísní',
+  'páchne sírou', 've světle mizí', 'mluví pozpátku', 'má příliš mnoho očí'
 ];
+function getRysy() { return poolStorage.get('rysy') || DEFAULT_RYSY; }
 
 // Dějové zvraty → mění pravidla hry
-const ZVRATY = [
+const DEFAULT_ZVRATY = [
   'Příšera se jen brání, skutečným zlem je někdo z lidí.',
   'Celá lokace je v časové smyčce.',
   'Příšera je ve skutečnosti halucinace způsobená plynem.',
@@ -165,6 +240,7 @@ const ZVRATY = [
   'Slabina se mění každou hodinu.',
   'Zabitím příšery se zřítí celá budova.'
 ];
+function getZvraty() { return poolStorage.get('zvraty') || DEFAULT_ZVRATY; }
 
 // ─── Pravidlové tabulky per typ hrozby ──────────────────────────
 // Každý typ má: rod, motivace, HP, zbroj, tahy, tag (pro útoky), weakType (pro slabiny)
@@ -307,34 +383,48 @@ const SLABINY_POOL = {
 };
 
 // Jména pro NPC a příšery
-const JMENA_MUZI = [
+const DEFAULT_JMENA_MUZI = [
   'Petr', 'Jan', 'Karel', 'Tomáš', 'Šerif Bárta', 'Dr. Novák',
-  'Farář Blažek', 'Starosta Hrdlička', 'Hajný Vrána', 'Martin'
+  'Farář Blažek', 'Starosta Hrdlička', 'Hajný Vrána', 'Martin',
+  'Školník Novák', 'Barman Eda', 'Inspektor Dlouhý', 'Farář Otec Jan',
+  'Bezdomovec Král', 'MUDr. Řezáč', 'Youtuber Mikeš', 'Starosta Bílý'
 ];
-const JMENA_ZENY = [
+function getJmenaMuzi() { return poolStorage.get('jmenaMuzi') || DEFAULT_JMENA_MUZI; }
+
+const DEFAULT_JMENA_ZENY = [
   'Jana', 'Eva', 'Marie', 'Lucie', 'Dr. Sýkorová', 'Sestra Alžběta',
-  'Starostka Králová', 'Knihovnice Dvořáková', 'Učitelka Čermáková', 'Tereza'
+  'Starostka Králová', 'Knihovnice Dvořáková', 'Učitelka Čermáková', 'Tereza',
+  'Studentka Tereza', 'Učitelka Přísná', 'Sestra Agáta'
 ];
-const TITULY_MONSTER_M = [
+function getJmenaZeny() { return poolStorage.get('jmenaZeny') || DEFAULT_JMENA_ZENY; }
+
+const DEFAULT_TITULY_M = [
   'Pán much', 'Černý jezdec', 'Noční lovec', 'Hrobník', 'Strážce prahu',
-  'Stínový muž', 'Bezejmenný', 'Král červů', 'Tulák mlhy', 'Řezník'
+  'Stínový muž', 'Bezejmenný', 'Král červů', 'Tulák mlhy', 'Řezník',
+  'Vlkodlak', 'Upír', 'Duch', 'Vodník', 'Čert', 'Mutant',
+  'Android', 'Slenderman', 'Mimozemšťan', 'Kultista', 'Shoggoth', 'Prastarý'
 ];
-const TITULY_MONSTER_F = [
+function getTitulyM() { return poolStorage.get('titulyM') || DEFAULT_TITULY_M; }
+
+const DEFAULT_TITULY_F = [
   'Bílá paní', 'Krvavá Marie', 'Matka hniloby', 'Sestra tmy', 'Královna hmyzu',
-  'Šeptavá', 'Bledá nevěsta', 'Paní z jezera', 'Tkadlena osudu', 'Plačka'
+  'Šeptavá', 'Bledá nevěsta', 'Paní z jezera', 'Tkadlena osudu', 'Plačka',
+  'Zombie', 'Polednice', 'Ježibaba'
 ];
+function getTitulyF() { return poolStorage.get('titulyF') || DEFAULT_TITULY_F; }
 
 // Šablony pro námět — (lok6=lokál s předložkou, lok2=genitiv, monstrum, motivace, zvrat, rod)
 const SABLONY_NAMET = [
-  (lok6, lok2, mon, mot, zvr, rod) => `${capitalize(lok6)} se začali ztrácet lidé. Stojí za tím ${mon}, ${rod === 'f' ? 'jejíž' : 'jehož'} cílem je ${mot}. ${zvr}`,
-  (lok6, lok2, mon, mot, zvr) => `Záhadné události ${lok6} ukazují na přítomnost ${mon}. Motivací je ${mot}. ${zvr}`,
-  (lok6, lok2, mon, mot, zvr) => `Něco děsivého se probouzí ${lok6}. ${mon} začíná ${mot}. ${zvr}`,
-  (lok6, lok2, mon, mot, zvr) => `Místní z okolí ${lok2} hlásí podivné úkazy. Za vším stojí ${mon} s cílem ${mot}. ${zvr}`,
-  (lok6, lok2, mon, mot, zvr, rod) => {
-    const zridil = rod === 'f' ? 'zřídila' : rod === 'n' ? 'zřídilo' : 'zřídil';
-    const mohl = rod === 'f' ? 'mohla' : rod === 'n' ? 'mohlo' : 'mohl';
-    return `${mon} si ${zridil} základnu ${lok6} a systematicky pracuje na tom, aby ${mohl} ${mot}. ${zvr}`;
-  }
+  (lok6, lok2, mon, mot, zvr, rod) =>
+    `${capitalize(lok6)} se začali ztrácet lidé. Nikdo neví proč, ale stopy ukazují na něco nepřirozeného. ${zvr}`,
+  (lok6, lok2, mon, mot, zvr) =>
+    `Záhadné události ${lok6} děsí místní. Svědci popisují nesouvisející, ale znepokojivé incidenty. ${zvr}`,
+  (lok6, lok2, mon, mot, zvr) =>
+    `Něco se probudilo ${lok6}. Zatím jen drobné náznaky — ale eskalují. ${zvr}`,
+  (lok6, lok2, mon, mot, zvr) =>
+    `Místní z okolí ${lok2} hlásí podivné úkazy. Policie nenašla žádné vysvětlení. ${zvr}`,
+  (lok6, lok2, mon, mot, zvr, rod) =>
+    `V okolí ${lok2} panuje strach. Někdo nebo něco tu řádí a situace se zhoršuje. ${zvr}`
 ];
 
 // Šablony pro návnadu — (kdo, akce, lok2=genitiv, lok1=nominativ)
@@ -346,19 +436,29 @@ const SABLONY_NAVNADA = [
   (kdo, akce, lok2, lok1) => `Anonymní tip: ${kdo} ${akce}. Poslední známá pozice: ${lok1}.`
 ];
 
-// Páry [mužský, ženský] tvar — slovesa v minulém čase se liší rodem
-const NAVNADA_AKCE = [
-  ['našel zohavené tělo', 'našla zohavené tělo'],
-  ['viděl přízrak', 'viděla přízrak'],
-  ['slyšel nelidský křik', 'slyšela nelidský křik'],
-  ['natočil na mobil podivnou postavu', 'natočila na mobil podivnou postavu'],
-  ['nahlásil zmizení dítěte', 'nahlásila zmizení dítěte'],
-  ['objevil podivné symboly na zdi', 'objevila podivné symboly na zdi'],
-  ['zavolal policii kvůli zápachu krve', 'zavolala policii kvůli zápachu krve'],
-  ['zveřejnil na sítích děsivou fotku', 'zveřejnila na sítích děsivou fotku'],
-  ['tvrdí, že viděl svítící oči v temnotě', 'tvrdí, že viděla svítící oči v temnotě'],
-  ['zmizel beze stopy', 'zmizela beze stopy']
+// Páry [mužský, ženský] tvar — nepřímé stopy (následky, ne příčiny)
+const DEFAULT_NAVNADA_AKCE = [
+  // Psychické stopy
+  ['byl nalezen v šoku a nemluví', 'byla nalezena v šoku a nemluví'],
+  ['se zamkl doma a odmítá vycházet', 'se zamkla doma a odmítá vycházet'],
+  ['kreslí stále dokola ten samý symbol', 'kreslí stále dokola ten samý symbol'],
+  ['tvrdí, že \'oni\' už jsou tady', 'tvrdí, že \'oni\' už jsou tady'],
+  ['si nepamatuje poslední dva dny', 'si nepamatuje poslední dva dny'],
+  ['se v noci probudil s křikem', 'se v noci probudila s křikem'],
+  // Fyzické stopy
+  ['má na těle vyrážku, která vypadá jako plíseň', 'má na těle vyrážku, která vypadá jako plíseň'],
+  ['našel na zahradě hromadu mrtvých ptáků', 'našla na zahradě hromadu mrtvých ptáků'],
+  ['cítil v ložnici pach síry a ozonu', 'cítila v ložnici pach síry a ozonu'],
+  ['objevil, že voda v kohoutku zčernala', 'objevila, že voda v kohoutku zčernala'],
+  ['tvrdí, že se jeho odraz v zrcadle hýbe sám', 'tvrdí, že se její odraz v zrcadle hýbe sám'],
+  ['našel své oblečení roztrhané na kusy', 'našla své oblečení roztrhané na kusy'],
+  // Zmizení a zvuky
+  ['slyšel ze sklepa dětský smích', 'slyšela ze sklepa dětský smích'],
+  ['nahlásil, že jeho dobytek zmizel beze stopy', 'nahlásila, že její dobytek zmizel beze stopy'],
+  ['viděl na poli světla, která tam nemají být', 'viděla na poli světla, která tam nemají být'],
+  ['tvrdí, že ho v lese něco sledovalo', 'tvrdí, že ji v lese něco sledovalo']
 ];
+function getNavnadaAkce() { return poolStorage.get('navnadaAkce') || DEFAULT_NAVNADA_AKCE; }
 
 function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -403,8 +503,8 @@ function zvolPredlozku(predlozka, nasledujiciSlovo) {
 
 // Složí unikátní lokaci se správnými pády (nominativ, genitiv, lokál)
 function generujUnikatniLokaci() {
-  const lok = pickRandom(LOKACE_DATA);
-  const [adjKoren, adjTyp] = pickRandom(ADJEKTIVA_DATA);
+  const lok = pickRandom(getLokace());
+  const [adjKoren, adjTyp] = pickRandom(getAdjektiva());
 
   // 1. pád (nominativ): "Zatopená Škola"
   const nom = `${sklonujAdjektivum(adjKoren, adjTyp, lok.rod, 1)} ${lok.nom}`;
@@ -416,15 +516,18 @@ function generujUnikatniLokaci() {
   const lokativ = `${zvolPredlozku(predlozka, adjLok)} ${adjLok} ${zbytekParts.join(' ')}`;
 
   // Atmosféra se vypisuje zvlášť (nerepetuje se v každé větě)
-  const atmosfera = Math.random() > 0.5 ? pickRandom(ATMOSFERY) : '';
+  const atmosfera = Math.random() > 0.5 ? pickRandom(getAtmosfery()) : '';
 
-  return { nom, gen, lok: lokativ, atmosfera, rod: lok.rod, typ: lok.typ };
+  // Typ lokace se losuje náhodně z TYPY_LOKALIT
+  const typ = pickRandom(Object.keys(TYPY_LOKALIT));
+
+  return { nom, gen, lok: lokativ, atmosfera, rod: lok.rod, typ };
 }
 
 // Generuje jméno příšery dle rodu typu
 function generujJmenoMonstrum(rod) {
-  if (rod === 'f') return pickRandom(TITULY_MONSTER_F);
-  return pickRandom(TITULY_MONSTER_M);
+  if (rod === 'f') return pickRandom(getTitulyF());
+  return pickRandom(getTitulyM());
 }
 
 // Generuje odpočet ve 3 stylech dle motivace
@@ -482,17 +585,17 @@ function vytvorZahaduNahodne() {
   const lokace = generujUnikatniLokaci();
 
   // 3. Jméno příšery dle rodu typu + podivný rys
-  const rys = pickRandom(PODIVNE_RYSY);
+  const rys = pickRandom(getRysy());
   const zajmeno = ziskajZajmeno(monsterData.rod);
   const titul = generujJmenoMonstrum(monsterData.rod);
   const priseraJmeno = `${titul}, ${zajmeno} ${rys}`;
 
   // 4. Jméno NPC z reálných jmen (s rodem pro správné slovesné tvary v návnadě)
   const npcRodMuz = Math.random() > 0.5;
-  const npcJmeno = pickRandom(npcRodMuz ? JMENA_MUZI : JMENA_ZENY);
+  const npcJmeno = pickRandom(npcRodMuz ? getJmenaMuzi() : getJmenaZeny());
 
   // 5. Zvrat
-  const zvrat = pickRandom(ZVRATY);
+  const zvrat = pickRandom(getZvraty());
 
   // 6. Bod 1: Typ a Motivace
   const hp = randRange(monsterData.hp[0], monsterData.hp[1]);
@@ -520,20 +623,34 @@ function vytvorZahaduNahodne() {
 
   // 12. Námět a návnada z šablon (lokál a genitiv pro správné pády)
   const namet = pickRandom(SABLONY_NAMET)(lokace.lok, lokace.gen, priseraJmeno, monsterData.mot.toLowerCase(), `ALE: ${zvrat}`, monsterData.rod);
-  const navnadaAkcePar = pickRandom(NAVNADA_AKCE);
+  const navnadaAkcePar = pickRandom(getNavnadaAkce());
   const navnadaAkce = npcRodMuz ? navnadaAkcePar[0] : navnadaAkcePar[1];
   const navnada = pickRandom(SABLONY_NAVNADA)(npcJmeno, navnadaAkce, lokace.gen, lokace.nom);
 
   // 13. Název (nominativ + atmosféra zvlášť)
   const nazevLokace = lokace.atmosfera ? `${lokace.nom}, ${lokace.atmosfera}` : lokace.nom;
-  const nazev = `${titul} — ${nazevLokace}`;
+  const nazev = nazevLokace;
 
-  // 14. Sestavit kompletní hratelnou záhadu
+  // 14. Pool metadata pro barevné zvýraznění
+  const _pools = {
+    titul,
+    lokaceNom: lokace.nom,
+    lokaceGen: lokace.gen,
+    lokaceLok: lokace.lok,
+    atmosfera: lokace.atmosfera || '',
+    rys,
+    zvrat,
+    npcJmeno,
+    navnadaAkce
+  };
+
+  // 15. Sestavit kompletní hratelnou záhadu
   const mystery = createMystery({
     nazev,
     namet,
     navnada,
     odpocet,
+    _pools,
     hrozby: [
       createThreat({
         jmeno: priseraJmeno,
@@ -593,6 +710,12 @@ export function renderGeneratorTab() {
     case 'detail':
       container.innerHTML = renderDetailView();
       break;
+    case 'pools':
+      import('./pool-editor.js').then(({ renderPoolEditor, initPoolEditorHandlers }) => {
+        container.innerHTML = renderPoolEditor();
+        initPoolEditorHandlers();
+      });
+      return;
   }
 }
 
@@ -636,6 +759,10 @@ function renderListView() {
             <span class="material-symbols-outlined text-sm">auto_awesome</span>
             ${isGenerating ? 'Generuji...' : 'Generovat AI'}
           </button>
+          <button onclick="window.mysteryGenerator.openPools()"
+            class="flex items-center gap-2 bg-gray-800/40 hover:bg-gray-700/60 px-4 py-2 rounded text-sm font-semibold border border-gray-600/50 transition">
+            <span class="material-symbols-outlined text-sm">database</span> Upravit pooly
+          </button>
         </div>
       </div>
       ${cards}
@@ -656,8 +783,8 @@ function renderMysteryCard(mystery) {
         title="Smazat záhadu">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
-      <h3 class="font-bold text-lg mb-1 truncate pr-6">${escapeHtml(mystery.nazev || 'Bez názvu')}</h3>
-      <p class="text-sm text-gray-400 mb-3 line-clamp-2">${escapeHtml(mystery.namet || 'Bez námětu')}</p>
+      <h3 class="font-bold text-lg mb-1 truncate pr-6">${highlightPools(mystery.nazev || 'Bez názvu', mystery._pools)}</h3>
+      <p class="text-sm text-gray-400 mb-3 line-clamp-2">${highlightPools(mystery.namet || 'Bez námětu', mystery._pools)}</p>
       <div class="flex items-center gap-3 text-xs text-gray-500">
         <span class="flex items-center gap-1">
           <span class="material-symbols-outlined text-xs">warning</span>
@@ -683,7 +810,7 @@ function renderDetailView() {
           class="text-gray-400 hover:text-white transition p-1">
           <span class="material-symbols-outlined">arrow_back</span>
         </button>
-        <h2 class="text-2xl font-bold flex-1">${escapeHtml(m.nazev || 'Bez názvu')}</h2>
+        <h2 class="text-2xl font-bold flex-1">${highlightPools(m.nazev || 'Bez názvu', m._pools)}</h2>
         <button onclick="window.mysteryGenerator.losovat()"
           class="flex items-center gap-1 bg-amber-900/40 hover:bg-amber-800/60 px-3 py-1.5 rounded text-sm border border-amber-700/50 transition">
           <span class="material-symbols-outlined text-sm">casino</span> Losovat znova
@@ -702,11 +829,11 @@ function renderDetailView() {
         </button>
       </div>
 
-      ${m.namet ? `<div class="mb-4"><span class="text-xs uppercase tracking-wider text-gray-500">Námět</span><p class="text-gray-200 mt-1">${escapeHtml(m.namet)}</p></div>` : ''}
-      ${m.navnada ? `<div class="mb-4"><span class="text-xs uppercase tracking-wider text-gray-500">Návnada</span><p class="text-gray-200 mt-1">${escapeHtml(m.navnada)}</p></div>` : ''}
+      ${m.namet ? `<div class="mb-4"><span class="text-xs uppercase tracking-wider text-gray-500">Námět</span><p class="text-gray-200 mt-1">${highlightPools(m.namet, m._pools)}</p></div>` : ''}
+      ${m.navnada ? `<div class="mb-4"><span class="text-xs uppercase tracking-wider text-gray-500">Návnada</span><p class="text-gray-200 mt-1">${highlightPools(m.navnada, m._pools)}</p></div>` : ''}
 
       ${renderDetailCountdown(m.odpocet)}
-      ${renderDetailThreats(m.hrozby)}
+      ${renderDetailThreats(m.hrozby, m._pools)}
     </div>
   `;
 }
@@ -731,7 +858,7 @@ function renderDetailCountdown(odpocet) {
   `;
 }
 
-function renderDetailThreats(hrozby) {
+function renderDetailThreats(hrozby, pools) {
   if (!hrozby || hrozby.length === 0) return '';
 
   return `
@@ -744,7 +871,7 @@ function renderDetailThreats(hrozby) {
           <div class="bg-black/20 border border-white/5 rounded-lg p-4">
             <div class="flex items-center gap-2 mb-2">
               <span class="text-xs px-2 py-0.5 rounded ${threatBadgeClass(h.typ)}">${ThreatTypeLabels[h.typ] || h.typ}</span>
-              <span class="font-bold">${escapeHtml(h.jmeno || 'Bez jména')}</span>
+              <span class="font-bold">${highlightPools(h.jmeno || 'Bez jména', pools)}</span>
               ${h.druh ? `<span class="text-gray-500 text-sm">— ${escapeHtml(h.druh)}</span>` : ''}
             </div>
             ${h.motivace ? `<p class="text-sm text-gray-400 mb-2"><strong>Motivace:</strong> ${escapeHtml(h.motivace)}</p>` : ''}
@@ -1063,21 +1190,24 @@ function mysteryToText(m) {
 function spocitejKombinace() {
   const pools = {
     monster: Object.keys(TYPY_MONSTER).length,
-    titulyM: TITULY_MONSTER_M.length,
-    titulyF: TITULY_MONSTER_F.length,
-    rysy: PODIVNE_RYSY.length,
-    adjektiva: ADJEKTIVA_DATA.length,
-    lokace: LOKACE_DATA.length,
-    atmosfery: ATMOSFERY.length + 1,
+    titulyM: getTitulyM().length,
+    titulyF: getTitulyF().length,
+    rysy: getRysy().length,
+    adjektiva: getAdjektiva().length,
+    lokace: getLokace().length,
+    atmosfery: getAtmosfery().length + 1,
     minion: Object.keys(TYPY_PRISLUHOVACU).length,
     npc: Object.keys(TYPY_NPC).length,
-    npcJmena: JMENA_MUZI.length + JMENA_ZENY.length,
-    zvraty: ZVRATY.length,
+    npcJmena: getJmenaMuzi().length + getJmenaZeny().length,
+    zvraty: getZvraty().length,
     sablonyNamet: SABLONY_NAMET.length,
     sablonyNavnada: SABLONY_NAVNADA.length,
-    navnadaAkce: NAVNADA_AKCE.length
+    navnadaAkce: getNavnadaAkce().length
   };
-  const celkem = pools.monster * 10 * pools.rysy * pools.adjektiva * pools.lokace
+  const femMonsters = Object.values(TYPY_MONSTER).filter(t => t.rod === 'f').length;
+  const mascMonsters = pools.monster - femMonsters;
+  const titulyEfektivni = mascMonsters * pools.titulyM + femMonsters * pools.titulyF;
+  const celkem = titulyEfektivni * pools.rysy * pools.adjektiva * pools.lokace
     * pools.atmosfery * pools.minion * pools.npc * pools.npcJmena
     * pools.zvraty * pools.sablonyNamet * pools.sablonyNavnada * pools.navnadaAkce;
   return { pools, celkem };
@@ -1147,7 +1277,7 @@ function runAudit(n = 10000) {
   // Per-komponentní diverzita
   console.log('\n--- DIVERZITA KOMPONENT ---');
   const maxSloupce = [
-    ['Celý podpis', unikatni, '~148.7T'],
+    ['Celý podpis', unikatni, `~${(kombinace.celkem / 1e12).toFixed(1)}T`],
     ['Název záhady', komponenty.nazev.size, `${kombinace.pools.titulyM}t × ${kombinace.pools.adjektiva}a × ${kombinace.pools.lokace}l × ${kombinace.pools.atmosfery}atm`],
     ['Adj+lokace', komponenty.adjLok.size, `${kombinace.pools.adjektiva} × ${kombinace.pools.lokace} = ${kombinace.pools.adjektiva * kombinace.pools.lokace}`],
     ['Lokace base (nom)', komponenty.lokBaze.size, `${kombinace.pools.adjektiva} × ${kombinace.pools.lokace} = ${kombinace.pools.adjektiva * kombinace.pools.lokace}`],
@@ -1443,7 +1573,23 @@ window.mysteryGenerator = {
     }
   },
 
+  openPools() {
+    currentView = 'pools';
+    renderGeneratorTab();
+  },
+
   // Audit & statistiky (volat z konzole: window.mysteryGenerator.audit(10000))
   audit(n) { return runAudit(n); },
   kombinace() { return spocitejKombinace(); }
+};
+
+// ─── Exports for pool editor ──────────────────────────────────
+
+export {
+  DEFAULT_TITULY_M, DEFAULT_TITULY_F, DEFAULT_JMENA_MUZI, DEFAULT_JMENA_ZENY,
+  DEFAULT_ATMOSFERY, DEFAULT_RYSY, DEFAULT_ZVRATY, DEFAULT_ADJEKTIVA,
+  DEFAULT_LOKACE, DEFAULT_NAVNADA_AKCE,
+  getTitulyM, getTitulyF, getJmenaMuzi, getJmenaZeny,
+  getAtmosfery, getRysy, getZvraty, getAdjektiva, getLokace, getNavnadaAkce,
+  TYPY_LOKALIT
 };
