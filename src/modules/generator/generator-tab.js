@@ -246,7 +246,7 @@ function getZvraty() { return poolStorage.get('zvraty') || DEFAULT_ZVRATY; }
 // Každý typ má: rod, motivace, HP, zbroj, tahy, tag (pro útoky), weakType (pro slabiny)
 
 const TYPY_MONSTER = {
-  'Bestie':       { rod: 'f', mot: 'Ničit a zabíjet', hp: [10, 12], zbroj: 1, tag: 'physical', weakType: 'physical',
+  'Bestie':       { rod: 'f', mot: 'Svobodně se pohybovat, ničit a zabíjet', hp: [10, 12], zbroj: 1, tag: 'physical', weakType: 'physical',
                     tahy: ['Naznačit její přítomnost', 'Vrátit se do svého teritoria', 'Vztekle zaútočit vší silou', 'Uniknout bez ohledu na to, jak je spoutána'] },
   'Černokněžník': { rod: 'm', mot: 'Uchvátit nadpřirozenou moc', hp: [8, 10], zbroj: 1, tag: 'magic', weakType: 'ritual',
                     tahy: ['Použít nadpřirozenou schopnost', 'Škodolibě se chvástat a prozradit tajemství', 'Někoho nebo něčeho se zmocnit', 'Tiše a prohnaně zaútočit'] },
@@ -263,13 +263,29 @@ const TYPY_MONSTER = {
   'Popravčí':     { rod: 'm', mot: 'Trestat viníky', hp: [10, 12], zbroj: 1, tag: 'physical', weakType: 'holy',
                     tahy: ['Pronásledovat', 'Z čista jasna se objevit', 'Použít nadpřirozenou schopnost', 'Vztekle zaútočit vší silou'] },
   'Požírač':      { rod: 'm', mot: 'Hodovat na lidech', hp: [11, 14], zbroj: 1, tag: 'physical', weakType: 'poison',
-                    tahy: ['Škodolibě se chvástat a prozradit tajemství', 'Něco zničit', 'Rozkázat přisluhovačům provést strašné věci', 'Naznačit její přítomnost'] },
+                    tahy: ['Někoho nebo něčeho se zmocnit', 'Něco zničit', 'Vztekle zaútočit vší silou', 'Naznačit její přítomnost'] },
   'Sběratel':     { rod: 'm', mot: 'Krást specifický druh věcí', hp: [9, 11], zbroj: 1, tag: 'stealth', weakType: 'logic',
                     tahy: ['Někoho nebo něčeho se zmocnit', 'Tiše a prohnaně zaútočit', 'Škodolibě se chvástat a prozradit tajemství', 'Uniknout bez ohledu na to, jak je spoutána'] },
   'Šibal':        { rod: 'm', mot: 'Vnést do všeho chaos', hp: [7, 9], zbroj: 0, tag: 'magic', weakType: 'logic',
                     tahy: ['Použít nadpřirozenou schopnost', 'Škodolibě se chvástat a prozradit tajemství', 'Z čista jasna se objevit', 'Uniknout bez ohledu na to, jak je spoutána'] },
-  'Zploditel':    { rod: 'm', mot: 'Přivést zlo na svět', hp: [10, 12], zbroj: 1, tag: 'minion_master', weakType: 'fire',
+  'Zploditel':    { rod: 'm', mot: 'Přivést zlo na svět nebo ho stvořit', hp: [10, 12], zbroj: 1, tag: 'minion_master', weakType: 'fire',
                     tahy: ['Naznačit její přítomnost', 'Někoho nebo něčeho se zmocnit', 'Odhalit její skutečnou moc', 'Vrátit se do svého teritoria'] }
+};
+
+// ─── Narativní můstky: proč je bytost zrovna tento typ ────────
+const NARATIVNI_MUSTKY = {
+  'Bestie':       (titul) => `${titul} se volně pohybuje krajinou, ničí a zabíjí z čistého instinktu. Nelze s ní vyjednávat — zná jen hlad a zuřivost.`,
+  'Černokněžník': (titul) => `${titul} touží po nadpřirozené moci a je ochoten/ochotna za ni zaplatit jakoukoli cenu. Každá oběť je rituálem.`,
+  'Královna':     (titul) => `${titul} si buduje síť ovládnutých služebníků. Neútočí přímo — nechává za sebe jednat ostatní.`,
+  'Mučitel':      (titul) => `${titul} se živí strachem a bolestí svých obětí. Nezabíjí hned — chce, aby trpěly.`,
+  'Ničitel':      (titul) => `${titul} má jediný cíl: totální destrukci. Každý krok přibližuje konec všeho.`,
+  'Parazit':      (titul) => `${titul} se přisává ke svým obětem a pomalu je vysává. Než si hostitel uvědomí, co se děje, je pozdě.`,
+  'Pokušitel':    (titul) => `${titul} svádí lidi, aby dobrovolně přijali jeho kletbu — výměnou za moc, lásku nebo vědění.`,
+  'Popravčí':     (titul) => `${titul} pronásleduje ty, které považuje za viníky. Jeho spravedlnost je krutá a neúprosná.`,
+  'Požírač':      (titul) => `${titul} loví lidi jako kořist. Hoduje na jejich tělech — nebo duších.`,
+  'Sběratel':     (titul) => `${titul} je posedlý sbíráním trofejí ze svých obětí. Každá sbírka potřebuje další kousek.`,
+  'Šibal':        (titul) => `${titul} si hraje s lidmi jako s loutkami. Nezáleží mu na výsledku — důležitý je chaos sám.`,
+  'Zploditel':    (titul) => `${titul} připravuje příchod něčeho horšího. Jeho oběti nejsou cílem — jsou surovinou.`
 };
 
 const TYPY_PRISLUHOVACU = {
@@ -288,7 +304,7 @@ const TYPY_PRISLUHOVACU = {
   'Surovec':    { mot: 'Zastrašit a zaútočit', hp: [6, 9],
                   tahy: ['Náhlý záchvat nekontrolovaného násilí', 'Koordinovaně zaútočit', 'Pronásledovat'] },
   'Vrah':       { mot: 'Zabít lovce', hp: [6, 8],
-                  tahy: ['Tiše zaútočit', 'Pronásledovat', 'Utéct'] },
+                  tahy: ['Náhlý záchvat nekontrolovaného násilí', 'Pronásledovat', 'Utéct'] },
   'Zloděj':     { mot: 'Něco pro příšeru ukrást', hp: [4, 6],
                   tahy: ['Někoho zajmout nebo něco ukrást', 'Utéct', 'Prozradit tajemství'] },
   'Zrádce':     { mot: 'Zradit lidi', hp: [4, 6],
@@ -657,6 +673,7 @@ function vytvorZahaduNahodne() {
         typ: ThreatType.PRISERA,
         druh: monsterTypeName,
         motivace: monsterData.mot,
+        mustek: NARATIVNI_MUSTKY[monsterTypeName] ? NARATIVNI_MUSTKY[monsterTypeName](titul) : '',
         schopnosti,
         utoky,
         zivoty: hp,
@@ -875,6 +892,7 @@ function renderDetailThreats(hrozby, pools) {
               ${h.druh ? `<span class="text-gray-500 text-sm">— ${escapeHtml(h.druh)}</span>` : ''}
             </div>
             ${h.motivace ? `<p class="text-sm text-gray-400 mb-2"><strong>Motivace:</strong> ${escapeHtml(h.motivace)}</p>` : ''}
+            ${h.mustek ? `<p class="text-sm italic text-gray-400 mt-1 mb-2">${escapeHtml(h.mustek)}</p>` : ''}
             ${h.slabina ? `<p class="text-sm text-yellow-400/80 mb-2"><strong>Slabina:</strong> ${escapeHtml(h.slabina)}</p>` : ''}
             ${h.schopnosti?.length ? `<p class="text-sm text-gray-400 mb-1"><strong>Schopnosti:</strong> ${h.schopnosti.map(s => escapeHtml(s)).join(', ')}</p>` : ''}
             ${h.utoky?.length ? `
