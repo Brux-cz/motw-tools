@@ -1058,6 +1058,136 @@ function mysteryToText(m) {
   return lines.join('\n');
 }
 
+// ─── Audit generátoru ──────────────────────────────────────────
+
+function spocitejKombinace() {
+  const pools = {
+    monster: Object.keys(TYPY_MONSTER).length,
+    titulyM: TITULY_MONSTER_M.length,
+    titulyF: TITULY_MONSTER_F.length,
+    rysy: PODIVNE_RYSY.length,
+    adjektiva: ADJEKTIVA_DATA.length,
+    lokace: LOKACE_DATA.length,
+    atmosfery: ATMOSFERY.length + 1,
+    minion: Object.keys(TYPY_PRISLUHOVACU).length,
+    npc: Object.keys(TYPY_NPC).length,
+    npcJmena: JMENA_MUZI.length + JMENA_ZENY.length,
+    zvraty: ZVRATY.length,
+    sablonyNamet: SABLONY_NAMET.length,
+    sablonyNavnada: SABLONY_NAVNADA.length,
+    navnadaAkce: NAVNADA_AKCE.length
+  };
+  const celkem = pools.monster * 10 * pools.rysy * pools.adjektiva * pools.lokace
+    * pools.atmosfery * pools.minion * pools.npc * pools.npcJmena
+    * pools.zvraty * pools.sablonyNamet * pools.sablonyNavnada * pools.navnadaAkce;
+  return { pools, celkem };
+}
+
+function runAudit(n = 10000) {
+  const start = performance.now();
+  const podpisyCelk = [];
+  const distribuce = { monster: {}, minion: {}, npc: {}, lokTyp: {} };
+
+  // Per-komponentní sety pro měření reálné diverzity
+  const komponenty = {
+    nazev: new Set(),           // celý název (titul + adj+lokace + atmosféra)
+    lokBaze: new Set(),         // jen base lokace (bez adjektiva) — extrahujeme z lok.jmeno
+    adjLok: new Set(),          // adj+lokace combo (z názvu před " — ")
+    titul: new Set(),           // titul příšery (před čárkou v jméně)
+    priseraJmeno: new Set(),    // titul + rys
+    npcJmeno: new Set(),        // jméno NPC
+    npcKombo: new Set(),        // jméno + typ NPC
+    zvrat: new Set(),           // zvrat (z námetu — "ALE: ...")
+    namet60: new Set()          // námět (prvních 60 znaků)
+  };
+
+  for (let i = 0; i < n; i++) {
+    const m = vytvorZahaduNahodne();
+    const prisera = m.hrozby[0];
+    const minion = m.hrozby[1];
+    const npc = m.hrozby[2];
+    const lok = m.hrozby[3];
+
+    // Celkový podpis
+    const sig = `${m.nazev}|${prisera.jmeno}|${minion.druh}|${npc.jmeno}|${npc.druh}|${m.namet.substring(0, 60)}`;
+    podpisyCelk.push(sig);
+
+    // Distribuce typů
+    distribuce.monster[prisera.druh] = (distribuce.monster[prisera.druh] || 0) + 1;
+    distribuce.minion[minion.druh] = (distribuce.minion[minion.druh] || 0) + 1;
+    distribuce.npc[npc.druh] = (distribuce.npc[npc.druh] || 0) + 1;
+    distribuce.lokTyp[lok.druh] = (distribuce.lokTyp[lok.druh] || 0) + 1;
+
+    // Per-komponentní data
+    komponenty.nazev.add(m.nazev);
+    // Lokace base = jméno lok hrozby bez "(Místo činu)"
+    const lokBase = lok.jmeno.replace(' (Místo činu)', '');
+    komponenty.lokBaze.add(lokBase);
+    // Adj+lokace = část názvu za " — " (bez atmosféry — titul je před)
+    const nazevCasti = m.nazev.split(' — ');
+    if (nazevCasti[1]) komponenty.adjLok.add(nazevCasti[1]);
+    // Titul příšery = část před čárkou
+    const titul = prisera.jmeno.split(',')[0];
+    komponenty.titul.add(titul);
+    komponenty.priseraJmeno.add(prisera.jmeno);
+    komponenty.npcJmeno.add(npc.jmeno);
+    komponenty.npcKombo.add(`${npc.jmeno}|${npc.druh}`);
+    // Zvrat z námetu
+    const zvratMatch = m.namet.match(/ALE: (.+)$/);
+    if (zvratMatch) komponenty.zvrat.add(zvratMatch[1]);
+    komponenty.namet60.add(m.namet.substring(0, 60));
+  }
+
+  const unikatni = new Set(podpisyCelk).size;
+  const cas = ((performance.now() - start) / 1000).toFixed(2);
+  const kombinace = spocitejKombinace();
+
+  console.log(`\n=== AUDIT GENERÁTORU (${n} generací, ${cas}s) ===`);
+
+  // Per-komponentní diverzita
+  console.log('\n--- DIVERZITA KOMPONENT ---');
+  const maxSloupce = [
+    ['Celý podpis', unikatni, '~148.7T'],
+    ['Název záhady', komponenty.nazev.size, `${kombinace.pools.titulyM}t × ${kombinace.pools.adjektiva}a × ${kombinace.pools.lokace}l × ${kombinace.pools.atmosfery}atm`],
+    ['Adj+lokace', komponenty.adjLok.size, `${kombinace.pools.adjektiva} × ${kombinace.pools.lokace} = ${kombinace.pools.adjektiva * kombinace.pools.lokace}`],
+    ['Lokace base (nom)', komponenty.lokBaze.size, `${kombinace.pools.adjektiva} × ${kombinace.pools.lokace} = ${kombinace.pools.adjektiva * kombinace.pools.lokace}`],
+    ['Titul příšery', komponenty.titul.size, `${kombinace.pools.titulyM}M + ${kombinace.pools.titulyF}F = ${kombinace.pools.titulyM + kombinace.pools.titulyF}`],
+    ['Příšera (titul+rys)', komponenty.priseraJmeno.size, `${kombinace.pools.titulyM + kombinace.pools.titulyF} × ${kombinace.pools.rysy} = ${(kombinace.pools.titulyM + kombinace.pools.titulyF) * kombinace.pools.rysy}`],
+    ['NPC jméno', komponenty.npcJmeno.size, `${kombinace.pools.npcJmena}`],
+    ['NPC jméno+typ', komponenty.npcKombo.size, `${kombinace.pools.npcJmena} × ${kombinace.pools.npc} = ${kombinace.pools.npcJmena * kombinace.pools.npc}`],
+    ['Zvrat', komponenty.zvrat.size, `${kombinace.pools.zvraty}`],
+    ['Námět (60 zn.)', komponenty.namet60.size, 'komplexní']
+  ];
+  for (const [label, actual, max] of maxSloupce) {
+    const saturace = typeof max === 'number' ? ` (${((actual / max) * 100).toFixed(0)}% z ${max})` : ` / max ~${max}`;
+    console.log(`  ${label.padEnd(22)} ${String(actual).padStart(6)} unikátních${saturace}`);
+  }
+
+  // Distribuce typů
+  const kategorie = [
+    ['MONSTER', distribuce.monster],
+    ['PŘISLUHOVAČI', distribuce.minion],
+    ['NPC', distribuce.npc],
+    ['LOKACE TYP', distribuce.lokTyp]
+  ];
+
+  for (const [nazev, data] of kategorie) {
+    console.log(`\n--- ROZLOŽENÍ: ${nazev} ---`);
+    const expected = n / Object.keys(data).length;
+    for (const [typ, pocet] of Object.entries(data).sort((a, b) => b[1] - a[1])) {
+      const pct = ((pocet / n) * 100).toFixed(1);
+      const bar = '\u2588'.repeat(Math.round(pocet / expected * 10));
+      console.log(`${typ.padEnd(20)} ${String(pocet).padStart(6)}x (${pct.padStart(5)}%) ${bar}`);
+    }
+  }
+
+  const pctUniq = (unikatni / n) * 100;
+  const verdikt = pctUniq > 99.9 ? 'EXCELENTNÍ' : pctUniq > 99 ? 'DOBRÉ' : 'POTŘEBA ROZŠÍŘIT';
+  console.log(`\nCELKOVÁ ORIGINALITA: ${unikatni} / ${n} (${pctUniq.toFixed(2)}%) — ${verdikt}`);
+
+  return { unikatni, duplikaty: n - unikatni, originalita: pctUniq, cas, kombinace, distribuce, komponenty: Object.fromEntries(Object.entries(komponenty).map(([k, v]) => [k, v.size])) };
+}
+
 // ─── Global handlers ───────────────────────────────────────────
 
 window.mysteryGenerator = {
@@ -1311,5 +1441,9 @@ window.mysteryGenerator = {
       isGenerating = false;
       renderGeneratorTab();
     }
-  }
+  },
+
+  // Audit & statistiky (volat z konzole: window.mysteryGenerator.audit(10000))
+  audit(n) { return runAudit(n); },
+  kombinace() { return spocitejKombinace(); }
 };
