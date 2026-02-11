@@ -323,12 +323,17 @@ const TITULY_MONSTER_F = [
 ];
 
 // Šablony pro námět — (lokace, monstrum, motivace, zvrat) → string
+// Šablony pro námět — (lokace, monstrum, motivace, zvrat, rod) → string
 const SABLONY_NAMET = [
-  (lok, mon, mot, zvr) => `V ${lok} se začali ztrácet lidé. Stojí za tím ${mon}, jehož cílem je ${mot}. ${zvr}`,
+  (lok, mon, mot, zvr, rod) => `V ${lok} se začali ztrácet lidé. Stojí za tím ${mon}, ${rod === 'f' ? 'jejíž' : 'jehož'} cílem je ${mot}. ${zvr}`,
   (lok, mon, mot, zvr) => `Záhadné události v ${lok} ukazují na přítomnost ${mon}. Motivací je ${mot}. ${zvr}`,
   (lok, mon, mot, zvr) => `Něco děsivého se probouzí v ${lok}. ${mon} začíná ${mot}. ${zvr}`,
   (lok, mon, mot, zvr) => `Místní z okolí ${lok} hlásí podivné úkazy. Za vším stojí ${mon} s cílem ${mot}. ${zvr}`,
-  (lok, mon, mot, zvr) => `${mon} si zřídil základnu v ${lok} a systematicky pracuje na tom, aby mohl ${mot}. ${zvr}`
+  (lok, mon, mot, zvr, rod) => {
+    const zridil = rod === 'f' ? 'zřídila' : rod === 'n' ? 'zřídilo' : 'zřídil';
+    const mohl = rod === 'f' ? 'mohla' : rod === 'n' ? 'mohlo' : 'mohl';
+    return `${mon} si ${zridil} základnu v ${lok} a systematicky pracuje na tom, aby ${mohl} ${mot}. ${zvr}`;
+  }
 ];
 
 // Šablony pro návnadu — (kdo, akce, lokace) → string
@@ -340,12 +345,18 @@ const SABLONY_NAVNADA = [
   (kdo, akce, lok) => `Anonymní tip: ${kdo} ${akce}. Poslední známá pozice: ${lok}.`
 ];
 
+// Páry [mužský, ženský] tvar — slovesa v minulém čase se liší rodem
 const NAVNADA_AKCE = [
-  'našel zohavené tělo', 'viděl přízrak', 'slyšel nelidský křik',
-  'natočil na mobil podivnou postavu', 'nahlásil zmizení dítěte',
-  'objevil podivné symboly na zdi', 'zavolal policii kvůli zápachu krve',
-  'zveřejnil na sítích děsivou fotku', 'tvrdí, že viděl svítící oči v temnotě',
-  'zmizel beze stopy'
+  ['našel zohavené tělo', 'našla zohavené tělo'],
+  ['viděl přízrak', 'viděla přízrak'],
+  ['slyšel nelidský křik', 'slyšela nelidský křik'],
+  ['natočil na mobil podivnou postavu', 'natočila na mobil podivnou postavu'],
+  ['nahlásil zmizení dítěte', 'nahlásila zmizení dítěte'],
+  ['objevil podivné symboly na zdi', 'objevila podivné symboly na zdi'],
+  ['zavolal policii kvůli zápachu krve', 'zavolala policii kvůli zápachu krve'],
+  ['zveřejnil na sítích děsivou fotku', 'zveřejnila na sítích děsivou fotku'],
+  ['tvrdí, že viděl svítící oči v temnotě', 'tvrdí, že viděla svítící oči v temnotě'],
+  ['zmizel beze stopy', 'zmizela beze stopy']
 ];
 
 function pickRandom(arr) {
@@ -458,8 +469,9 @@ function vytvorZahaduNahodne() {
   const titul = generujJmenoMonstrum(monsterData.rod);
   const priseraJmeno = `${titul}, ${zajmeno} ${rys}`;
 
-  // 4. Jméno NPC z reálných jmen
-  const npcJmeno = pickRandom(Math.random() > 0.5 ? JMENA_MUZI : JMENA_ZENY);
+  // 4. Jméno NPC z reálných jmen (s rodem pro správné slovesné tvary v návnadě)
+  const npcRodMuz = Math.random() > 0.5;
+  const npcJmeno = pickRandom(npcRodMuz ? JMENA_MUZI : JMENA_ZENY);
 
   // 5. Zvrat
   const zvrat = pickRandom(ZVRATY);
@@ -489,8 +501,10 @@ function vytvorZahaduNahodne() {
   const odpocet = generujOdpocet(lokace.nazev, titul, monsterData.mot, minionTypeName, monsterData.rod);
 
   // 12. Námět a návnada z šablon
-  const namet = pickRandom(SABLONY_NAMET)(lokace.nazev, priseraJmeno, monsterData.mot.toLowerCase(), `ALE: ${zvrat}`);
-  const navnada = pickRandom(SABLONY_NAVNADA)(npcJmeno, pickRandom(NAVNADA_AKCE), lokace.nazev);
+  const namet = pickRandom(SABLONY_NAMET)(lokace.nazev, priseraJmeno, monsterData.mot.toLowerCase(), `ALE: ${zvrat}`, monsterData.rod);
+  const navnadaAkcePar = pickRandom(NAVNADA_AKCE);
+  const navnadaAkce = npcRodMuz ? navnadaAkcePar[0] : navnadaAkcePar[1];
+  const navnada = pickRandom(SABLONY_NAVNADA)(npcJmeno, navnadaAkce, lokace.nazev);
 
   // 13. Název
   const nazev = `${titul} — ${lokace.nazev}`;
