@@ -639,17 +639,17 @@ const TAHY_NA_MIRU = {
 
 // Jména pro NPC a příšery
 const DEFAULT_JMENA_MUZI = [
-  'Petr', 'Jan', 'Karel', 'Tomáš', 'Šerif Bárta', 'Dr. Novák',
-  'Farář Blažek', 'Starosta Hrdlička', 'Hajný Vrána', 'Martin',
-  'Školník Novák', 'Barman Eda', 'Inspektor Dlouhý', 'Farář Otec Jan',
-  'Bezdomovec Král', 'MUDr. Řezáč', 'Youtuber Mikeš', 'Starosta Bílý'
+  'Travis', 'Kyle', 'Cody', 'Wyatt', 'Sheriff Hoffman', 'Dr. Meyer',
+  'Pastor Brandt', 'Mayor Sullivan', 'Ranger Olson', 'Dale',
+  'Janitor Schmidt', 'Bartender Hank', 'Detective Dawson', 'Father Brennan',
+  'Drifter Wade', 'Dr. Schneider', 'Vlogger Colton', 'Mayor Clark'
 ];
 function getJmenaMuzi() { return poolStorage.get('jmenaMuzi') || DEFAULT_JMENA_MUZI; }
 
 const DEFAULT_JMENA_ZENY = [
-  'Jana', 'Eva', 'Marie', 'Lucie', 'Dr. Sýkorová', 'Sestra Alžběta',
-  'Starostka Králová', 'Knihovnice Dvořáková', 'Učitelka Čermáková', 'Tereza',
-  'Studentka Tereza', 'Učitelka Přísná', 'Sestra Agáta'
+  'Tammy', 'Sheryl', 'Brenda', 'Darlene', 'Dr. Keller', 'Nurse Gail',
+  'Mayor Gallagher', 'Librarian Larson', 'Teacher Swanson', 'Shelby',
+  'Student Megan', 'Principal Reed', 'Sister Bonnie'
 ];
 function getJmenaZeny() { return poolStorage.get('jmenaZeny') || DEFAULT_JMENA_ZENY; }
 
