@@ -9,6 +9,7 @@ import { ThreatType, ThreatTypeLabels, createThreat, createCountdown, createMyst
 import { loadAllMysteries, saveMystery, deleteMystery, getMysteryById } from './storage.js';
 import { poolStorage } from './pool-storage.js';
 import { generujStrukturovanyOdpocet, zjistiKategorii, zjistiStyl } from './countdown-engine.js';
+import { getState } from '../state/store.js';
 import threatsData from '../../data/threats.json';
 
 // ─── Module-level state ────────────────────────────────────────
@@ -16,6 +17,8 @@ import threatsData from '../../data/threats.json';
 let currentView = 'list';       // 'list' | 'edit' | 'detail' | 'pools'
 let currentMystery = null;      // Mystery being edited/viewed
 let isGenerating = false;       // AI generation in progress
+let isEnhancing = false;        // AI narrative enhancement in progress
+let showOriginal = false;       // Toggle: show original vs AI-enhanced text
 
 // ─── Pool highlighting ────────────────────────────────────────
 
@@ -70,6 +73,13 @@ function getSubtypes(typ) {
     case ThreatType.LOKALITA: return threatsData.locationTypes;
     default: return [];
   }
+}
+
+function hasApiKey() {
+  try {
+    if (import.meta.env.DEV) return true;
+    return !!getState()?.settings?.ai?.apiKey;
+  } catch { return false; }
 }
 
 // Which fields are visible for each threat type
@@ -1199,9 +1209,37 @@ function renderDetailView() {
   if (!currentMystery) return '<p class="text-gray-500">Záhada nenalezena</p>';
   const m = currentMystery;
 
+  // When showing original, use _original data for namet/navnada/odpocet
+  const displayNamet = (showOriginal && m._original) ? m._original.namet : m.namet;
+  const displayNavnada = (showOriginal && m._original) ? m._original.navnada : m.navnada;
+  const displayOdpocet = (showOriginal && m._original) ? m._original.odpocet : m.odpocet;
+
+  // AI enhance button or badge
+  const aiButton = isEnhancing
+    ? `<div class="flex items-center gap-2 text-violet-300 text-sm px-3 py-1.5">
+        <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> AI přežvýkává záhadu…
+      </div>`
+    : m._aiEnhanced
+      ? `<span class="flex items-center gap-1 text-xs text-violet-400 bg-violet-900/30 px-2.5 py-1.5 rounded border border-violet-700/30">
+          <span class="material-symbols-outlined text-sm">auto_awesome</span> AI vylepšeno
+        </span>`
+      : `<button onclick="window.mysteryGenerator.enhanceWithAI()"
+          class="flex items-center gap-1 bg-violet-900/40 hover:bg-violet-800/60 px-3 py-1.5 rounded text-sm border border-violet-700/50 transition"
+          ${!hasApiKey() ? 'disabled title="Nastav API klíč v Nastavení → AI"' : ''}>
+          <span class="material-symbols-outlined text-sm">auto_awesome</span> AI Vylepšení
+        </button>`;
+
+  // Toggle original/AI button
+  const toggleBtn = (m._aiEnhanced && m._original)
+    ? `<button onclick="window.mysteryGenerator.toggleOriginal()"
+        class="text-xs text-violet-400 hover:text-violet-300 transition">
+        ${showOriginal ? '← Zpět na AI verzi' : 'Zobrazit originál z generátoru →'}
+      </button>`
+    : '';
+
   return `
     <div class="max-w-4xl mx-auto">
-      <div class="flex items-center gap-2 mb-6">
+      <div class="flex items-center gap-2 mb-6 flex-wrap">
         <button onclick="window.mysteryGenerator.backToList()"
           class="text-gray-400 hover:text-white transition p-1">
           <span class="material-symbols-outlined">arrow_back</span>
@@ -1215,6 +1253,7 @@ function renderDetailView() {
           class="flex items-center gap-1 bg-emerald-900/40 hover:bg-emerald-800/60 px-3 py-1.5 rounded text-sm border border-emerald-700/50 transition">
           <span class="material-symbols-outlined text-sm">content_copy</span> Kopírovat
         </button>
+        ${aiButton}
         <button onclick="window.mysteryGenerator.editMystery('${m.id}')"
           class="flex items-center gap-1 bg-blue-900/40 hover:bg-blue-800/60 px-3 py-1.5 rounded text-sm border border-blue-700/50 transition">
           <span class="material-symbols-outlined text-sm">edit</span> Upravit
@@ -1225,10 +1264,19 @@ function renderDetailView() {
         </button>
       </div>
 
-      ${m.namet ? `<div class="mb-4"><span class="text-xs uppercase tracking-wider text-gray-500">Námět</span><p class="text-gray-200 mt-1">${highlightPools(m.namet, m._pools)}</p></div>` : ''}
-      ${m.navnada ? `<div class="mb-4"><span class="text-xs uppercase tracking-wider text-gray-500">Návnada</span><p class="text-gray-200 mt-1">${highlightPools(m.navnada, m._pools)}</p></div>` : ''}
+      ${displayNamet ? `<div class="mb-4"><span class="text-xs uppercase tracking-wider text-gray-500">Námět</span><p class="text-gray-200 mt-1">${highlightPools(displayNamet, m._pools)}</p>${toggleBtn}</div>` : ''}
 
-      ${renderDetailCountdown(m.odpocet)}
+      ${m.narativ && !showOriginal ? `
+        <div class="mb-4 bg-violet-900/10 border border-violet-700/20 rounded-lg p-4">
+          <span class="text-xs uppercase tracking-wider text-violet-400 flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">auto_awesome</span> Příběh záhady
+          </span>
+          <div class="text-gray-200 mt-2 leading-relaxed whitespace-pre-line">${escapeHtml(m.narativ)}</div>
+        </div>` : ''}
+
+      ${displayNavnada ? `<div class="mb-4"><span class="text-xs uppercase tracking-wider text-gray-500">Návnada</span><p class="text-gray-200 mt-1">${highlightPools(displayNavnada, m._pools)}</p></div>` : ''}
+
+      ${renderDetailCountdown(displayOdpocet)}
       ${renderDetailThreats(m.hrozby, m._pools)}
     </div>
   `;
@@ -1374,6 +1422,11 @@ function renderEditView() {
             <input type="text" id="gen-nazev" value="${escapeHtml(m.nazev)}"
               class="w-full bg-black/30 border border-white/10 rounded px-3 py-2 text-sm focus:border-red-700/50 focus:outline-none" placeholder="Např. Prokletí Stříbrného jezera">
           </div>
+          ${`<div>
+            <label class="block text-sm text-gray-400 mb-1">Příběh záhady (AI)</label>
+            <textarea id="gen-narativ" rows="6"
+              class="w-full bg-black/30 border border-violet-700/20 rounded px-3 py-2 text-sm text-gray-200 focus:border-violet-500/50 focus:outline-none resize-y" placeholder="Narativní pozadí záhady...">${escapeHtml(m.narativ || '')}</textarea>
+          </div>`}
           <div>
             <label class="block text-sm text-gray-400 mb-1">Námět</label>
             <textarea id="gen-namet" rows="2"
@@ -1607,6 +1660,7 @@ function collectFormData() {
   if (!currentMystery) return null;
 
   currentMystery.nazev = document.getElementById('gen-nazev')?.value || '';
+  currentMystery.narativ = document.getElementById('gen-narativ')?.value ?? currentMystery.narativ ?? '';
   currentMystery.namet = document.getElementById('gen-namet')?.value || '';
   currentMystery.navnada = document.getElementById('gen-navnada')?.value || '';
 
@@ -1632,6 +1686,7 @@ function mysteryToText(m) {
   lines.push(`=== ${m.nazev || 'Bez názvu'} ===`);
   lines.push('');
   if (m.namet) { lines.push(`NÁMĚT: ${m.namet}`); lines.push(''); }
+  if (m.narativ) { lines.push('--- PŘÍBĚH ---'); lines.push(m.narativ); lines.push(''); }
   if (m.navnada) { lines.push(`NÁVNADA: ${m.navnada}`); lines.push(''); }
 
   // Odpočet
@@ -1827,6 +1882,7 @@ window.mysteryGenerator = {
   backToList() {
     currentView = 'list';
     currentMystery = null;
+    showOriginal = false;
     renderGeneratorTab();
   },
 
@@ -2080,6 +2136,31 @@ window.mysteryGenerator = {
       isGenerating = false;
       renderGeneratorTab();
     }
+  },
+
+  async enhanceWithAI() {
+    if (!currentMystery || isEnhancing) return;
+    isEnhancing = true;
+    renderGeneratorTab();
+    try {
+      const { enhanceMystery } = await import('./generator-ai.js');
+      const result = await enhanceMystery(currentMystery);
+      if (!result) return; // error handled inside enhanceMystery
+      currentMystery = result;
+      saveMystery(currentMystery);
+      showOriginal = false;
+      window.showToast({ message: 'Záhada vylepšena pomocí AI', type: 'success' });
+    } catch (e) {
+      window.showToast({ message: `AI chyba: ${e.message}`, type: 'error' });
+    } finally {
+      isEnhancing = false;
+      renderGeneratorTab();
+    }
+  },
+
+  toggleOriginal() {
+    showOriginal = !showOriginal;
+    renderGeneratorTab();
   },
 
   openPools() {

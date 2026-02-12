@@ -95,8 +95,11 @@ export function createMystery(overrides = {}) {
     nazev: '',
     namet: '',
     navnada: '',
+    narativ: '',
     odpocet: createCountdown(),
     hrozby: [],
+    _aiEnhanced: false,
+    _original: null,
     createdAt: new Date().toISOString(),
     lastModified: new Date().toISOString(),
     ...overrides
