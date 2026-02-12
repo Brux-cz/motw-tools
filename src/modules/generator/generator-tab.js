@@ -5,9 +5,10 @@
  */
 
 import { escapeHtml } from '../../utils/html.js';
-import { ThreatType, ThreatTypeLabels, createThreat, createCountdown, createMystery } from './model.js';
+import { ThreatType, ThreatTypeLabels, createThreat, createCountdown, createMystery, normalizeCountdownPhase, getCountdownPhaseText } from './model.js';
 import { loadAllMysteries, saveMystery, deleteMystery, getMysteryById } from './storage.js';
 import { poolStorage } from './pool-storage.js';
+import { generujStrukturovanyOdpocet, zjistiKategorii, zjistiStyl } from './countdown-engine.js';
 import threatsData from '../../data/threats.json';
 
 // ─── Module-level state ────────────────────────────────────────
@@ -490,6 +491,142 @@ const STOPY_SLABIN = {
   'UV záření': 'Bytost se vyhýbá UV lampám v soláriu — svědek říká, že zasyčela.'
 };
 
+// ─── Šablony znalostí NPC ─────────────────────────────────────
+const SABLONY_VEDENI = {
+  chovani: [
+    (mon) => `Viděl/a podivnou postavu poblíž ${mon.lokGen} — prý vypadala nepřirozeně.`,
+    (mon) => `Slyšel/a v noci zvuky, které nemohlo vydávat žádné zvíře.`,
+    (mon) => `Všiml/a si, že ${mon.jmeno} se pohybuje způsobem, který nedává smysl.`,
+    (mon) => `Tvrdí, že bytost dokáže ${mon.schopnost}.`
+  ],
+  slabina: [
+    (mon) => `Všiml/a si, že se bytost vyhnula ${mon.slabinaDat}.`,
+    (mon) => `Vzpomíná, že stará babička říkávala: "Proti tomu pomůže jen ${mon.slabina}."`,
+    (mon) => `Má doma starý deník, kde se píše o podobné bytosti — a jak ji zastavili.`
+  ],
+  minion: [
+    (mon) => `${mon.minionJmeno} se v poslední době chová podezřele — chodí na zvláštní místa.`,
+    (mon) => `Viděl/a ${mon.minionJmeno}, jak mluví s někým ve tmě.`,
+    (mon) => `${mon.minionJmeno} má na sobě stopy, které nedokáže vysvětlit.`
+  ],
+  lokace: [
+    (mon) => `Lidé se vyhýbají ${mon.lokDat} — říkají, že tam „něco není v pořádku".`,
+    (mon) => `V ${mon.lokLok} se prý v noci svítí, i když je opuštěná.`,
+    (mon) => `Na ${mon.lokLok} slyšel/a něco divného — ale nechce o tom mluvit.`
+  ]
+};
+
+const VEDENI_AFINITA = {
+  'Svědek':    { primarni: 'chovani', sekundarni: 'slabina' },
+  'Detektiv':  { primarni: 'slabina', sekundarni: 'minion' },
+  'Drbna':     { primarni: 'lokace', sekundarni: 'minion' },
+  'Nevinný':   { primarni: 'chovani', sekundarni: 'lokace' },
+  'Oběť':      { primarni: 'chovani', sekundarni: 'chovani' },
+  'Pomocník':  { primarni: 'slabina', sekundarni: 'lokace' },
+  'Skeptik':   { primarni: 'chovani', sekundarni: 'lokace' },
+  'Šťoural':   { primarni: 'minion', sekundarni: 'lokace' },
+  'Byrokrat':  { primarni: 'lokace', sekundarni: 'chovani' }
+};
+
+// ─── Šablony stop lokací ──────────────────────────────────────
+const SABLONY_STOP_LOKACE = {
+  'Místo činu': [
+    (ctx) => `Na podlaze jsou stopy ${ctx.monRod === 'f' ? 'neznámé' : 'neznámého'} tvora — příliš velké na člověka.`,
+    (ctx) => `Stěny jsou pokryté škrábanci, jako by se tu něco snažilo dostat ven.`,
+    (ctx) => `Na zemi leží osobní věci oběti — ${ctx.npcJmeno} tu byl/a naposledy viděn/a.`,
+    (ctx) => `Vzduch je cítit ${ctx.monTag === 'magic' ? 'ozone a spáleninou' : 'krví a prachem'}.`,
+    (ctx) => `Rozbité okno naznačuje, kudy bytost přišla — nebo odešla.`
+  ],
+  'Útočiště': [
+    (ctx) => `V policejních záznamech je zmínka o podobném incidentu před ${randRange(20, 80)} lety.`,
+    (ctx) => `Stará kronika popisuje bytost odpovídající popisu — a způsob, jak s ní bylo naloženo.`,
+    (ctx) => `Na nástěnce visí novinový výstřižek o záhadném úmrtí v okolí.`,
+    (ctx) => `V archivu je složka s nadpisem „Nevysvětlené případy" — obsahuje mapu se značkami.`,
+    (ctx) => `Místní farář/knihovník zmínil, že podobné věci se tu děly i dřív.`
+  ],
+  'Doupě příšery': [
+    (ctx) => `V rohu leží hromada kostí a osobních věcí předchozích obětí.`,
+    (ctx) => `Na stěně jsou symboly — vypadají jako ochranné značky, které bytost používá.`,
+    (ctx) => `Podlaha je pokrytá ${ctx.monTag === 'stealth' ? 'podivným slizem' : 'vrstvou prachu se stopami'}.`,
+    (ctx) => `Uprostřed místnosti je ${ctx.monTag === 'magic' ? 'oltář s podivnými artefakty' : 'místo, kde bytost zjevně odpočívá'}.`,
+    (ctx) => `Z doupěte vede skrytý tunel — úniková cesta bytosti.`
+  ]
+};
+
+const STOPY_SLABIN_LOKACE = {
+  'Místo činu': {
+    physical: (ctx) => `Na těle oběti jsou stopy popálenin od ${ctx.slabina} — jediné, co bytosti skutečně ublížilo.`,
+    elemental: (ctx) => `Na místě činu je patrné, že se bytost vyhnula zdroji ${ctx.slabina} — obloukem.`,
+    ritual: (ctx) => `Na podlaze jsou zbytky nedokončeného rituálu — jako by se tu někdo pokusil bytost zastavit.`,
+    holy: (ctx) => `Oběť, která přežila, měla u sebe náboženský předmět — jediná, kdo vyvázla.`,
+    poison: (ctx) => `Na místě je rozbitá nádoba s obsahem, kterému se bytost zjevně vyhýbala.`,
+    logic: (ctx) => `Oběť si do deníku zapsala podivnou poznámku: „Když jsem řekla X, zastavila se."`,
+    fire: (ctx) => `Na místě činu jsou ohořelé stopy — bytost od nich ustoupila.`
+  },
+  'Útočiště': {
+    physical: (ctx) => `V kronice se píše, že podobná bytost byla poražena zbraní z ${ctx.slabina}.`,
+    elemental: (ctx) => `Starý záznam uvádí, že bytost „nestrpí" ${ctx.slabina} — a popisuje způsob aplikace.`,
+    ritual: (ctx) => `V archivu je popis rituálu, který může bytost svázat nebo zničit její zdroj moci.`,
+    holy: (ctx) => `Farní kronika popisuje, jak místní kněz zastavil podobnou bytost modlitbou a svěcenou vodou.`,
+    poison: (ctx) => `Bylinkářčin recept v knize domácích léků obsahuje „ochranu proti nočním bytostem".`,
+    logic: (ctx) => `V knize je příběh o lovci, který bytost přelstil — vyslovil její pravé jméno a ona ztratila moc.`,
+    fire: (ctx) => `V záznamu stojí: „Bytost se nikdy neukázala za jasného dne" — s poznámkou o slunečním svitu.`
+  },
+  'Doupě příšery': {
+    physical: (ctx) => `V doupěti leží předmět z ${ctx.slabina} — bytost ho obchází obloukem, nedotýká se ho.`,
+    elemental: (ctx) => `Část doupěte, kde je ${ctx.slabina}, je prázdná — bytost se tam nikdy nezdržuje.`,
+    ritual: (ctx) => `V doupěti je oltář s artefaktem — vypadá to jako zdroj moci bytosti. Zničit ho by mohlo pomoct.`,
+    holy: (ctx) => `V doupěti není jediný náboženský symbol — jako by je bytost záměrně odstraňovala.`,
+    poison: (ctx) => `V doupěti roste zvláštní bylina — bytost ji obchází. Možná je to klíč k její slabině.`,
+    logic: (ctx) => `Na stěně doupěte je vyryté jméno — vypadá to, jako by bytost měla obsesivní strach z jeho vyslovení.`,
+    fire: (ctx) => `V doupěti není jediný zdroj ohně nebo světla — bytost žije v absolutní tmě.`
+  }
+};
+
+// ─── Tahy na míru lokací ──────────────────────────────────────
+const TAHY_NA_MIRU = {
+  'Brána pekel': [
+    'Když vstoupíš do Brány pekel bez ochrany, hoď si +Divný. Na 10+ cítíš přítomnost zla, ale odolals. Na 7-9 máš vizi — Strážce ti řekne, co vidíš, ale utrpíš 1-zranění (ignoruje zbroj). Na 6- tě temnota pohltí.',
+    'Když se pokusíš zavřít Bránu pekel, hoď si +Fajn. Na 10+ se ti podaří ji dočasně zapečetit. Na 7-9 se zavírá, ale něco ještě proklouzlo. Na 6- se Brána otevře dokořán.'
+  ],
+  'Divočina': [
+    'Když pátráš v divočině po stopách, hoď si +Ostří. Na 10+ najdeš jasnou stopu vedoucí k bytosti. Na 7-9 najdeš stopu, ale divočina tě zpomalí — vyber si: ztratíš čas, nebo riskuješ. Na 6- se ztratíš.',
+    'Když se v divočině ukrýváš, hoď si +Fajn. Na 10+ jsi neviditelný/á. Na 7-9 slyšíš, že se něco blíží. Na 6- tě to našlo.'
+  ],
+  'Doupě': [
+    'Když prozkoumáváš doupě příšery, hoď si +Ostří. Na 10+ najdeš důležitou stopu a bezpečnou cestu ven. Na 7-9 najdeš stopu, ale příšera ví, že tu jsi. Na 6- padneš do pasti.',
+    'Když se pokusíš nastražit past v doupěti, hoď si +Machr. Na 10+ past je připravena. Na 7-9 past funguje, ale bytost ji může obejít. Na 6- bytost obrátí past proti tobě.'
+  ],
+  'Knihovna': [
+    'Když zkoumáš archivy a kroniky, hoď si +Ostří. Na 10+ najdeš přesnou informaci, kterou hledáš — Strážce ti řekne stopu k slabině. Na 7-9 najdeš jen částečný záznam — víš, kde hledat dál. Na 6- upoutáš pozornost někoho, kdo tu neměl být.',
+    'Když hledáš v knihovně informace o příšeře, hoď si +Divný. Na 10+ najdeš kompletní popis bytosti včetně její slabiny. Na 7-9 najdeš popis, ale chybí klíčová strana. Na 6- kniha je prokletá.'
+  ],
+  'Křižovatka': [
+    'Když na křižovatce čekáš na setkání, hoď si +Šarm. Na 10+ přijde ten, koho potřebuješ, a je ochotný mluvit. Na 7-9 přijde, ale má podmínku. Na 6- přijde někdo jiný.',
+    'Když vyšetřuješ místo činu na křižovatce, hoď si +Ostří. Na 10+ Strážce ti řekne 2 stopy. Na 7-9 řekne ti 1, ale všimneš si, že tě někdo pozoruje. Na 6- stopy byly záměrně zameteny.'
+  ],
+  'Laboratoř': [
+    'Když analyzuješ vzorek v laboratoři, hoď si +Ostří. Na 10+ zjistíš přesně, s čím máte co do činění, včetně slabiny. Na 7-9 zjistíš typ bytosti, ale ne slabinu. Na 6- experiment se zvrtne.',
+    'Když se pokusíš vyrobit zbraň nebo protilátku, hoď si +Machr. Na 10+ vyrobíš ji. Na 7-9 funguje, ale je jí málo nebo má vedlejší efekt. Na 6- vybouchne.'
+  ],
+  'Labyrint': [
+    'Když se pokusíš projít labyrintem, hoď si +Fajn. Na 10+ najdeš cestu — a cestou si všimneš důležité stopy. Na 7-9 projdeš, ale ztratíš něco cenného nebo se od skupiny oddělíš. Na 6- zabloudíš a labyrint se za tebou uzavře.',
+    'Když se pokusíš zmapovat labyrint, hoď si +Ostří. Na 10+ máš mapu a víš, kde je centrum. Na 7-9 mapa je neúplná — znáš jen část. Na 6- labyrint se přestaví.'
+  ],
+  'Past': [
+    'Když vstoupíš do oblasti pasti, hoď si +Ostří. Na 10+ past odhalíš včas. Na 7-9 aktivuješ ji, ale stihneš reagovat — vyber si: utrpíš 1-zranění, nebo ztratíš vybavení. Na 6- past tě chytí.',
+    'Když se pokusíš deaktivovat past, hoď si +Machr. Na 10+ past je zneškodněna. Na 7-9 zneškodníš ji, ale spustí alarm. Na 6- past se aktivuje naplno.'
+  ],
+  'Pevnost': [
+    'Když se pokusíš proniknout do pevnosti, hoď si +Fajn. Na 10+ najdeš slabé místo a dostaneš se dovnitř nepozorovaně. Na 7-9 dostaneš se dovnitř, ale hlídač tě zahlédl. Na 6- jsi v pasti mezi zdmi.',
+    'Když se pokusíš vyjednávat o přístupu, hoď si +Šarm. Na 10+ pustí tě dovnitř. Na 7-9 můžeš vejít, ale za podmínku. Na 6- dveře se zavřou a zamknou.'
+  ],
+  'Vězení': [
+    'Když se pokusíš osvobodit vězně, hoď si +Fajn. Na 10+ osvobodíš ho tiše a bezpečně. Na 7-9 osvobodíš ho, ale spustíš alarm nebo poškodíš něco důležitého. Na 6- sám se staneš vězněm.',
+    'Když hledáš v cele stopy, hoď si +Ostří. Na 10+ najdeš zprávu od předchozího vězně — popisuje bytost nebo její slabinu. Na 7-9 najdeš stopu, ale je neúplná. Na 6- cela se za tebou zavře.'
+  ]
+};
+
 // Jména pro NPC a příšery
 const DEFAULT_JMENA_MUZI = [
   'Petr', 'Jan', 'Karel', 'Tomáš', 'Šerif Bárta', 'Dr. Novák',
@@ -656,59 +793,6 @@ function generujJmenoMonstrum(rod) {
   return pickRandom(getTitulyM());
 }
 
-// Generuje odpočet ve 3 stylech dle motivace
-// lokGen = genitiv lokace ("Zatopené Školy"), lokNom = nominativ ("Zatopená Škola")
-function generujOdpocet(lokGen, lokNom, monJmeno, mot, minionJmeno, rod, zvratKategorie) {
-  const motLower = mot.toLowerCase();
-  const dokoncil = rod === 'f' ? 'dokončila' : rod === 'n' ? 'dokončilo' : 'dokončil';
-  const nezastavitelny = rod === 'f' ? 'téměř nezastavitelná' : rod === 'n' ? 'téměř nezastavitelné' : 'téměř nezastavitelný';
-
-  let odpocet;
-
-  // Agresivní styl — pro ničitele, bestie, popravčí
-  if (motLower.includes('ničit') || motLower.includes('konec') || motLower.includes('trestat') || motLower.includes('zabíjet')) {
-    odpocet = createCountdown({
-      den: `V okolí ${lokGen} se najde první oběť. Zvířata utíkají z oblasti.`,
-      priseri: `${monJmeno} zaútočí podruhé. Policie uzavírá oblast.`,
-      zapad_slunce: `Těla přibývají. ${minionJmeno} aktivně brání lovcům v přístupu.`,
-      soumrak: `${monJmeno} řádí otevřeně. Civilisté panicky prchají.`,
-      noc: `Masivní destrukce. Poslední šance zasáhnout, než bude pozdě.`,
-      pulnoc: `${monJmeno} ${dokoncil} svůj cíl: ${mot}. Oblast je zničená.`
-    });
-  }
-  // Skrytý/korupční styl — pro pokušitele, parazity, královny
-  else if (motLower.includes('svést') || motLower.includes('ovládnout') || motLower.includes('napadnout') || motLower.includes('posednout')) {
-    odpocet = createCountdown({
-      den: `Lidé v okolí ${lokGen} se začínají chovat podivně. Drobné náznaky.`,
-      priseri: `Další lidé padají pod vliv ${monJmeno}. Šíří se podivné zvyky.`,
-      zapad_slunce: `${minionJmeno} otevřeně slouží příšeře. Polovina místních je ovládnuta.`,
-      soumrak: `${monJmeno} ovládá klíčové osoby. Lovci nevědí, komu věřit.`,
-      noc: `Téměř celé město je pod kontrolou. Zbývá jen hrstka nezasažených.`,
-      pulnoc: `${monJmeno} ${dokoncil} přeměnu. Celá komunita je navždy ztracena.`
-    });
-  }
-  // Obecný styl — pro ostatní
-  else {
-    odpocet = createCountdown({
-      den: `Průzkum ${lokGen}. Drobné stopy, šeptanda mezi místními.`,
-      priseri: `${monJmeno} naznačuje svou přítomnost. Další oběť zmizí.`,
-      zapad_slunce: `Situace se zhoršuje. ${monJmeno} útočí otevřeněji.`,
-      soumrak: `${minionJmeno} aktivně brání lovcům v postupu. Vážné nebezpečí.`,
-      noc: `${monJmeno} je ${nezastavitelny}. Poslední šance použít slabinu.`,
-      pulnoc: `Konec hry. ${monJmeno} ${dokoncil} svůj plán: ${mot}. Následky jsou nevratné.`
-    });
-  }
-
-  // Zvrat ovlivňuje odpočet
-  if (zvratKategorie === 'mirny') {
-    odpocet.noc = `${monJmeno} se spíše skrývá a brání. Hrozba je reálná, ale kontrolovatelná.`;
-  } else if (zvratKategorie === 'tezky') {
-    odpocet.pulnoc += ' Navíc se odhalí další, nečekaná komplikace.';
-  }
-
-  return odpocet;
-}
-
 function vytvorZahaduNahodne() {
   // 1. Vybrat typy z per-type slovníků
   const monsterTypeName = pickRandom(Object.keys(TYPY_MONSTER));
@@ -777,13 +861,31 @@ function vytvorZahaduNahodne() {
   const typSlabiny = SLABINY_POOL[monsterData.weakType] || SLABINY_POOL.physical;
   const slabina = pickRandom(typSlabiny);
   const stopaKSlabine = STOPY_SLABIN[slabina] || '';
+  const weakType = monsterData.weakType;
 
   // 10. Lokace typ z LOKACE_DB → namapovat na TYPY_LOKALIT
   const locationTypeName = lokace.typ;
   const locationData = TYPY_LOKALIT[locationTypeName] || TYPY_LOKALIT[pickRandom(Object.keys(TYPY_LOKALIT))];
 
-  // 11. Odpočet ve 3 stylech dle motivace (genitiv + nominativ lokace pro správné pády)
-  const odpocet = generujOdpocet(lokace.gen, lokace.nom, titul, monsterData.mot, minionTypeName, monsterData.rod, zvratKategorie);
+  // 11. Strukturovaný odpočet (3-slotový: projev + akce + kontext)
+  const kategorie = zjistiKategorii(titul);
+  const styl = zjistiStyl(monsterTypeName);
+  const zvratMap = { 'mirny': 'zmirnujici', 'tezky': 'eskalujici' };
+  const odpocet = generujStrukturovanyOdpocet({
+    kategorie,
+    typ: monsterTypeName,
+    lokace: locationTypeName,
+    styl,
+    rod: monsterData.rod,
+    titul,
+    jmenoLokaceGen: lokace.gen,
+    jmenoLokaceNom: lokace.nom,
+    jmenoLokaceLok: lokace.lok,
+    lokaceRod: lokace.rod,
+    minionTypeName,
+    zvratKategorie: zvratMap[zvratKategorie],
+    pickRandom
+  });
 
   // 12. Námět a návnada z šablon (lokál a genitiv pro správné pády)
   const namet = pickRandom(SABLONY_NAMET)(lokace.lok, lokace.gen, priseraJmeno, monsterData.mot.toLowerCase(), `ALE: ${zvrat}`, monsterData.rod);
@@ -818,7 +920,100 @@ function vytvorZahaduNahodne() {
     navnadaAkce
   };
 
-  // 15. Sestavit kompletní hratelnou záhadu
+  // 15. Kontext pro šablony stop a znalostí
+  const sablonyCtx = {
+    jmeno: priseraJmeno,
+    monRod: monsterData.rod,
+    monTag: monsterData.tag,
+    slabina,
+    weakType,
+    schopnost: pickRandom(schopnosti),
+    slabinaDat: slabina,
+    minionJmeno: minionTypeName,
+    lokGen: lokace.gen,
+    lokLok: lokace.lok,
+    lokDat: lokace.gen,
+    npcJmeno: npcThreats[0].jmeno
+  };
+
+  // 16. Znalosti NPC — každý ví 1-2 věci dle svého typu
+  let slabinaZnalostPridelena = false;
+
+  npcThreats.forEach((npc, i) => {
+    const vedeniAfinita = VEDENI_AFINITA[npc.npcTypeName];
+    if (!vedeniAfinita) return;
+
+    const vedi = [];
+
+    // Primární znalost
+    let kat1 = vedeniAfinita.primarni;
+    // Poslední NPC dostane znalost o slabině, pokud ji ještě nikdo nemá
+    if (i === npcThreats.length - 1 && !slabinaZnalostPridelena) {
+      kat1 = 'slabina';
+    }
+    const sablony1 = SABLONY_VEDENI[kat1];
+    if (sablony1) vedi.push(pickRandom(sablony1)(sablonyCtx));
+    if (kat1 === 'slabina') slabinaZnalostPridelena = true;
+
+    // Sekundární znalost (50% šance)
+    if (Math.random() > 0.5) {
+      const kat2 = vedeniAfinita.sekundarni;
+      const sablony2 = SABLONY_VEDENI[kat2];
+      if (sablony2) vedi.push(pickRandom(sablony2)(sablonyCtx));
+      if (kat2 === 'slabina') slabinaZnalostPridelena = true;
+    }
+
+    npc.vedi = vedi;
+  });
+
+  // 17. Stopy v lokacích — 1-2 per lokace + 1 stopa k slabině garantovaně
+  const vsechnyLokace = [
+    { lok: lokace, role: LOKACE_ROLE[0].role, typeName: locationTypeName },
+    ...dalsiLokace.map((lok, i) => ({
+      lok,
+      role: (LOKACE_ROLE[i + 1] || LOKACE_ROLE[LOKACE_ROLE.length - 1]).role,
+      typeName: lok.typ
+    }))
+  ];
+
+  // Losuj, která lokace dostane stopu k slabině (preference: Útočiště > Doupě > Místo činu)
+  const lokaceSeSlabinaStopou = vsechnyLokace.find(l => l.role === 'Útočiště')
+    || vsechnyLokace.find(l => l.role === 'Doupě příšery')
+    || vsechnyLokace[0];
+
+  vsechnyLokace.forEach(lokInfo => {
+    const stopy = [];
+
+    // Generická stopa dle role
+    const sablonyRole = SABLONY_STOP_LOKACE[lokInfo.role];
+    if (sablonyRole) {
+      stopy.push(pickRandom(sablonyRole)(sablonyCtx));
+    }
+
+    // Stopa k slabině (pokud tato lokace je vybraná)
+    if (lokInfo === lokaceSeSlabinaStopou) {
+      const slabinaStopy = STOPY_SLABIN_LOKACE[lokInfo.role];
+      if (slabinaStopy && slabinaStopy[weakType]) {
+        stopy.push(slabinaStopy[weakType](sablonyCtx));
+      }
+    }
+
+    // Druhá generická stopa (50% šance)
+    if (Math.random() > 0.5 && sablonyRole) {
+      const druha = pickRandom(sablonyRole)(sablonyCtx);
+      if (!stopy.includes(druha)) stopy.push(druha);
+    }
+
+    lokInfo.stopy = stopy;
+  });
+
+  // 18. Tah na míru pro každou lokaci dle jejího typu
+  vsechnyLokace.forEach(lokInfo => {
+    const sablony = TAHY_NA_MIRU[lokInfo.typeName];
+    lokInfo.tahNaMiru = sablony ? pickRandom(sablony) : '';
+  });
+
+  // 19. Sestavit kompletní hratelnou záhadu
   const mystery = createMystery({
     nazev,
     namet,
@@ -859,25 +1054,31 @@ function vytvorZahaduNahodne() {
         typ: ThreatType.PRIHLIZEJICI,
         druh: npc.npcTypeName,
         motivace: npc.npcData.mot,
-        tahy: npc.npcData.tahy
+        tahy: npc.npcData.tahy,
+        vedi: npc.vedi || []
       })),
       createThreat({
         jmeno: `${lokace.nom} (${LOKACE_ROLE[0].role})`,
         typ: ThreatType.LOKALITA,
         druh: locationTypeName,
         motivace: locationData.mot,
-        tahy: locationData.tahy
+        tahy: locationData.tahy,
+        stopy: vsechnyLokace[0].stopy || [],
+        tahNaMiru: vsechnyLokace[0].tahNaMiru || ''
       }),
       ...dalsiLokace.map((lok, i) => {
         const role = LOKACE_ROLE[i + 1] || LOKACE_ROLE[LOKACE_ROLE.length - 1];
         const typeName = lok.typ;
         const typeData = TYPY_LOKALIT[typeName];
+        const lokIdx = i + 1;
         return createThreat({
           jmeno: `${lok.nom} (${role.role})`,
           typ: ThreatType.LOKALITA,
           druh: typeName,
           motivace: typeData.mot,
-          tahy: typeData.tahy
+          tahy: typeData.tahy,
+          stopy: vsechnyLokace[lokIdx]?.stopy || [],
+          tahNaMiru: vsechnyLokace[lokIdx]?.tahNaMiru || ''
         });
       })
     ]
@@ -965,7 +1166,10 @@ function renderListView() {
 function renderMysteryCard(mystery) {
   const threatCount = mystery.hrozby?.length || 0;
   const date = new Date(mystery.lastModified || mystery.createdAt).toLocaleDateString('cs-CZ');
-  const hasCountdown = COUNTDOWN_FIELDS.some(f => mystery.odpocet?.[f.key]);
+  const hasCountdown = COUNTDOWN_FIELDS.some(f => {
+    const val = mystery.odpocet?.[f.key];
+    return val && (typeof val === 'string' ? val : getCountdownPhaseText(val));
+  });
 
   return `
     <div class="bg-black/30 border border-white/10 rounded-lg p-4 hover:border-red-700/40 transition cursor-pointer relative group"
@@ -1031,7 +1235,10 @@ function renderDetailView() {
 }
 
 function renderDetailCountdown(odpocet) {
-  if (!odpocet || !COUNTDOWN_FIELDS.some(f => odpocet[f.key])) return '';
+  if (!odpocet || !COUNTDOWN_FIELDS.some(f => {
+    const val = odpocet[f.key];
+    return val && (typeof val === 'string' ? val : getCountdownPhaseText(val));
+  })) return '';
 
   return `
     <div class="mt-6">
@@ -1039,12 +1246,29 @@ function renderDetailCountdown(odpocet) {
         <span class="material-symbols-outlined text-orange-400">timer</span> Odpočet
       </h3>
       <div class="space-y-2">
-        ${COUNTDOWN_FIELDS.map(f => odpocet[f.key] ? `
-          <div class="flex gap-3 bg-black/20 rounded p-2">
+        ${COUNTDOWN_FIELDS.map(f => {
+          const val = odpocet[f.key];
+          if (!val) return '';
+          if (f.key === 'pulnoc') {
+            const text = typeof val === 'string' ? val : getCountdownPhaseText(val);
+            if (!text) return '';
+            return `<div class="flex gap-3 bg-black/20 rounded p-2">
+              <span class="text-orange-400 font-semibold text-sm min-w-[100px]">${f.label}</span>
+              <span class="text-gray-300 text-sm">${escapeHtml(text)}</span>
+            </div>`;
+          }
+          const phase = normalizeCountdownPhase(val);
+          const hasContent = phase.projev || phase.akce || phase.kontext;
+          if (!hasContent) return '';
+          return `<div class="flex gap-3 bg-black/20 rounded p-2">
             <span class="text-orange-400 font-semibold text-sm min-w-[100px]">${f.label}</span>
-            <span class="text-gray-300 text-sm">${escapeHtml(odpocet[f.key])}</span>
-          </div>
-        ` : '').join('')}
+            <div class="text-sm flex-1">
+              ${phase.projev ? `<span class="text-purple-300">${escapeHtml(phase.projev)}</span> ` : ''}
+              ${phase.akce ? `<span class="text-red-300">${escapeHtml(phase.akce)}</span> ` : ''}
+              ${phase.kontext ? `<span class="text-blue-300">${escapeHtml(phase.kontext)}</span>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
       </div>
     </div>
   `;
@@ -1068,6 +1292,20 @@ function renderDetailThreats(hrozby, pools) {
             </div>
             ${h.motivace ? `<p class="text-sm text-gray-400 mb-2"><strong>Motivace:</strong> ${escapeHtml(h.motivace)}</p>` : ''}
             ${h.mustek ? `<p class="text-sm italic text-gray-400 mt-1 mb-2">${escapeHtml(h.mustek)}</p>` : ''}
+            ${h.vedi?.length ? `
+              <div class="text-sm mb-2">
+                <strong class="text-emerald-400/80">Co ví:</strong>
+                <ul class="ml-4 mt-1 space-y-0.5">
+                  ${h.vedi.map(v => `<li class="text-emerald-300/60 italic">\u{2192} ${escapeHtml(v)}</li>`).join('')}
+                </ul>
+              </div>` : ''}
+            ${h.stopy?.length ? `
+              <div class="text-sm mb-2">
+                <strong class="text-blue-400/80">Stopy:</strong>
+                <ul class="ml-4 mt-1 space-y-0.5">
+                  ${h.stopy.map(s => `<li class="text-blue-300/60 italic">\u{1F50D} ${escapeHtml(s)}</li>`).join('')}
+                </ul>
+              </div>` : ''}
             ${h.slabina ? `<p class="text-sm text-yellow-400/80 mb-2"><strong>Slabina:</strong> ${escapeHtml(h.slabina)}</p>` : ''}
             ${h.stopaKSlabine ? `<p class="text-sm text-yellow-400/60 mb-2 italic">\u{1F50E} ${escapeHtml(h.stopaKSlabine)}</p>` : ''}
             ${h.schopnosti?.length ? `<p class="text-sm text-gray-400 mb-1"><strong>Schopnosti:</strong> ${h.schopnosti.map(s => escapeHtml(s)).join(', ')}</p>` : ''}
@@ -1075,7 +1313,7 @@ function renderDetailThreats(hrozby, pools) {
               <div class="text-sm text-gray-400 mb-1">
                 <strong>Útoky:</strong>
                 <ul class="ml-4 mt-1 space-y-0.5">
-                  ${h.utoky.map(u => `<li class="text-gray-300">▸ ${escapeHtml(formatUtok(u))}</li>`).join('')}
+                  ${h.utoky.map(u => `<li class="text-gray-300">\u{25B8} ${escapeHtml(formatUtok(u))}</li>`).join('')}
                 </ul>
               </div>` : ''}
             ${threatHasField(h.typ, 'zivoty') && h.zivoty ? `<span class="text-xs text-gray-500 mr-3">Životy: ${h.zivoty}</span>` : ''}
@@ -1086,6 +1324,11 @@ function renderDetailThreats(hrozby, pools) {
                 <ul class="ml-4 mt-1 space-y-0.5">
                   ${h.tahy.map(t => `<li class="text-gray-300">! ${escapeHtml(t)}</li>`).join('')}
                 </ul>
+              </div>` : ''}
+            ${h.tahNaMiru ? `
+              <div class="text-sm mt-2 bg-amber-900/20 border border-amber-700/30 rounded p-3">
+                <strong class="text-amber-400/80">Tah na míru:</strong>
+                <p class="text-amber-200/70 mt-1 text-xs leading-relaxed">${escapeHtml(h.tahNaMiru)}</p>
               </div>` : ''}
           </div>
         `).join('')}
@@ -1157,13 +1400,30 @@ function renderEditView() {
           </button>
         </div>
         <div class="space-y-2">
-          ${COUNTDOWN_FIELDS.map(f => `
-            <div class="flex items-center gap-3">
-              <label class="text-sm text-gray-400 min-w-[100px]">${f.label}</label>
-              <input type="text" id="gen-odpocet-${f.key}" value="${escapeHtml(m.odpocet?.[f.key] || '')}"
-                class="flex-1 bg-black/30 border border-white/10 rounded px-3 py-1.5 text-sm focus:border-orange-700/50 focus:outline-none" placeholder="Co se stane...">
-            </div>
-          `).join('')}
+          ${COUNTDOWN_FIELDS.map(f => {
+            if (f.key === 'pulnoc') {
+              const val = typeof m.odpocet?.[f.key] === 'string'
+                ? m.odpocet[f.key]
+                : getCountdownPhaseText(m.odpocet?.[f.key]);
+              return `<div class="flex items-center gap-3">
+                <label class="text-sm text-gray-400 min-w-[100px]">${f.label}</label>
+                <input type="text" id="gen-odpocet-${f.key}" value="${escapeHtml(val || '')}"
+                  class="flex-1 bg-black/30 border border-white/10 rounded px-3 py-1.5 text-sm focus:border-orange-700/50 focus:outline-none" placeholder="Finále...">
+              </div>`;
+            }
+            const phase = normalizeCountdownPhase(m.odpocet?.[f.key]);
+            return `<div class="flex items-start gap-3">
+              <label class="text-sm text-gray-400 min-w-[100px] pt-1.5">${f.label}</label>
+              <div class="flex-1 grid grid-cols-3 gap-2">
+                <input type="text" id="gen-odpocet-${f.key}-projev" value="${escapeHtml(phase.projev)}"
+                  class="bg-black/30 border border-purple-700/30 rounded px-2 py-1.5 text-sm text-purple-300 focus:border-purple-500/50 focus:outline-none" placeholder="Projev...">
+                <input type="text" id="gen-odpocet-${f.key}-akce" value="${escapeHtml(phase.akce)}"
+                  class="bg-black/30 border border-red-700/30 rounded px-2 py-1.5 text-sm text-red-300 focus:border-red-500/50 focus:outline-none" placeholder="Akce...">
+                <input type="text" id="gen-odpocet-${f.key}-kontext" value="${escapeHtml(phase.kontext)}"
+                  class="bg-black/30 border border-blue-700/30 rounded px-2 py-1.5 text-sm text-blue-300 focus:border-blue-500/50 focus:outline-none" placeholder="Kontext...">
+              </div>
+            </div>`;
+          }).join('')}
         </div>
       </section>
 
@@ -1258,6 +1518,28 @@ function renderThreatEditor(threat, index) {
           class="w-full bg-black/30 border border-white/10 rounded px-2 py-1.5 text-sm focus:outline-none" placeholder="Motivace hrozby">
       </div>
 
+      ${threat.typ === ThreatType.PRIHLIZEJICI ? `
+      <div class="mt-3">
+        <label class="block text-xs text-gray-500 mb-1">Co ví <span class="text-gray-600">(každý řádek = 1 znalost)</span></label>
+        <textarea rows="2" oninput="window.mysteryGenerator.updateThreatLines(${index}, 'vedi', this.value)"
+          class="w-full bg-black/30 border border-white/10 rounded px-2 py-1.5 text-sm focus:outline-none resize-y"
+          placeholder="Viděl podivnou postavu...">${(threat.vedi || []).join('\n')}</textarea>
+      </div>` : ''}
+
+      ${threat.typ === ThreatType.LOKALITA ? `
+      <div class="mt-3">
+        <label class="block text-xs text-gray-500 mb-1">Stopy na místě <span class="text-gray-600">(každý řádek = 1 stopa)</span></label>
+        <textarea rows="2" oninput="window.mysteryGenerator.updateThreatLines(${index}, 'stopy', this.value)"
+          class="w-full bg-black/30 border border-white/10 rounded px-2 py-1.5 text-sm focus:outline-none resize-y"
+          placeholder="Na podlaze jsou stopy...">${(threat.stopy || []).join('\n')}</textarea>
+      </div>
+      <div class="mt-3">
+        <label class="block text-xs text-gray-500 mb-1">Tah na míru</label>
+        <textarea rows="3" oninput="window.mysteryGenerator.updateThreat(${index}, 'tahNaMiru', this.value)"
+          class="w-full bg-black/30 border border-white/10 rounded px-2 py-1.5 text-sm focus:outline-none resize-y"
+          placeholder="Když [trigger], hoď si +[stat]...">${escapeHtml(threat.tahNaMiru || '')}</textarea>
+      </div>` : ''}
+
       ${threat.typ === ThreatType.PRISERA ? `
       <div class="mt-3">
         <label class="block text-xs text-gray-500 mb-1">Slabina <span class="text-red-400">*</span></label>
@@ -1329,8 +1611,15 @@ function collectFormData() {
   currentMystery.navnada = document.getElementById('gen-navnada')?.value || '';
 
   COUNTDOWN_FIELDS.forEach(f => {
-    const el = document.getElementById(`gen-odpocet-${f.key}`);
-    if (el) currentMystery.odpocet[f.key] = el.value;
+    if (f.key === 'pulnoc') {
+      const el = document.getElementById(`gen-odpocet-${f.key}`);
+      if (el) currentMystery.odpocet[f.key] = el.value;
+    } else {
+      const projev = document.getElementById(`gen-odpocet-${f.key}-projev`)?.value || '';
+      const akce = document.getElementById(`gen-odpocet-${f.key}-akce`)?.value || '';
+      const kontext = document.getElementById(`gen-odpocet-${f.key}-kontext`)?.value || '';
+      currentMystery.odpocet[f.key] = { projev, akce, kontext };
+    }
   });
 
   return currentMystery;
@@ -1346,10 +1635,16 @@ function mysteryToText(m) {
   if (m.navnada) { lines.push(`NÁVNADA: ${m.navnada}`); lines.push(''); }
 
   // Odpočet
-  if (m.odpocet && COUNTDOWN_FIELDS.some(f => m.odpocet[f.key])) {
+  if (m.odpocet && COUNTDOWN_FIELDS.some(f => {
+    const val = m.odpocet[f.key];
+    return val && (typeof val === 'string' ? val : getCountdownPhaseText(val));
+  })) {
     lines.push('--- ODPOČET ---');
     COUNTDOWN_FIELDS.forEach(f => {
-      if (m.odpocet[f.key]) lines.push(`${f.label}: ${m.odpocet[f.key]}`);
+      const val = m.odpocet[f.key];
+      if (!val) return;
+      const text = typeof val === 'string' ? val : getCountdownPhaseText(val);
+      if (text) lines.push(`${f.label}: ${text}`);
     });
     lines.push('');
   }
@@ -1363,6 +1658,14 @@ function mysteryToText(m) {
       if (h.motivace) lines.push(`  MOTIVACE: ${h.motivace}`);
       if (h.slabina) lines.push(`  SLABINA: ${h.slabina}`);
       if (h.stopaKSlabine) lines.push(`  STOPA: ${h.stopaKSlabine}`);
+      if (h.vedi?.length) {
+        lines.push('  CO VÍ:');
+        h.vedi.forEach(v => lines.push(`    \u{2192} ${v}`));
+      }
+      if (h.stopy?.length) {
+        lines.push('  STOPY NA MÍSTĚ:');
+        h.stopy.forEach(s => lines.push(`    \u{1F50D} ${s}`));
+      }
       if (h.schopnosti?.length) lines.push(`  SCHOPNOSTI: ${h.schopnosti.join(', ')}`);
       if (h.utoky?.length) {
         lines.push('  ÚTOKY:');
@@ -1373,6 +1676,9 @@ function mysteryToText(m) {
       if (h.tahy?.length) {
         lines.push('  TAHY HROZBY:');
         h.tahy.forEach(t => lines.push(`    ! ${t}`));
+      }
+      if (h.tahNaMiru) {
+        lines.push(`  TAH NA MÍRU: ${h.tahNaMiru}`);
       }
     });
   }
@@ -1659,6 +1965,12 @@ window.mysteryGenerator = {
   updateThreatArray(index, field, value) {
     if (!currentMystery?.hrozby[index]) return;
     currentMystery.hrozby[index][field] = value.split(',').map(s => s.trim()).filter(Boolean);
+  },
+
+  updateThreatLines(index, field, value) {
+    if (!currentMystery?.hrozby[index]) return;
+    currentMystery.hrozby[index][field] = value.split('\n').filter(l => l.trim());
+    saveMystery(currentMystery);
   },
 
   updateThreatUtoky(index, value) {

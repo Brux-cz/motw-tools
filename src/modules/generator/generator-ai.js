@@ -4,7 +4,7 @@
  */
 
 import { callAI } from '../ai/client.js';
-import { createMystery, createThreat, createCountdown, ThreatType } from './model.js';
+import { createMystery, createThreat, createCountdown, ThreatType, normalizeCountdownPhase, getCountdownPhaseText } from './model.js';
 import threatsData from '../../data/threats.json';
 
 // ─── Helpers ───────────────────────────────────────────────────
@@ -207,5 +207,11 @@ Vrať JSON objekt:
   });
 
   const data = parseJSON(response);
-  return createCountdown(data);
+  // Normalize: AI returns strings, convert to structured format
+  const result = {};
+  for (const key of ['den', 'priseri', 'zapad_slunce', 'soumrak', 'noc']) {
+    result[key] = normalizeCountdownPhase(data[key]);
+  }
+  result.pulnoc = typeof data.pulnoc === 'string' ? data.pulnoc : getCountdownPhaseText(data.pulnoc);
+  return result;
 }

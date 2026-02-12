@@ -48,6 +48,9 @@ export function createThreat(overrides = {}) {
     zbroj: 0,
     slabina: '',
     stopaKSlabine: '',
+    vedi: [],
+    stopy: [],
+    tahNaMiru: '',
     tahy: [],
     mustek: '',
     ...overrides
@@ -67,6 +70,20 @@ export function createCountdown(overrides = {}) {
     pulnoc: '',
     ...overrides
   };
+}
+
+/** Normalize a countdown phase — old string → structured object */
+export function normalizeCountdownPhase(phase) {
+  if (!phase) return { projev: '', akce: '', kontext: '' };
+  if (typeof phase === 'string') return { projev: phase, akce: '', kontext: '' };
+  return { projev: phase.projev || '', akce: phase.akce || '', kontext: phase.kontext || '' };
+}
+
+/** Get display text for a countdown phase (joined non-empty slots) */
+export function getCountdownPhaseText(phase) {
+  if (!phase) return '';
+  if (typeof phase === 'string') return phase;
+  return [phase.projev, phase.akce, phase.kontext].filter(Boolean).join(' ');
 }
 
 /**
