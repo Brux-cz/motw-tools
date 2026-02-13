@@ -1902,7 +1902,11 @@ window.mysteryGenerator = {
 
   async copyToClipboard() {
     if (!currentMystery) return;
-    const text = mysteryToText(currentMystery);
+    let source = currentMystery;
+    if (showOriginal && currentMystery._original) {
+      source = { ...currentMystery, ...currentMystery._original, narativ: '' };
+    }
+    const text = mysteryToText(source);
     try {
       await navigator.clipboard.writeText(text);
       window.showToast({ message: 'Záhada zkopírována do schránky', type: 'success' });
